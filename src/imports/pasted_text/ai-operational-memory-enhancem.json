@@ -1,0 +1,193 @@
+Enhance the Workflow Agent and Automation Command Center with an AI Operational Memory system.
+
+Important constraints:
+- Do not change the existing UI design system.
+- Preserve the current Command Center layout.
+- Preserve AiBox style from the Agent Detail page.
+- Do not modify Watch Center UI.
+
+The goal is to allow the Workflow Agent to understand the entire automation environment instead of only the currently open workflow.
+
+---
+
+SECTION 1 — ADD AI SYSTEM INSIGHTS PANEL
+
+Inside the Automation Command Center add a new panel above Optimization Opportunities.
+
+Title:
+AI System Insights
+
+This panel should highlight the most important operational observations.
+
+Examples:
+
+Approval bottleneck detected across 3 workflows  
+Slack notification failures increasing in the past 24 hours  
+Asset Discovery workflow runs slower than average
+
+Each insight should include:
+
+Affected workflows  
+Impact description  
+Suggested improvement
+
+Actions:
+View Workflows  
+Ask AI  
+Apply Fix
+
+---
+
+SECTION 2 — PRIORITIZE OPTIMIZATION OPPORTUNITIES
+
+Improve the Optimization Opportunities section by grouping suggestions.
+
+Groups:
+
+Reliability Improvements  
+Performance Improvements  
+Governance Improvements
+
+Example:
+
+Reliability Improvements
+Add retry logic to Slack notifications
+
+Performance Improvements
+Replace polling trigger with scheduled run
+
+Governance Improvements
+Add audit logging for compliance workflows
+
+This grouping improves scanability and actionability.
+
+---
+
+SECTION 3 — ADD AI PRIORITY INDICATOR
+
+Inside the Command Center show a small priority badge for issues.
+
+Priority levels:
+
+High  
+Medium  
+Low
+
+Example:
+
+High Priority
+Approval bottleneck in Vulnerability Remediation Flow
+
+Medium Priority
+Slack notification retries recommended
+
+Low Priority
+Polling trigger replacement suggestion
+
+---
+
+SECTION 4 — ENABLE AI SYSTEM QUESTIONS
+
+The Workflow Agent AiBox should be able to answer system-level questions.
+
+Examples:
+
+Which workflows fail most often?
+Which workflow takes the longest to complete?
+Which step causes the most delays?
+What should I optimize first?
+
+The AI must analyze:
+
+workflow runs  
+failures  
+approval delays  
+step execution time
+
+and respond with structured insights.
+
+---
+
+SECTION 5 — ADD AI WORKFLOW HEALTH RANKING
+
+Inside the Command Center introduce a compact workflow health ranking.
+
+Example:
+
+Workflow Health
+
+Critical Alert Auto-Response — Healthy  
+Vulnerability Remediation Flow — Warning  
+Risk Escalation Pipeline — Critical
+
+This ranking should be based on:
+
+failure rate  
+delays  
+AI-detected issues
+
+---
+
+SECTION 6 — IMPROVE WORKFLOW AGENT CONTEXT
+
+When the Workflow Agent is opened while viewing a workflow, the agent must automatically understand:
+
+current workflow  
+workflow steps  
+run history  
+detected issues
+
+This allows commands like:
+
+Optimize this workflow  
+Explain this workflow  
+Why does this step fail?  
+Simulate failure scenario
+
+The AI should not require manual selection.
+
+---
+
+SECTION 7 — IMPROVE EMPTY WORKFLOW CREATION SCREEN
+
+When creating a new workflow, improve the empty state.
+
+Instead of showing only a placeholder, show suggested starting triggers:
+
+Watch Center Alert  
+Vulnerability Detected  
+Asset Discovered  
+Scheduled Workflow  
+Manual Trigger
+
+These should appear as clickable options.
+
+---
+
+SECTION 8 — ADD AI REASONING EXPANDER
+
+Inside AI Understanding blocks add an expandable reasoning section.
+
+Example:
+
+AI Understanding
+Trigger — Watch Center Critical Alert
+Action — Create Investigation Case
+
+Show Reasoning
+
+Reasoning explains why these steps were chosen.
+
+This improves transparency.
+
+---
+
+SECTION 9 — FINAL RESULT
+
+After this improvement:
+
+The Workflow Agent becomes aware of the entire automation environment.
+
+Users can ask operational questions about automation performance.
+
+Command Center becomes a true AI-driven automation control surface rather than just a dashboard.

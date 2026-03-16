@@ -1,0 +1,254 @@
+Enhance the Workflows module by introducing an AI Automation Command Center inside Workspace.
+
+Important constraints:
+- Do not create a new top-level page.
+- Do not change the global design system, colors, or card styles.
+- Keep Workflows limited to the existing Workspace and Library tabs.
+- Reuse existing cards, tables, badges, charts, and AiBox styling.
+
+The goal is to create an operational dashboard inside Workflows → Workspace that acts as the control center for workflow activity and AI automation insights.
+
+---
+
+SECTION 1 — COMMAND CENTER INSIDE WORKSPACE
+
+Inside the Workspace tab, add a new default dashboard section at the top called:
+
+Automation Command Center
+
+This is not a separate page.
+It is the top operational view inside Workspace.
+
+It should summarize workflow activity and health before the workflow list.
+
+---
+
+SECTION 2 — TOP KPI CARDS
+
+At the top of the Command Center display KPI cards for:
+
+Active Workflows  
+Failed Runs Today  
+Pending Approvals  
+Optimization Opportunities
+
+Example:
+
+Active Workflows
+24
+
+Failed Runs Today
+3
+
+Pending Approvals
+5
+
+Optimization Opportunities
+8
+
+Reuse the existing KPI card style already used in the platform.
+
+---
+
+SECTION 3 — LIVE WORKFLOW ACTIVITY
+
+Add a card titled:
+
+Live Workflow Activity
+
+Display a compact activity feed showing recent events.
+
+Examples:
+
+Critical Alert Auto-Response started
+Vulnerability Remediation Flow failed on Jira step
+Compliance Check Automation completed
+Asset Discovery Enrichment awaiting approval
+
+Each item should include:
+- workflow name
+- short event description
+- timestamp
+- status badge
+
+---
+
+SECTION 4 — AI DIAGNOSTICS SUMMARY
+
+Add a card titled:
+
+AI Diagnostics Summary
+
+Display top issues detected by AI across workflows.
+
+Examples:
+
+Slack notification failures seen in 3 runs  
+Approval bottleneck in Vulnerability Remediation Flow  
+Missing Jira authentication in Risk Escalation Pipeline
+
+Each issue should show:
+
+Issue title  
+Affected workflow  
+Suggested fix  
+Action buttons
+
+Actions:
+Open Run
+Ask AI
+Apply Fix
+
+---
+
+SECTION 5 — OPTIMIZATION OPPORTUNITIES
+
+Add a card titled:
+
+Optimization Opportunities
+
+This section should show AI-generated suggestions across all workflows.
+
+Examples:
+
+Add retry logic to Slack notification steps  
+Add escalation if approval exceeds 30 minutes  
+Add audit logging for compliance workflows  
+Replace polling trigger with scheduled run
+
+Each suggestion must include:
+- affected workflow
+- short reason
+- Apply action
+- Ignore action
+
+Applying a suggestion updates the workflow.
+
+---
+
+SECTION 6 — FAILED RUNS PANEL
+
+Add a compact table or list titled:
+
+Recent Failed Runs
+
+Columns:
+
+Workflow  
+Failed Step  
+Time  
+Status  
+Actions
+
+Actions:
+View Diagnostics
+Retry
+Ask AI
+
+This panel should act as the fast entry point into AI Run Diagnostics.
+
+---
+
+SECTION 7 — PENDING APPROVALS PANEL
+
+Add a compact panel titled:
+
+Pending Approvals
+
+Show approval requests that are blocking workflows.
+
+Each row includes:
+
+Workflow name  
+Approval step name  
+Time waiting  
+Approve button  
+Reject button
+
+Keep this lightweight and operational.
+
+Do not create a separate Approvals page.
+
+---
+
+SECTION 8 — AI COMMAND ENTRY
+
+At the top-right of the Command Center area add a compact AiBox entry surface.
+
+Placeholder text:
+
+Ask AI about workflow performance, failures, or improvements...
+
+Examples:
+Which workflows fail the most?
+What should I optimize first?
+Why is approval taking so long?
+Which workflow has the highest failure rate?
+
+This AI entry should provide quick insights about the automation system.
+
+Do not create a full separate chatbot page.
+
+---
+
+SECTION 9 — COMMAND CENTER FILTERS
+
+Add lightweight filters for the dashboard:
+
+Status  
+Workflow  
+Date Range
+
+These should refine:
+- activity feed
+- failed runs
+- pending approvals
+- optimization suggestions
+
+Reuse existing filter components.
+
+---
+
+SECTION 10 — WORKFLOW HEALTH OVERVIEW
+
+Add a card titled:
+
+Workflow Health Overview
+
+This can be a compact chart or summary with:
+
+Healthy  
+Warning  
+Critical
+
+Map workflows into those categories based on failures, delays, and AI-detected issues.
+
+---
+
+SECTION 11 — DO NOT BREAK EXISTING WORKSPACE
+
+Keep the current Workspace structure intact.
+
+Below the Automation Command Center, retain:
+- workflow list
+- search
+- filters
+- workflow cards
+- left-side Workspace navigation
+
+The Command Center is an enhancement above the current content, not a replacement.
+
+---
+
+SECTION 12 — FINAL RESULT
+
+After this change, Workflows → Workspace becomes the operational control center for automation.
+
+Users can:
+- monitor workflow health
+- review failed runs
+- see pending approvals
+- apply AI optimization suggestions
+- ask AI for workflow insights
+
+without leaving the Workflows module.

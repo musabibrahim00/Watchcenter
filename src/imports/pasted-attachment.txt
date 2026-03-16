@@ -1,0 +1,341 @@
+Create a new top-level page called “Workflows”.
+
+Important:
+This page must reuse the existing product design system already implemented in the platform.
+
+Do NOT generate new colors, cards, or visual styles.
+
+Reuse the exact tokens and components already used across:
+• Watch Center
+• Attack Path
+• Asset Register
+• Case Management
+• Risk Register
+
+Specifically reuse:
+• Sidebar component
+• Card component
+• Primary button styles
+• Input fields
+• Dropdown styles
+• Table system
+• Border colors
+• Background colors
+• Hover states
+
+Do not introduce any new visual styles.
+
+---
+
+PAGE PURPOSE
+
+Design a no-code Workflow Builder where operational users can visually build automations.
+
+The builder should support:
+
+Trigger  
+Input  
+Action  
+Logic  
+Approval / Checkpoint  
+Output
+
+The experience must feel operational and visual, not developer-centric.
+
+Code editing should exist but remain secondary.
+
+---
+
+PAGE LAYOUT
+
+Use the same global application layout used in all existing modules.
+
+Layout structure:
+
+Sidebar (shared component)
+Main content area
+
+Inside the main content area create a 3-column structure:
+
+Left section:
+Workflow canvas
+
+Right section:
+Configuration panel
+
+Top section:
+Workflow header
+
+---
+
+TOP HEADER
+
+Reuse the same header structure used in other modules.
+
+Left side:
+Page title: Workflows
+
+Below the title show the editable workflow name field.
+
+Example:
+Mock Flow
+
+Right side actions:
+Test Flow button
+Publish button
+
+Use the existing primary button styles.
+
+---
+
+WORKFLOW CANVAS
+
+The center area is the visual workflow builder.
+
+Reuse the same card design system used across the platform.
+
+Canvas background:
+Use the same dark background already used across pages.
+
+Add a subtle dotted grid pattern similar to the Attack Path canvas.
+
+Workflow flows vertically from top to bottom.
+
+Starter workflow should contain:
+
+Trigger  
+↓  
+Input  
+↓  
+Output
+
+Each step is displayed as a reusable node card.
+
+---
+
+NODE CARD STYLE
+
+Node cards must reuse the existing Card component.
+
+Use the same card tokens:
+
+Background: #050B11  
+Hover: #071019  
+Border: #0E1C26  
+
+Structure of a node card:
+
+Icon on left  
+Node title  
+Short helper text  
+
+Examples:
+
+Trigger
+Click to add a trigger
+
+Input
+Click to configure input parameters
+
+Output
+
+Nodes should show hover states and active highlight using the existing blue accent.
+
+---
+
+WORKFLOW CONNECTORS
+
+Nodes connect vertically using thin connector lines.
+
+Connector style:
+Subtle line using existing border color tokens.
+
+Between nodes show a small “+” button used to insert a new step.
+
+Clicking the + button opens the module selection panel on the right.
+
+---
+
+RIGHT CONFIGURATION PANEL
+
+The right panel must reuse the existing panel / card styling.
+
+Default state:
+
+Title:
+Select Module Type
+
+Below title add a search bar using the shared input component.
+
+Below search show a list of module types.
+
+Each module type should be a clickable card row using the same card style.
+
+Modules include:
+
+Action
+Execute a prebuilt or custom script inline.
+
+Trigger
+Wait for an event or condition before continuing.
+
+Checkpoint
+Pause workflow for human review or input.
+
+Flow
+Reuse an existing workflow as a subflow.
+
+For Loop
+Repeat actions for each item in a list.
+
+While Loop
+Run actions repeatedly while condition remains true.
+
+Branch to One
+Continue with a single path matching set conditions.
+
+Branch to All
+Continue through multiple paths in parallel.
+
+Each row includes:
+Icon
+Title
+Short description
+Chevron on right
+
+---
+
+ACTION MODULE SELECTION
+
+When the user selects “Action”, update the right panel.
+
+New title:
+Select Action Module
+
+Add tabs:
+
+New Script
+Workspace
+Library
+
+Below tabs add a search field.
+
+Below search show a list of available actions.
+
+Examples:
+
+Post a note to the team channel  
+Drop a message in the project chat  
+Send an update to the collaboration space  
+Send message to slack channel  
+Notify the team in the Slack workspace  
+
+Selecting an item inserts the Action node into the canvas.
+
+---
+
+ACTION CONFIGURATION
+
+After selecting an action, the right panel switches to configuration mode.
+
+Top section:
+
+Module icon
+Module name input
+Tag dropdown
+Save to workspace button
+Expand code editor toggle
+
+Below that show configuration tabs:
+
+Step Input
+Advanced
+
+Step Input shows configurable fields.
+
+Example fields:
+
+Slack (object)
+Channel (string)
+Message (string)
+
+Each input field must support:
+
+Static input
+Variable binding
+Formula mode
+
+Reuse the existing input field components.
+
+---
+
+NODE UPDATE
+
+Once an action is selected, update the canvas node.
+
+Example:
+
+Action
+Send message to slack channel
+
+or
+
+Action
+Inline Python
+
+---
+
+BOTTOM TOOLBAR
+
+Add a floating bottom toolbar on the canvas.
+
+Reuse the same button styling used across the app.
+
+Toolbar actions:
+
+Run
+Test
+Event
+Duplicate
+Delete
+More options
+
+---
+
+INTERACTION RULES
+
+Clicking + connector opens module selector.
+
+Selecting a module inserts a node in the canvas.
+
+Selecting a node updates the configuration panel.
+
+Editing fields updates node summary.
+
+---
+
+DESIGN SYSTEM RULE
+
+Every component must reuse existing components.
+
+Do not generate new components.
+
+Reuse existing:
+
+Sidebar  
+Cards  
+Buttons  
+Inputs  
+Dropdowns  
+Icons  
+Typography  
+
+All spacing and typography must match the rest of the product.
+
+---
+
+FINAL RESULT
+
+The Workflows page should feel like a native module inside the platform.
+
+It should provide a polished no-code automation builder while maintaining full visual consistency with the rest of the application.
