@@ -18,6 +18,10 @@ import {
   MessageBubble as SharedMessageBubble,
   WelcomeScreen as SharedWelcomeScreen,
   ChatInput as SharedChatInput,
+  classifyActionIntent,
+  matchAction,
+  ActionCard,
+  type ActionCardData,
 } from "./AiBoxShared";
 
 /* ═══════════════════════════════════════════════════════════
@@ -247,7 +251,7 @@ const Teammate = React.memo(function Teammate() {
 const StatusIndicator = React.memo(function StatusIndicator({ hasProactive }: { hasProactive?: boolean }) {
   if (hasProactive) {
     return (
-      <div className="flex items-center gap-[4px] px-[6px] py-[2px] rounded-[4px]"
+      <div className="flex items-center gap-[2px] px-[6px] py-[2px] rounded-[4px]"
         style={{ background: "rgba(240,91,6,0.10)", border: "1px solid rgba(240,91,6,0.24)" }}>
         <span className="relative size-[6px] shrink-0">
           <span className="absolute inset-0 rounded-full bg-[#F05B06]" style={{ animation: "proactivePulse 2s ease-in-out infinite" }}/>
@@ -310,12 +314,12 @@ const ProactiveCard = React.memo(function ProactiveCard({ scenario, onDismiss }:
             <span className="font-['Inter:Medium',sans-serif] text-[8px] leading-[11px] uppercase tracking-wider" style={{ color: colors.text }}>
               System recommendation
             </span>
-            <span className="font-['Inter:Regular',sans-serif] text-[8px] leading-[11px] text-[#4a5568]">&mdash;</span>
-            <span className="font-['Inter:Regular',sans-serif] text-[8px] leading-[11px] text-[#4a5568] truncate">{scenario.source}</span>
+            <span className="font-['Inter:Regular',sans-serif] text-[12px] leading-[11px] text-[#4a5568]">&mdash;</span>
+            <span className="font-['Inter:Regular',sans-serif] text-[12px] leading-[11px] text-[#4a5568] truncate">{scenario.source}</span>
           </div>
           <div className="flex items-center gap-[6px] shrink-0">
             {scenario.score > 0 && (
-              <span className="font-['Inter:Medium',sans-serif] text-[7px] leading-[10px] px-[4px] py-[1px] rounded-[3px]"
+              <span className="font-['Inter:Medium',sans-serif] text-[12px] leading-[10px] px-[4px] py-[1px] rounded-[3px]"
                 style={{ color: colors.text, background: `${colors.dot}14` }}>
                 P{scenario.score}
               </span>
@@ -327,7 +331,7 @@ const ProactiveCard = React.memo(function ProactiveCard({ scenario, onDismiss }:
         </div>
         {/* Event label */}
         <div className="px-[10px] pt-[6px] pb-[4px]">
-          <p className="font-['Inter:Medium',sans-serif] text-[10px] leading-[14px] text-[#dadfe3]">{scenario.label}</p>
+          <p className="font-['Inter:Medium',sans-serif] text-[12px] leading-[14px] text-[#dadfe3]">{scenario.label}</p>
         </div>
         {/* Module cards */}
         <div className="px-[8px] pb-[8px] flex flex-col gap-[6px]">
@@ -358,7 +362,7 @@ const TaskGraphBubble = React.memo(function TaskGraphBubble({ taskGraph }: { tas
           <div className="flex items-center gap-[6px] mb-[8px]">
             <svg className="size-[11px]" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h10" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round"/></svg>
             <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[10px] leading-[13px] text-[#62707D] uppercase tracking-wider">Processing</span>
-            {allDone && <span className="ml-auto font-['Inter:Medium',sans-serif] text-[9px] leading-[12px] text-[#10b981]">Complete</span>}
+            {allDone && <span className="ml-auto font-['Inter:Medium',sans-serif] text-[10px] leading-[12px] text-[#10b981]">Complete</span>}
           </div>
           <div className="flex flex-col">
             {nodes.map((node, i) => (
@@ -369,7 +373,7 @@ const TaskGraphBubble = React.memo(function TaskGraphBubble({ taskGraph }: { tas
                 </div>
                 <div className={i < nodes.length - 1 ? "pb-[8px]" : ""}>
                   <p className={`font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[13px] transition-colors duration-300 ${node.status === "done" ? "text-[#89949e]" : node.status === "running" ? "text-[#dadfe3]" : "text-[#3a4754]"}`}>{node.label}</p>
-                  {node.agent && <p className={`font-['Inter:Regular',sans-serif] font-normal text-[9px] leading-[11px] mt-[1px] transition-colors duration-300 ${node.status === "done" ? "text-[#3a4754]" : node.status === "running" ? "text-[#3b82f6]" : "text-[#2a3544]"}`}>{node.agent}</p>}
+                  {node.agent && <p className={`font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[11px] mt-[1px] transition-colors duration-300 ${node.status === "done" ? "text-[#3a4754]" : node.status === "running" ? "text-[#3b82f6]" : "text-[#2a3544]"}`}>{node.agent}</p>}
                 </div>
               </div>
             ))}
@@ -380,7 +384,7 @@ const TaskGraphBubble = React.memo(function TaskGraphBubble({ taskGraph }: { tas
   );
 });
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════��═══════════════════════════════
    Message Rendering — uses shared MessageBubble with taskGraphRenderer
    ═══════════════════════════════════════════════════════════ */
 
@@ -465,6 +469,17 @@ export default function AiBox() {
   const scroll = React.useCallback(() => { setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 50); }, []);
   React.useEffect(() => { scroll(); }, [messages, isTyping, proactiveScenario, scroll]);
   React.useEffect(() => () => { timersRef.current.forEach(clearTimeout); }, []);
+
+  /* ── External query injection bridge ── */
+  const sendRef = React.useRef<((text: string) => void) | null>(null);
+  React.useEffect(() => {
+    const handler = (e: Event) => {
+      const query = (e as CustomEvent).detail?.query;
+      if (query && sendRef.current) sendRef.current(query);
+    };
+    window.addEventListener("aibox-inject-query", handler);
+    return () => window.removeEventListener("aibox-inject-query", handler);
+  }, []);
 
   /* ── Pick the highest-scored non-dismissed scenario ── */
   const pickTopScenario = React.useCallback((): ProactiveScenario | null => {
@@ -678,6 +693,41 @@ export default function AiBox() {
       return;
     }
 
+    /* ── Action Model — detect Act-type queries and render ActionCard ── */
+    const actionType = classifyActionIntent(msg);
+    if (actionType === "act") {
+      const actionData = matchAction(msg);
+      if (actionData) {
+        setMessages(p => [...p, userMsg]);
+        setIsTyping(true);
+        const t = setTimeout(() => {
+          const handleModify = (data: ActionCardData, _refinement: string) => {
+            const agentModifyMsg: ChatMessage = {
+              id: crypto.randomUUID(),
+              role: "agent",
+              text: `You'd like to modify **${data.title}**. You can refine:\n\n${data.parameters.filter(p => p.editable).map(p => `• **${p.label}**: currently "${p.value}"`).join("\n")}\n\nTell me what to change.`,
+              timestamp: new Date(),
+            };
+            setMessages(prev => [...prev, agentModifyMsg]);
+          };
+          const actionUI = (
+            <ActionCard
+              data={actionData}
+              onModify={handleModify}
+            />
+          );
+          setMessages(p => [
+            ...p,
+            { id: crypto.randomUUID(), role: "agent", text: "I've prepared the following action. Review the parameters and click **Run** to execute, or **Modify** to adjust.", timestamp: new Date() },
+            { id: crypto.randomUUID(), role: "agent", text: "", timestamp: new Date(), renderedUI: actionUI },
+          ]);
+          setIsTyping(false);
+        }, 600);
+        timersRef.current = [t];
+        return;
+      }
+    }
+
     const intent = classifyIntent(msg);
     const rawNodes = TASK_GRAPHS[intent] || TASK_GRAPHS.default;
     const nodes: TaskNode[] = rawNodes.map(n => ({ ...n, status: "pending" as const }));
@@ -710,7 +760,11 @@ export default function AiBox() {
     }, nodes.length * STEP_MS + 350));
 
     timersRef.current = ts;
+    sendRef.current = send;
   }, [inputValue, isTyping, proactiveScenario, scheduleNextProactive]);
+
+  /* ── Keep sendRef in sync for external injection ── */
+  React.useEffect(() => { sendRef.current = send; }, [send]);
 
   const onSend = React.useCallback(() => send(), [send]);
   const hasProactive = !!proactiveScenario;
@@ -722,7 +776,7 @@ export default function AiBox() {
           <AiBoxHeader hasProactive={hasProactive}/>
           <ChatArea messages={messages} isTyping={isTyping} onSuggestionClick={send} onAction={handleAction} messagesEndRef={endRef}
             proactiveScenario={proactiveScenario} onDismissProactive={dismissProactive}/>
-          <SharedChatInput inputValue={inputValue} onInputChange={setInputValue} onSend={onSend} sendIcon={AiBoxSendIcon} sendButtonSize={48} sendButtonRadius={12}/>
+          <SharedChatInput inputValue={inputValue} onInputChange={setInputValue} onSend={onSend} placeholder="Ask about threats, agents, or investigations..." sendIcon={AiBoxSendIcon} sendButtonSize={48} sendButtonRadius={12}/>
         </div>
         <div aria-hidden="true" className="absolute border border-[rgba(87,177,255,0.16)] border-solid inset-0 pointer-events-none rounded-[16px]"/>
       </div>

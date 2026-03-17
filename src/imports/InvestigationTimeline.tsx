@@ -111,6 +111,22 @@ function TimelineStepRow({
         >
           {action}
         </span>
+        {/* "Ask about this step" — Section 4 */}
+        {isRevealed && (
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query: `Explain what the ${analystName} did: ${action}` } }))}
+            className="mt-[2px] cursor-pointer border-none bg-transparent p-0 self-start"
+          >
+            <span
+              className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic"
+              style={{ fontSize: 8, color: "#57b1ff", letterSpacing: "0.02em", transition: "opacity 0.2s" }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = "0.7"; }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
+            >
+              Ask about this step
+            </span>
+          </button>
+        )}
       </div>
     </div>
   );

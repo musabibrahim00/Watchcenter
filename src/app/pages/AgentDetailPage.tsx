@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router";
-import { ArrowLeft, Shield, Activity, Bug, Settings2, Briefcase, FolderOpen, ClipboardCheck, ShieldCheck, ChevronLeft, ChevronRight, Bot } from "lucide-react";
+import { ArrowLeft, Shield, Activity, Bug, Settings2, Briefcase, FolderOpen, ClipboardCheck, ShieldCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Check, ChevronDown } from "lucide-react";
@@ -1352,35 +1352,22 @@ function AgentDetailInner({
   doneTodayItems: DoneTodayItem[];
 }) {
   const { investigateTask } = useTaskInvestigation();
-  const { setPageContext, openWithContext, isOpen: aiBoxOpen } = useAiBox();
+  const { openWithContext, close: closeAiBox } = useAiBox();
 
-  /* ── Push agent context to global AIBox ── */
+  /* ── Push agent context to global AIBox and auto-open ── */
   useEffect(() => {
-    const agentRole = AGENT_ROLE[id];
-    const suggestions = AGENT_SUGGESTIONS[id] || AGENT_SUGGESTIONS.alpha;
-    setPageContext({
-      type: "agent",
-      label: `${meta.label} — ${agentRole}`,
-      sublabel: "Analyst Context",
-      contextKey: `agent:${id}`,
-      greeting: `I have **${meta.label}** (${agentRole}) context loaded. I can help you understand this analyst's discoveries, tasks, and impact.`,
-      suggestions: suggestions.map(s => ({ label: s, prompt: s })),
-    });
-    return () => { setPageContext(null); };
-  }, [id, meta.label, setPageContext]);
-
-  const handleOpenAIAssistant = useCallback(() => {
     const agentRole = AGENT_ROLE[id];
     const suggestions = AGENT_SUGGESTIONS[id] || AGENT_SUGGESTIONS.alpha;
     openWithContext({
       type: "agent",
-      label: `${meta.label} — ${agentRole}`,
+      label: agentRole,
       sublabel: "Analyst Context",
       contextKey: `agent:${id}`,
-      greeting: `I have **${meta.label}** (${agentRole}) context loaded. I can help you understand this analyst's discoveries, tasks, and impact.`,
+      greeting: `I have **${agentRole}** context loaded. I can help you understand this analyst's discoveries, tasks, and impact.`,
       suggestions: suggestions.map(s => ({ label: s, prompt: s })),
     });
-  }, [id, meta.label, openWithContext]);
+    return () => { closeAiBox(); };
+  }, [id, meta.label, openWithContext, closeAiBox]);
 
   const handleInvestigateIntervention = useCallback((data: InterventionData) => {
     /* Map intervention to a task-like investigation request */
@@ -1422,22 +1409,6 @@ function AgentDetailInner({
     >
       {/* Watch Center background */}
       <WatchCenterBg />
-
-      {/* AI Assistant toggle — opens global AIBox with agent context */}
-      {!aiBoxOpen && (
-        <button
-          onClick={handleOpenAIAssistant}
-          className="fixed right-[24px] bottom-[24px] z-[10] size-[44px] rounded-full flex items-center justify-center transition-all cursor-pointer"
-          style={{
-            backgroundColor: colors.accent,
-            boxShadow: `0 4px 20px ${colors.accent}40`,
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.08)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
-        >
-          <Bot size={20} color="#fff" strokeWidth={2} />
-        </button>
-      )}
 
       {/* Scrollable main content */}
       <div className="overflow-y-auto h-full relative z-[1]">
@@ -1504,6 +1475,35 @@ function AgentDetailInner({
           <p className="font-['Inter',sans-serif] text-[11px] text-[#89949e] leading-[15.4px] relative">
             {taskData.description.split("\n\n")[0]}
           </p>
+        </div>
+
+        {/* Capabilities — standard-sized buttons that send queries to AIBox */}
+        <div className="relative rounded-[12px] px-[20px] py-[16px]">
+          <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[12px]" style={{ background: "rgba(5,11,17,0.6)", border: "1px solid rgba(18,30,39,0.6)" }} />
+          <div className="flex flex-col gap-[10px] relative">
+            <div className="flex items-center gap-[6px]">
+              <span className="font-['Inter',sans-serif] text-[11px] text-[#4a5568] leading-[14px] uppercase tracking-[0.4px]">Capabilities</span>
+            </div>
+            <div className="flex flex-wrap gap-[8px]">
+              {[
+                { label: "Explain findings", query: `What did the ${AGENT_ROLE[id]} discover?` },
+                { label: "Assess risk", query: `Recalculate risk score for the ${AGENT_ROLE[id]}` },
+                { label: "Trace attack path", query: `Show attack paths related to the ${AGENT_ROLE[id]}` },
+                { label: "Re-run analysis", query: `Re-run analysis for the ${AGENT_ROLE[id]}` },
+                { label: "Simulate impact", query: `Simulate blast radius for the ${AGENT_ROLE[id]} findings` },
+              ].map(cap => (
+                <button
+                  key={cap.label}
+                  onClick={() => window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: cap.query } }))}
+                  className="h-[24px] min-w-[84px] relative rounded-[6px] shrink-0 bg-[#076498] cursor-pointer hover:bg-[#0a7ab8] transition-colors border-none"
+                >
+                  <div className="content-stretch flex h-full items-center justify-center px-[12px] py-[8px]">
+                    <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] text-[#f1f3ff] text-[10px] text-center">{cap.label}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Agent Impact Panel */}

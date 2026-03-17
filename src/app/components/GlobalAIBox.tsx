@@ -9,10 +9,21 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { X, Sparkles, Lightbulb, Send, Zap } from "lucide-react";
+import { Zap } from "lucide-react";
 import { colors } from "../shared/design-system/tokens";
 import { useAiBox, type AiBoxPageContext } from "../features/ai-box";
-import { imgAvatar } from "../../imports/AiBoxShared";
+import {
+  imgAvatar,
+  MessageBubble as SharedMessageBubble,
+  TypingIndicator,
+  ChatInput as SharedChatInput,
+  type ChatMessage,
+  classifyActionIntent,
+  matchAction,
+  ActionCard,
+  type ActionCardData,
+} from "../../imports/AiBoxShared";
+import svgPaths from "../../imports/svg-sx6d9u7tbs";
 import { inferWorkflowAiState, getWorkflowPlaceholder } from "../pages/workflows/workflowAiStates";
 import {
   InsightCard,
@@ -20,15 +31,8 @@ import {
 } from "../../imports/AiBoxModules";
 
 /* ================================================================
-   TYPES
+   TYPES  (ChatMessage is imported from AiBoxShared)
    ================================================================ */
-
-interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  uiModule?: React.ReactNode;
-}
 
 /* ================================================================
    WORKFLOW PLAN TEMPLATES — step blueprints for create mode
@@ -1279,8 +1283,28 @@ function processWorkflowQuery(query: string, ctx: AiBoxPageContext): { content: 
   };
 }
 
-function processAgentQuery(query: string, ctx: AiBoxPageContext): { content: string; uiModule?: React.ReactNode } {
+function processAgentQuery(query: string, ctx: AiBoxPageContext, onModifyAction?: (data: ActionCardData, refinement: string) => void): { content: string; uiModule?: React.ReactNode } {
   const q = query.toLowerCase();
+
+  /* ── Action Model — classify intent and generate ActionCard for Act-type ── */
+  const actionIntent = classifyActionIntent(query);
+  if (actionIntent === "act") {
+    const actionData = matchAction(query, ctx.label);
+    if (actionData) {
+      return {
+        content: `I've prepared the following action based on your request. Review the parameters and click **Run** to execute, or **Modify** to adjust.`,
+        uiModule: (
+          <ActionCard
+            data={actionData}
+            onModify={onModifyAction}
+            onComplete={(completed) => {
+              // Completion is handled by the ActionCard itself
+            }}
+          />
+        ),
+      };
+    }
+  }
 
   if (q.includes("discover") || q.includes("found") || q.includes("identified") || q.includes("what did")) {
     return {
@@ -1398,7 +1422,24 @@ function processAgentQuery(query: string, ctx: AiBoxPageContext): { content: str
   };
 }
 
-function processGeneralQuery(query: string, ctx: AiBoxPageContext | null): { content: string; uiModule?: React.ReactNode } {
+function processGeneralQuery(query: string, ctx: AiBoxPageContext | null, onModifyAction?: (data: ActionCardData, refinement: string) => void): { content: string; uiModule?: React.ReactNode } {
+  /* ── Action Model — detect Act-type in general context ── */
+  const actionType = classifyActionIntent(query);
+  if (actionType === "act") {
+    const actionData = matchAction(query, ctx?.label);
+    if (actionData) {
+      return {
+        content: `I've prepared the following action based on your request. Review the parameters and click **Run** to execute, or **Modify** to adjust.`,
+        uiModule: (
+          <ActionCard
+            data={actionData}
+            onModify={onModifyAction}
+          />
+        ),
+      };
+    }
+  }
+
   const label = ctx?.label || "your request";
   return {
     content: `I understand your question about **${label}**. I'm analyzing the available context and will provide insights shortly.\n\nTry asking me about:\n• Workflow health and diagnostics\n• Analyst discoveries and findings\n• Run history and failure patterns\n• Performance optimization\n• Integration status`,
@@ -1410,9 +1451,9 @@ function processGeneralQuery(query: string, ctx: AiBoxPageContext | null): { con
    ================================================================ */
 
 export function GlobalAIBox() {
-  const { isOpen, close, pageContext } = useAiBox();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
+  const { isOpen, pageContext } = useAiBox();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputValue, setInputValue] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevContextKeyRef = useRef<string>("");
@@ -1424,18 +1465,30 @@ export function GlobalAIBox() {
 
   useEffect(() => { scrollToBottom(); }, [messages, isProcessing, scrollToBottom]);
 
+  /* ── External query injection bridge (from page capability buttons) ── */
+  const handleSendRef = useRef<((text: string) => void) | null>(null);
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const query = (e as CustomEvent).detail?.query;
+      if (query && handleSendRef.current) handleSendRef.current(query);
+    };
+    window.addEventListener("globalaibox-inject-query", handler);
+    return () => window.removeEventListener("globalaibox-inject-query", handler);
+  }, []);
+
   // Reset messages when context changes
   const contextKey = pageContext?.contextKey || pageContext?.label || "";
   useEffect(() => {
     if (contextKey === prevContextKeyRef.current) return;
     prevContextKeyRef.current = contextKey;
-    prevInitialQueryRef.current = ""; // allow initial query to fire for new context
+    prevInitialQueryRef.current = "";
 
     if (pageContext?.greeting) {
       setMessages([{
         id: crypto.randomUUID(),
-        role: "assistant",
-        content: pageContext.greeting,
+        role: "agent",
+        text: pageContext.greeting,
+        timestamp: new Date(),
       }]);
     } else {
       setMessages([]);
@@ -1445,16 +1498,15 @@ export function GlobalAIBox() {
   // Handle initial query (from "View AI Insights" button)
   useEffect(() => {
     if (!pageContext?.initialQuery || !isOpen) return;
-    // Only fire if we haven't already processed this exact query for this context
     const queryKey = `${contextKey}:${pageContext.initialQuery}`;
     if (prevInitialQueryRef.current === queryKey) return;
     prevInitialQueryRef.current = queryKey;
 
-    // Auto-send the initial query
-    const userMsg: Message = {
+    const userMsg: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
-      content: pageContext.initialQuery,
+      text: pageContext.initialQuery,
+      timestamp: new Date(),
     };
     setMessages(prev => [...prev, userMsg]);
     setIsProcessing(true);
@@ -1463,312 +1515,187 @@ export function GlobalAIBox() {
       const result = pageContext?.type === "workflow"
         ? processWorkflowQuery(pageContext.initialQuery!, pageContext)
         : pageContext?.type === "agent"
-        ? processAgentQuery(pageContext.initialQuery!, pageContext)
-        : processGeneralQuery(pageContext.initialQuery!, pageContext);
+        ? processAgentQuery(pageContext.initialQuery!, pageContext, handleModifyAction)
+        : processGeneralQuery(pageContext.initialQuery!, pageContext, handleModifyAction);
 
-      setMessages(prev => [...prev, {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: result.content,
-        uiModule: result.uiModule,
-      }]);
+      const newMsgs: ChatMessage[] = [];
+      if (result.uiModule && result.content) {
+        newMsgs.push({ id: crypto.randomUUID(), role: "agent", text: result.content, timestamp: new Date() });
+        newMsgs.push({ id: crypto.randomUUID(), role: "agent", text: "", timestamp: new Date(), renderedUI: result.uiModule });
+      } else if (result.uiModule) {
+        newMsgs.push({ id: crypto.randomUUID(), role: "agent", text: "", timestamp: new Date(), renderedUI: result.uiModule });
+      } else {
+        newMsgs.push({ id: crypto.randomUUID(), role: "agent", text: result.content, timestamp: new Date() });
+      }
+      setMessages(prev => [...prev, ...newMsgs]);
       setIsProcessing(false);
     }, 800);
   }, [pageContext?.initialQuery, isOpen, contextKey]);
 
   const suggestions = useMemo(() => pageContext?.suggestions || [], [pageContext?.suggestions]);
 
+  /* ── Modify callback for ActionCard — injects a refinement prompt into the chat ── */
+  const handleModifyAction = useCallback((actionData: ActionCardData, refinement: string) => {
+    const agentMsg: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: "agent",
+      text: `You'd like to modify **${actionData.title}**. You can refine these parameters:\n\n${actionData.parameters.filter(p => p.editable).map(p => `• **${p.label}**: currently "${p.value}"`).join("\n")}\n\nTell me what to change — for example: "Set priority to High" or "Scope to finance-db-01 only".`,
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, agentMsg]);
+  }, []);
+
   const handleSend = useCallback((promptText?: string) => {
-    const messageText = promptText || input;
+    const messageText = promptText || inputValue;
     if (!messageText.trim() || isProcessing) return;
 
-    const userMsg: Message = { id: crypto.randomUUID(), role: "user", content: messageText };
+    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", text: messageText, timestamp: new Date() };
     setMessages(prev => [...prev, userMsg]);
-    setInput("");
+    setInputValue("");
+
+    // Reset textarea height
+    const ta = document.querySelector("[data-name='GlobalInputArea'] textarea") as HTMLTextAreaElement | null;
+    if (ta) ta.style.height = "40px";
+
     setIsProcessing(true);
 
     setTimeout(() => {
       const result = pageContext?.type === "workflow"
         ? processWorkflowQuery(messageText, pageContext!)
         : pageContext?.type === "agent"
-        ? processAgentQuery(messageText, pageContext!)
-        : processGeneralQuery(messageText, pageContext);
+        ? processAgentQuery(messageText, pageContext!, handleModifyAction)
+        : processGeneralQuery(messageText, pageContext, handleModifyAction);
 
-      setMessages(prev => [...prev, {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: result.content,
-        uiModule: result.uiModule,
-      }]);
+      const newMsgs: ChatMessage[] = [];
+      if (result.uiModule && result.content) {
+        newMsgs.push({ id: crypto.randomUUID(), role: "agent", text: result.content, timestamp: new Date() });
+        newMsgs.push({ id: crypto.randomUUID(), role: "agent", text: "", timestamp: new Date(), renderedUI: result.uiModule });
+      } else if (result.uiModule) {
+        newMsgs.push({ id: crypto.randomUUID(), role: "agent", text: "", timestamp: new Date(), renderedUI: result.uiModule });
+      } else {
+        newMsgs.push({ id: crypto.randomUUID(), role: "agent", text: result.content, timestamp: new Date() });
+      }
+      setMessages(prev => [...prev, ...newMsgs]);
       setIsProcessing(false);
     }, 700);
-  }, [input, isProcessing, pageContext]);
+  }, [inputValue, isProcessing, pageContext, handleModifyAction]);
+
+  const onSend = useCallback(() => handleSend(), [handleSend]);
+
+  /* Keep ref in sync for external injection */
+  useEffect(() => { handleSendRef.current = handleSend; }, [handleSend]);
+
+  // No-op action handler (SharedMessageBubble expects it)
+  const handleAction = useCallback(() => {}, []);
 
   if (!isOpen) return null;
 
-  const contextLabel = pageContext?.sublabel || "General context";
+  const contextSubtitle = pageContext?.sublabel || "Digital Security Teammate";
+
+  const placeholder = (() => {
+    const wfState = inferWorkflowAiState(pageContext?.contextKey);
+    if (wfState && pageContext) return getWorkflowPlaceholder(wfState, pageContext.label);
+    if (pageContext?.type === "agent") return "Ask about this analyst's findings or risks...";
+    if (pageContext) return `Ask about ${pageContext.label}...`;
+    return "Ask me anything...";
+  })();
+
+  /* ── Custom send icon — matches Watch Center AiBox ── */
+  const sendIcon = (
+    <div className="overflow-clip relative shrink-0 size-[24px]">
+      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[16px] top-1/2"/>
+      <div className="absolute inset-[16.67%]"><div className="absolute inset-[-3.13%]">
+        <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 17.0009 17.0009"><path d={svgPaths.p32950080} stroke="var(--stroke-0, #F1F3FF)" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </div></div>
+    </div>
+  );
 
   return (
-    <div className="flex flex-col h-full w-full relative overflow-hidden rounded-[16px]">
-      {/* Panel */}
-      <div
-        className="h-full flex flex-col relative overflow-hidden rounded-[inherit]"
-        style={{
-          backgroundColor: "rgba(3,6,9,0.16)",
-        }}
-      >
-        {/* Decorative border overlay (matching AiBox) */}
-        <div
-          aria-hidden="true"
-          className="absolute border border-[rgba(87,177,255,0.16)] border-solid inset-0 pointer-events-none rounded-[inherit] z-[10]"
-        />
-        {/* ── Header — Agent-style design ── */}
-        <div
-          className="shrink-0 px-[16px] py-[14px] flex items-center justify-between relative z-[3]"
-          style={{ borderColor: '#121e27', borderBottomWidth: 1, borderBottomStyle: 'solid' }}
-        >
-          <div className="flex items-center gap-[10px]">
-            <div className="relative rounded-full shrink-0 size-[32px]">
-              <div className="overflow-clip relative rounded-[inherit] size-full">
-                <div className="absolute inset-[-2.94%]">
-                  <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <img alt="" className="absolute left-0 max-w-none size-full top-0" src={imgAvatar} />
+    <div className="bg-[rgba(3,6,9,0.16)] relative rounded-[16px] size-full min-h-0" data-name="GlobalAIBox">
+      <div className="content-stretch flex flex-col isolate items-center overflow-hidden relative rounded-[inherit] size-full min-h-0">
+
+        {/* ── Header — matches Watch Center AiBoxHeader ── */}
+        <div className="relative shrink-0 w-full z-[3]">
+          <div aria-hidden="true" className="absolute border-[#121e27] border-b border-solid inset-0 pointer-events-none" />
+          <div className="flex flex-row items-center size-full">
+            <div className="content-stretch flex items-center justify-between p-[16px] relative size-full">
+              {/* Teammate */}
+              <div className="content-stretch flex gap-[8px] items-center relative min-w-0">
+                <div className="relative rounded-[96px] shrink-0 size-[32px]">
+                  <div className="overflow-clip relative rounded-[inherit] size-full">
+                    <div className="absolute inset-[-2.94%]"><div className="absolute inset-0 overflow-hidden pointer-events-none"><img alt="" className="absolute left-0 max-w-none size-full top-0" src={imgAvatar} /></div></div>
                   </div>
+                  <div aria-hidden="true" className="absolute border-0 border-[#1e2a34] border-solid inset-0 pointer-events-none rounded-[96px]" />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[14px] not-italic relative shrink-0 text-[#dadfe3] text-[12px] whitespace-nowrap">Alex</p>
+                  <p className="font-['Inter:Regular',sans-serif] font-normal leading-[14px] not-italic relative shrink-0 text-[#4a5568] text-[10px] whitespace-nowrap mt-[2px] truncate max-w-[140px]">{contextSubtitle}</p>
+                </div>
+              </div>
+              {/* Status indicator — matches Watch Center */}
+              <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
+                <div className="flex items-center gap-[4px] px-[6px] py-[2px] rounded-[4px]"
+                  style={{ background: "rgba(87,177,255,0.06)", border: "1px solid rgba(87,177,255,0.12)" }}>
+                  <span className="relative size-[6px] shrink-0">
+                    <span className="absolute inset-0 rounded-full bg-[#57b1ff]"/>
+                  </span>
+                  <span className="font-['Inter:Medium',sans-serif] text-[8px] leading-[11px] text-[#57b1ff] uppercase tracking-wider">
+                    Standby
+                  </span>
                 </div>
               </div>
             </div>
-            <div className="flex flex-col min-w-0">
-              <p className="text-[12px] truncate" style={{ color: colors.textPrimary, fontWeight: 600, fontFamily: "'Inter', sans-serif" }}>
-                Alex
-              </p>
-              <p className="text-[10px] truncate" style={{ color: colors.textDim, fontFamily: "'Inter', sans-serif" }}>
-                {contextLabel}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-[8px]">
-            {/* Standby indicator */}
-            <div className="flex items-center gap-[6px]">
-              <div className="size-[6px] rounded-full bg-[#2fd897]" />
-              <span className="text-[10px] uppercase tracking-[0.3px]" style={{ color: colors.textDim, fontFamily: "'Inter', sans-serif" }}>
-                Standby
-              </span>
-            </div>
-            <button
-              onClick={close}
-              className="size-[28px] rounded-[6px] flex items-center justify-center transition-colors cursor-pointer"
-              style={{ color: colors.textDim }}
-              onMouseEnter={e => { e.currentTarget.style.backgroundColor = colors.bgCardHover; }}
-              onMouseLeave={e => { e.currentTarget.style.backgroundColor = "transparent"; }}
-            >
-              <X size={16} strokeWidth={2} />
-            </button>
           </div>
         </div>
 
-        {/* ── Context Chip ── */}
-        {pageContext && (
-          <div className="px-[16px] py-[10px] shrink-0" style={{ borderBottom: `1px solid ${colors.border}` }}>
-            <div className="flex items-center gap-[8px]">
-              <div
-                className="size-[24px] rounded-[6px] flex items-center justify-center shrink-0"
-                style={{ backgroundColor: `${colors.accent}15` }}
-              >
-                <Sparkles size={12} color={colors.accent} strokeWidth={2} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[9px] uppercase tracking-[0.06em]" style={{ color: colors.textDim, fontWeight: 600 }}>
-                  {pageContext.sublabel || "Context"}
-                </p>
-                <p className="text-[11px] truncate" style={{ color: colors.textPrimary, fontWeight: 500 }}>
-                  {pageContext.label}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Messages ── */}
+        {/* ── Chat area — matches Watch Center layout ── */}
         <div
-          className="flex-1 overflow-y-auto p-[16px] space-y-[14px] min-h-0"
+          className="flex-[1_0_0] min-h-px min-w-px relative w-full z-[2] overflow-y-auto"
           style={{ scrollbarWidth: "none" }}
+          onClick={(e) => {
+            const el = (e.target as HTMLElement).closest("[data-suggestion]") as HTMLElement | null;
+            if (el?.dataset.suggestion) handleSend(el.dataset.suggestion);
+          }}
         >
           {messages.length === 0 && !isProcessing ? (
-            /* Welcome state */
-            <div className="flex flex-col items-center justify-center h-full px-[16px]">
-              <div
-                className="size-[48px] rounded-full flex items-center justify-center mb-[12px]"
-                style={{ backgroundColor: `${colors.accent}10`, border: `1px solid ${colors.accent}20` }}
-              >
-                <Sparkles size={20} color={colors.accent} strokeWidth={2} />
+            /* Welcome state — suggestions in WelcomeScreen style */
+            <div className="flex flex-col items-center justify-end size-full gap-[10px] px-[20px] pb-[8px]">
+              <div className="flex flex-col gap-[5px] w-full max-w-[260px]">
+                {suggestions.map((s, i) => (
+                  <div key={i} className="bg-[#060d14] border border-[#121e27] rounded-[6px] px-[10px] py-[7px] cursor-pointer hover:border-[#1e3a5f] transition-colors group" data-suggestion={s.prompt}>
+                    <div className="flex items-center gap-[6px]">
+                      <svg className="size-[8px] shrink-0 opacity-30 group-hover:opacity-60 transition-opacity" viewBox="0 0 10 10" fill="none"><path d="M3.5 2L6.5 5L3.5 8" stroke="#57b1ff" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                      <p className="font-['Inter:Regular',sans-serif] font-normal leading-[13px] text-[#62707D] group-hover:text-[#89949e] transition-colors text-[10px]">{s.label}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <p className="text-[13px] text-center mb-[4px]" style={{ color: colors.textPrimary, fontWeight: 600 }}>
-                How can I help?
-              </p>
-              <p className="text-[11px] text-center" style={{ color: colors.textMuted, lineHeight: 1.5 }}>
-                {pageContext
-                  ? `I have ${pageContext.label} context loaded. Ask me anything.`
-                  : "Ask me about workflows, runs, or integrations."}
-              </p>
             </div>
           ) : (
-            <>
+            <div className="flex flex-col py-[12px] min-h-full justify-end">
               {messages.map(m => (
-                <div key={m.id}>
-                  <div className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                    {m.role === "assistant" && (
-                      <div className="shrink-0 size-[22px] rounded-full overflow-hidden mr-[8px] mt-[2px]">
-                        <img alt="" className="size-full object-cover" src={imgAvatar} />
-                      </div>
-                    )}
-                    <div
-                      className={`max-w-[85%] rounded-[10px] px-[12px] py-[10px] ${
-                        m.role === "user" ? "rounded-br-[4px]" : "rounded-bl-[4px]"
-                      }`}
-                      style={{
-                        backgroundColor: m.role === "user" ? colors.accent : colors.bgCardHover,
-                        border: `1px solid ${m.role === "user" ? colors.accent : colors.border}`,
-                      }}
-                    >
-                      <p
-                        className="text-[11px] whitespace-pre-line"
-                        style={{
-                          color: m.role === "user" ? "#fff" : colors.textPrimary,
-                          lineHeight: 1.55,
-                        }}
-                        dangerouslySetInnerHTML={{
-                          __html: m.content
-                            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                        }}
-                      />
-                    </div>
-                  </div>
-                  {m.uiModule && (
-                    <div className="mt-[10px] ml-[30px]">
-                      {m.uiModule}
-                    </div>
-                  )}
-                </div>
+                <SharedMessageBubble key={m.id} message={m} onAction={handleAction} />
               ))}
-
-              {isProcessing && (
-                <div className="flex items-start gap-[8px]">
-                  <div className="shrink-0 size-[22px] rounded-full overflow-hidden mt-[2px]">
-                    <img alt="" className="size-full object-cover" src={imgAvatar} />
-                  </div>
-                  <div
-                    className="rounded-[10px] rounded-bl-[4px] px-[12px] py-[10px]"
-                    style={{
-                      backgroundColor: colors.bgCardHover,
-                      border: `1px solid ${colors.border}`,
-                    }}
-                  >
-                    <div className="flex items-center gap-[6px]">
-                      <div className="flex gap-[3px]">
-                        <div className="size-[4px] rounded-full animate-bounce" style={{ backgroundColor: colors.accent, animationDelay: "0ms" }} />
-                        <div className="size-[4px] rounded-full animate-bounce" style={{ backgroundColor: colors.accent, animationDelay: "150ms" }} />
-                        <div className="size-[4px] rounded-full animate-bounce" style={{ backgroundColor: colors.accent, animationDelay: "300ms" }} />
-                      </div>
-                      <span className="text-[10px]" style={{ color: colors.textMuted }}>
-                        Analyzing...
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
+              {isProcessing && <TypingIndicator />}
               <div ref={messagesEndRef} />
-            </>
+            </div>
           )}
         </div>
 
-        {/* ── Suggestion Chips ── */}
-        {!isProcessing && suggestions.length > 0 && (
-          <div
-            className="px-[16px] py-[10px] shrink-0"
-            style={{ borderTop: `1px solid ${colors.border}` }}
-          >
-            <div className="flex items-center gap-[6px] mb-[6px]">
-              <Lightbulb size={9} color={colors.textDim} strokeWidth={2} />
-              <span className="text-[9px] uppercase tracking-[0.04em]" style={{ color: colors.textDim, fontWeight: 500 }}>
-                Suggestions
-              </span>
-            </div>
-            <div className="space-y-[3px]">
-              {suggestions.map((suggestion, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleSend(suggestion.prompt)}
-                  className="w-full flex items-center gap-[8px] px-[10px] py-[7px] rounded-[6px] text-left transition-colors cursor-pointer"
-                  style={{
-                    backgroundColor: "transparent",
-                    border: `1px solid ${colors.border}`,
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.backgroundColor = colors.bgCardHover;
-                    e.currentTarget.style.borderColor = `${colors.accent}60`;
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.borderColor = colors.border;
-                  }}
-                >
-                  <Sparkles size={11} color={colors.accent} strokeWidth={2} className="shrink-0" />
-                  <span className="text-[11px] flex-1" style={{ color: colors.textSecondary, fontWeight: 500 }}>
-                    {suggestion.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Input ── */}
-        <div
-          className="px-[16px] py-[12px] shrink-0"
-          style={{ borderTop: `1px solid ${colors.border}` }}
-        >
-          <div className="flex items-end gap-[8px]">
-            <textarea
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              placeholder={(() => {
-                const wfState = inferWorkflowAiState(pageContext?.contextKey);
-                if (wfState && pageContext) return getWorkflowPlaceholder(wfState, pageContext.label);
-                if (pageContext) return `Ask about ${pageContext.label}...`;
-                return "Ask Alex anything...";
-              })()}
-              rows={2}
-              className="flex-1 px-[12px] py-[8px] rounded-[8px] text-[11px] resize-none"
-              style={{
-                backgroundColor: colors.bgCardHover,
-                border: `1px solid ${colors.border}`,
-                color: colors.textPrimary,
-              }}
-            />
-            <button
-              onClick={() => handleSend()}
-              disabled={!input.trim() || isProcessing}
-              className="size-[36px] rounded-[8px] flex items-center justify-center shrink-0 transition-colors disabled:opacity-50 cursor-pointer"
-              style={{
-                backgroundColor: input.trim() && !isProcessing ? colors.buttonPrimary : colors.bgCardHover,
-                border: `1px solid ${input.trim() && !isProcessing ? colors.buttonPrimary : colors.border}`,
-              }}
-            >
-              <Send size={14} color={input.trim() && !isProcessing ? "#fff" : colors.textDim} strokeWidth={2} />
-            </button>
-          </div>
-          <p className="text-[9px] mt-[4px]" style={{ color: colors.textDim }}>
-            Enter to send · Shift+Enter for new line
-          </p>
-        </div>
+        {/* ── Input — matches Watch Center SharedChatInput ── */}
+        <SharedChatInput
+          inputValue={inputValue}
+          onInputChange={setInputValue}
+          onSend={onSend}
+          placeholder={placeholder}
+          dataName="GlobalInputArea"
+          sendButtonSize={48}
+          sendButtonRadius={12}
+          sendIcon={sendIcon}
+        />
       </div>
+      {/* Decorative border — matches Watch Center AiBox */}
+      <div aria-hidden="true" className="absolute border border-[rgba(87,177,255,0.16)] border-solid inset-0 pointer-events-none rounded-[16px]"/>
     </div>
   );
 }

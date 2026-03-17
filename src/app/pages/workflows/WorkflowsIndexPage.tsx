@@ -564,6 +564,14 @@ function WorkflowsIndexPageInner() {
   const aiBox = useAiBox();
   const openAiBox = aiBox.openWithContext;
   const setAiBoxPageContext = aiBox.setPageContext;
+  const closeAiBox = aiBox.close;
+  const openAiBoxPanel = aiBox.open;
+
+  /* ── Auto-open AIBox on mount, close on unmount ── */
+  React.useEffect(() => {
+    openAiBoxPanel();
+    return () => { closeAiBox(); };
+  }, [openAiBoxPanel, closeAiBox]);
 
   /* ── Top-level tab state ── */
   const [activeTab, setActiveTab] = useState<TopTab>("workspace");

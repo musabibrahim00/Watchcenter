@@ -177,12 +177,20 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
             </div>
             )}
           </div>
-          <div
-            className="content-stretch flex h-[24px] items-center justify-center px-[12px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer hover:bg-[#1e2a34] transition-colors"
-            data-name="ButtonGray"
-            onClick={onViewDetails}
-          >
-            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">View details</p>
+          <div className="content-stretch flex gap-[6px] items-center shrink-0">
+            <div
+              className="content-stretch flex h-[24px] items-center justify-center px-[12px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer hover:bg-[#1e2a34] transition-colors"
+              data-name="ButtonGray"
+              onClick={onViewDetails}
+            >
+              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">View details</p>
+            </div>
+            <div
+              className="content-stretch flex h-[24px] items-center justify-center px-[8px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer hover:bg-[rgba(87,177,255,0.08)] transition-colors"
+              onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query: `Why does "${task.title}" matter? Explain the risk.` } })); }}
+            >
+              <p className="font-['Inter:Medium',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center">Ask why</p>
+            </div>
           </div>
         </div>
       </div>
@@ -329,12 +337,20 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
             </div>
             )}
           </div>
-          <div
-            className="content-stretch flex h-[24px] items-center justify-center px-[12px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer hover:bg-[#1e2a34] transition-colors"
-            data-name="ButtonGray"
-            onClick={onViewDetails}
-          >
-            <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">View details</p>
+          <div className="content-stretch flex gap-[6px] items-center shrink-0">
+            <div
+              className="content-stretch flex h-[24px] items-center justify-center px-[12px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer hover:bg-[#1e2a34] transition-colors"
+              data-name="ButtonGray"
+              onClick={onViewDetails}
+            >
+              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">View details</p>
+            </div>
+            <div
+              className="content-stretch flex h-[24px] items-center justify-center px-[8px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer hover:bg-[rgba(87,177,255,0.08)] transition-colors"
+              onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query: `Why does "${task.title}" matter? Explain the risk.` } })); }}
+            >
+              <p className="font-['Inter:Medium',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center">Ask why</p>
+            </div>
           </div>
         </div>
       </div>

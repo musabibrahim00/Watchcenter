@@ -273,6 +273,19 @@ function AgentTooltip({ agentId }: { agentId: AgentId }) {
             </span>
           </div>
         )}
+
+        {/* "Click to interact" hint */}
+        {!investigationActive && (
+          <>
+            <div className="h-px w-full" style={{ background: "rgba(87,177,255,0.06)" }} />
+            <span
+              className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic text-[#3E4E5A]"
+              style={{ fontSize: 8 }}
+            >
+              Click to view details or interact
+            </span>
+          </>
+        )}
       </div>
     </div>
   );
@@ -2092,12 +2105,22 @@ const InvestigationFlowOverlay = React.memo(function InvestigationFlowOverlay() 
 const AgentWrapper = React.memo(function AgentWrapper({ agentId, isInChain, investigationActive, children }: { agentId: AgentId; isInChain: boolean; investigationActive: boolean; children: React.ReactNode }) {
   // When investigation is active, dim agents NOT in the chain
   const shouldDim = investigationActive && !isInChain;
+  const [hovered, setHovered] = React.useState(false);
   return (
     <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
         opacity: shouldDim ? 0.35 : 1,
-        filter: isInChain && investigationActive ? "brightness(1.1)" : shouldDim ? "brightness(0.7) saturate(0.4)" : "none",
-        transition: "opacity 0.8s ease, filter 0.8s ease",
+        filter: isInChain && investigationActive
+          ? "brightness(1.1)"
+          : shouldDim
+            ? "brightness(0.7) saturate(0.4)"
+            : hovered
+              ? "brightness(1.15) drop-shadow(0 0 6px rgba(7,129,194,0.35))"
+              : "none",
+        transform: hovered && !investigationActive ? "scale(1.06)" : "scale(1)",
+        transition: "opacity 0.8s ease, filter 0.3s ease, transform 0.25s ease",
       }}
     >
       {children}

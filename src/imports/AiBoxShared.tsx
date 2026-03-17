@@ -210,3 +210,500 @@ export const WelcomeScreen = React.memo(function WelcomeScreen({ suggestions }: 
     </div>
   );
 });
+
+/* ═══════════════════════════════════════════════════════════
+   Action Model — Structured AI interaction types
+   ═══════════════════════════════════════════════════════════ */
+
+export type ActionIntent = "explain" | "explore" | "act";
+export type ActionScope = "asset" | "agent" | "workflow" | "investigation" | "risk";
+export type ActionStatus = "pending" | "running" | "complete" | "cancelled";
+
+export interface ActionParameter {
+  label: string;
+  value: string;
+  editable?: boolean;
+}
+
+export interface ActionCardData {
+  id: string;
+  title: string;
+  scope: ActionScope;
+  parameters: ActionParameter[];
+  expectedOutcome: string;
+  status: ActionStatus;
+  progress?: number;
+  result?: string;
+}
+
+/* ── Action intent classification ── */
+
+const ACT_PATTERNS: RegExp[] = [
+  /re-?run\s+(analysis|investigation|scan|assessment)/i,
+  /re-?classify\s+(asset|endpoint|resource)/i,
+  /recalculate\s+(risk|score|posture)/i,
+  /simulate\s+(impact|blast|breach|attack)/i,
+  /re-?run\s+(investigation|playbook)/i,
+  /block\s+(ip|endpoint|user|account)/i,
+  /isolate\s+(host|endpoint|machine|asset)/i,
+  /disable\s+(account|user|token|key)/i,
+  /rotate\s+(credentials?|tokens?|keys?|secrets?)/i,
+  /quarantine/i,
+  /trigger\s+(scan|remediation|workflow|playbook)/i,
+  /escalate\s+(to|case|alert|incident)/i,
+  /create\s+(case|ticket|incident)/i,
+  /assign\s+(analyst|owner|case)/i,
+  /run\s+(compliance\s+check|vulnerability\s+scan|posture\s+scan)/i,
+  /deploy\s+(patch|fix|update|hotfix)/i,
+  /update\s+(policy|rule|baseline|config)/i,
+];
+
+const EXPLORE_PATTERNS: RegExp[] = [
+  /show\s+(me|all|the)/i,
+  /list\s+(all|the|active|recent)/i,
+  /what\s+(are|is|were|was)/i,
+  /how\s+many/i,
+  /which\s+(assets?|agents?|cases?|paths?)/i,
+  /compare/i,
+  /drill\s+(in|down|into)/i,
+  /breakdown/i,
+  /distribution/i,
+  /trend/i,
+  /graph|chart|visuali/i,
+];
+
+export function classifyActionIntent(query: string): ActionIntent {
+  const q = query.trim();
+  for (const p of ACT_PATTERNS) {
+    if (p.test(q)) return "act";
+  }
+  for (const p of EXPLORE_PATTERNS) {
+    if (p.test(q)) return "explore";
+  }
+  if (/^(explain|describe|why|how does|what does|tell me about|walk me through)/i.test(q)) return "explain";
+  return "explore";
+}
+
+/* ── Predefined action catalog ── */
+
+export interface ActionTemplate {
+  match: RegExp;
+  build: (query: string, agentLabel?: string) => ActionCardData;
+}
+
+const _actionId = () => crypto.randomUUID();
+
+export const ACTION_CATALOG: ActionTemplate[] = [
+  {
+    match: /re-?run\s+(analysis|assessment)/i,
+    build: (_q, agent) => ({
+      id: _actionId(), title: "Re-run Analysis", scope: "agent",
+      parameters: [
+        { label: "Target", value: agent || "All monitored assets" },
+        { label: "Scope", value: "Full analysis cycle" },
+        { label: "Priority", value: "Normal", editable: true },
+      ],
+      expectedOutcome: "Fresh analysis cycle across all data sources. Findings and risk scores will be updated upon completion.",
+      status: "pending",
+    }),
+  },
+  {
+    match: /re-?classify\s+(asset|endpoint|resource)/i,
+    build: (q) => {
+      const assetMatch = q.match(/re-?classify\s+(?:asset|endpoint|resource)\s+(.+)/i);
+      return {
+        id: _actionId(), title: "Re-classify Asset", scope: "asset",
+        parameters: [
+          { label: "Asset", value: assetMatch?.[1]?.trim() || "Selected asset" },
+          { label: "Classification", value: "Auto-detect", editable: true },
+          { label: "Update CMDB", value: "Yes" },
+        ],
+        expectedOutcome: "Asset classification and metadata will be updated. Downstream risk scores and compliance mappings will recalculate automatically.",
+        status: "pending",
+      };
+    },
+  },
+  {
+    match: /recalculate\s+(risk|score|posture)/i,
+    build: (_q, agent) => ({
+      id: _actionId(), title: "Recalculate Risk Score", scope: "risk",
+      parameters: [
+        { label: "Scope", value: agent || "Organization-wide" },
+        { label: "Include threat intel", value: "Yes" },
+        { label: "Recalc dependencies", value: "Yes", editable: true },
+      ],
+      expectedOutcome: "Composite risk scores will be recalculated using latest vulnerability, exposure, and threat intelligence data.",
+      status: "pending",
+    }),
+  },
+  {
+    match: /simulate\s+(impact|blast|breach|attack)/i,
+    build: (q) => {
+      const typeMatch = q.match(/simulate\s+(impact|blast|breach|attack)/i);
+      return {
+        id: _actionId(), title: `Simulate ${(typeMatch?.[1] || "Impact").charAt(0).toUpperCase() + (typeMatch?.[1] || "impact").slice(1)}`, scope: "investigation",
+        parameters: [
+          { label: "Scenario", value: "Current threat context" },
+          { label: "Entry point", value: "Auto-detect from findings", editable: true },
+          { label: "Max hops", value: "5", editable: true },
+        ],
+        expectedOutcome: "Blast radius simulation showing affected assets, lateral movement paths, and estimated business impact score.",
+        status: "pending",
+      };
+    },
+  },
+  {
+    match: /re-?run\s+investigation/i,
+    build: (_q, agent) => ({
+      id: _actionId(), title: "Re-run Investigation", scope: "investigation",
+      parameters: [
+        { label: "Analyst", value: agent || "All contributing analysts" },
+        { label: "Scope", value: "Full investigation chain" },
+        { label: "Include resolved", value: "No", editable: true },
+      ],
+      expectedOutcome: "Investigation chain will be re-executed with latest data. New correlations and findings will be surfaced.",
+      status: "pending",
+    }),
+  },
+  {
+    match: /trigger\s+(scan|remediation|workflow|playbook)/i,
+    build: (q) => {
+      const typeMatch = q.match(/trigger\s+(scan|remediation|workflow|playbook)/i);
+      return {
+        id: _actionId(), title: `Trigger ${(typeMatch?.[1] || "Scan").charAt(0).toUpperCase() + (typeMatch?.[1] || "scan").slice(1)}`, scope: "workflow",
+        parameters: [
+          { label: "Type", value: (typeMatch?.[1] || "scan").charAt(0).toUpperCase() + (typeMatch?.[1] || "scan").slice(1) },
+          { label: "Target", value: "Current scope" },
+          { label: "Notify on complete", value: "Yes", editable: true },
+        ],
+        expectedOutcome: "Action will be queued and executed. Results will appear in the activity feed upon completion.",
+        status: "pending",
+      };
+    },
+  },
+  {
+    match: /create\s+(case|ticket|incident)/i,
+    build: (q) => {
+      const typeMatch = q.match(/create\s+(case|ticket|incident)/i);
+      return {
+        id: _actionId(), title: `Create ${(typeMatch?.[1] || "Case").charAt(0).toUpperCase() + (typeMatch?.[1] || "case").slice(1)}`, scope: "investigation",
+        parameters: [
+          { label: "Type", value: (typeMatch?.[1] || "case").charAt(0).toUpperCase() + (typeMatch?.[1] || "case").slice(1) },
+          { label: "Priority", value: "Auto-detect", editable: true },
+          { label: "Assign to", value: "SOC Tier 1", editable: true },
+        ],
+        expectedOutcome: "New investigation case created with current findings linked. Assigned analyst will be notified.",
+        status: "pending",
+      };
+    },
+  },
+  {
+    match: /run\s+(compliance\s+check|vulnerability\s+scan|posture\s+scan)/i,
+    build: (q) => {
+      const typeMatch = q.match(/run\s+(compliance\s+check|vulnerability\s+scan|posture\s+scan)/i);
+      const type = typeMatch?.[1] || "scan";
+      return {
+        id: _actionId(), title: `Run ${type.charAt(0).toUpperCase() + type.slice(1)}`, scope: "workflow",
+        parameters: [
+          { label: "Type", value: type.charAt(0).toUpperCase() + type.slice(1) },
+          { label: "Scope", value: "All monitored assets" },
+          { label: "Report", value: "Generate on completion", editable: true },
+        ],
+        expectedOutcome: "Scan will execute across all monitored assets. Results and any new findings will be available in the activity feed.",
+        status: "pending",
+      };
+    },
+  },
+];
+
+export function matchAction(query: string, agentLabel?: string): ActionCardData | null {
+  for (const tpl of ACTION_CATALOG) {
+    if (tpl.match.test(query)) {
+      return tpl.build(query, agentLabel);
+    }
+  }
+  return null;
+}
+
+/* ── ActionCard Component ── */
+
+const SCOPE_CONFIG: Record<ActionScope, { label: string; color: string; bg: string }> = {
+  asset:         { label: "Asset",         color: "#1eb2c2", bg: "rgba(30,178,194,0.10)" },
+  agent:         { label: "Agent",         color: "#00A46E", bg: "rgba(0,164,110,0.10)" },
+  workflow:      { label: "Workflow",      color: "#3b82f6", bg: "rgba(59,130,246,0.10)" },
+  investigation: { label: "Investigation", color: "#d97506", bg: "rgba(217,117,6,0.10)" },
+  risk:          { label: "Risk",          color: "#9738C6", bg: "rgba(151,56,198,0.10)" },
+};
+
+export const ActionCard = React.memo(function ActionCard({
+  data: initialData,
+  onModify,
+  onComplete,
+}: {
+  data: ActionCardData;
+  onModify?: (data: ActionCardData, refinement: string) => void;
+  onComplete?: (data: ActionCardData) => void;
+}) {
+  const [data, setData] = React.useState(initialData);
+  const [progress, setProgress] = React.useState(0);
+  const timerRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+
+  React.useEffect(() => {
+    setData(initialData);
+  }, [initialData]);
+
+  const scopeConfig = SCOPE_CONFIG[data.scope];
+
+  const handleRun = React.useCallback(() => {
+    setData(d => ({ ...d, status: "running" }));
+    setProgress(0);
+
+    const duration = 3000 + Math.random() * 2000;
+    const steps = 30;
+    const stepMs = duration / steps;
+    let step = 0;
+
+    timerRef.current = setInterval(() => {
+      step++;
+      const pct = Math.min(100, Math.round((step / steps) * 100));
+      setProgress(pct);
+
+      if (step >= steps) {
+        if (timerRef.current) clearInterval(timerRef.current);
+        timerRef.current = null;
+        setData(d => {
+          const completed = { ...d, status: "complete" as const, progress: 100, result: `${d.title} completed successfully. All downstream dependencies updated.` };
+          onComplete?.(completed);
+          return completed;
+        });
+      }
+    }, stepMs);
+  }, [onComplete]);
+
+  const handleCancel = React.useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setData(d => ({ ...d, status: "cancelled" }));
+  }, []);
+
+  const handleModify = React.useCallback(() => {
+    onModify?.(data, `I'd like to modify the "${data.title}" action. What parameters should I change?`);
+  }, [data, onModify]);
+
+  React.useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
+  return (
+    <div
+      className="rounded-[10px] overflow-hidden"
+      style={{
+        backgroundColor: "#050B11",
+        border: data.status === "running"
+          ? "1px solid rgba(59,130,246,0.3)"
+          : data.status === "complete"
+            ? "1px solid rgba(47,216,151,0.25)"
+            : data.status === "cancelled"
+              ? "1px solid rgba(98,112,125,0.2)"
+              : `1px solid ${scopeConfig.color}30`,
+        transition: "border-color 0.3s ease",
+      }}
+    >
+      {/* Header */}
+      <div
+        className="px-[12px] py-[8px] flex items-center gap-[8px]"
+        style={{ borderBottom: "1px solid rgba(14,28,38,0.6)" }}
+      >
+        {/* Action type badge */}
+        <div
+          className="flex items-center gap-[3px] px-[5px] py-[2px] rounded-[3px] shrink-0"
+          style={{
+            backgroundColor: data.status === "complete" ? "rgba(47,216,151,0.10)" : "rgba(59,130,246,0.10)",
+            border: `1px solid ${data.status === "complete" ? "rgba(47,216,151,0.20)" : "rgba(59,130,246,0.20)"}`,
+          }}
+        >
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+            {data.status === "complete" ? (
+              <path d="M1.5 4L3.2 5.7L6.5 2.3" stroke="#2fd897" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+            ) : (
+              <path d="M4 1.5V4L5.5 5.5" stroke="#3b82f6" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+            )}
+          </svg>
+          <span
+            className="font-['Inter:Medium',sans-serif] font-medium text-[8px] leading-[10px] uppercase tracking-[0.04em]"
+            style={{ color: data.status === "complete" ? "#2fd897" : "#3b82f6" }}
+          >
+            {data.status === "complete" ? "Done" : "Action"}
+          </span>
+        </div>
+
+        <span
+          className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[11px] leading-[14px] text-[#dadfe3] truncate flex-1"
+        >
+          {data.title}
+        </span>
+
+        {/* Scope badge */}
+        <div
+          className="px-[5px] py-[1px] rounded-[3px] shrink-0"
+          style={{ backgroundColor: scopeConfig.bg, border: `1px solid ${scopeConfig.color}25` }}
+        >
+          <span
+            className="font-['Inter:Medium',sans-serif] font-medium text-[8px] leading-[10px] uppercase tracking-[0.04em]"
+            style={{ color: scopeConfig.color }}
+          >
+            {scopeConfig.label}
+          </span>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="px-[12px] py-[10px] flex flex-col gap-[8px]">
+        {/* Parameters */}
+        {data.status !== "complete" && data.status !== "cancelled" && (
+          <div className="flex flex-col gap-[4px]">
+            <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#4a5568] uppercase tracking-[0.05em]">
+              Parameters
+            </span>
+            {data.parameters.map((p, i) => (
+              <div key={i} className="flex items-center justify-between gap-[8px]">
+                <span className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[13px] text-[#62707D]">
+                  {p.label}
+                </span>
+                <span
+                  className="font-['Inter:Medium',sans-serif] font-medium text-[10px] leading-[13px] text-[#89949e] text-right truncate max-w-[60%]"
+                  style={p.editable ? { borderBottom: "1px dashed rgba(87,177,255,0.2)" } : undefined}
+                >
+                  {p.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Expected outcome */}
+        {data.status === "pending" && (
+          <div className="flex flex-col gap-[3px]">
+            <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#4a5568] uppercase tracking-[0.05em]">
+              Expected Outcome
+            </span>
+            <p className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[14px] text-[#62707D]">
+              {data.expectedOutcome}
+            </p>
+          </div>
+        )}
+
+        {/* Running state */}
+        {data.status === "running" && (
+          <div className="flex flex-col gap-[5px]">
+            <div className="flex items-center justify-between">
+              <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#3b82f6] uppercase tracking-[0.05em]">
+                Executing
+              </span>
+              <span className="font-['Inter:Regular',sans-serif] font-normal text-[9px] leading-[11px] text-[#4a5568] tabular-nums">
+                {progress}%
+              </span>
+            </div>
+            <div className="h-[3px] rounded-full overflow-hidden" style={{ backgroundColor: "rgba(59,130,246,0.12)" }}>
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${progress}%`,
+                  backgroundColor: "#3b82f6",
+                  boxShadow: "0 0 6px rgba(59,130,246,0.4)",
+                  transition: "width 0.15s linear",
+                }}
+              />
+            </div>
+            <p className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[13px] text-[#62707D]">
+              {data.expectedOutcome}
+            </p>
+          </div>
+        )}
+
+        {/* Complete state */}
+        {data.status === "complete" && (
+          <div className="flex flex-col gap-[4px]">
+            <div className="flex items-center gap-[4px]">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <circle cx="5" cy="5" r="4" fill="rgba(47,216,151,0.15)" stroke="#2fd897" strokeWidth="0.8" />
+                <path d="M3 5L4.5 6.5L7 3.5" stroke="#2fd897" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="font-['Inter:Medium',sans-serif] font-medium text-[10px] leading-[13px] text-[#2fd897]">
+                Completed successfully
+              </span>
+            </div>
+            <p className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[14px] text-[#89949e]">
+              {data.result || data.expectedOutcome}
+            </p>
+          </div>
+        )}
+
+        {/* Cancelled state */}
+        {data.status === "cancelled" && (
+          <div className="flex items-center gap-[4px]">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <circle cx="5" cy="5" r="4" stroke="#62707D" strokeWidth="0.8" />
+              <path d="M3.5 3.5L6.5 6.5M6.5 3.5L3.5 6.5" stroke="#62707D" strokeWidth="0.8" strokeLinecap="round" />
+            </svg>
+            <span className="font-['Inter:Medium',sans-serif] font-medium text-[10px] leading-[13px] text-[#62707D]">
+              Action cancelled
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Action buttons */}
+      {data.status === "pending" && (
+        <div
+          className="px-[12px] py-[8px] flex items-center gap-[8px]"
+          style={{ borderTop: "1px solid rgba(14,28,38,0.6)" }}
+        >
+          <button
+            onClick={handleRun}
+            className="h-[22px] px-[10px] rounded-[5px] font-['Inter:Medium',sans-serif] font-medium text-[10px] text-white leading-[12px] cursor-pointer border-none transition-colors"
+            style={{ backgroundColor: "#076498" }}
+            onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#0879b5"; }}
+            onMouseLeave={e => { e.currentTarget.style.backgroundColor = "#076498"; }}
+          >
+            Run
+          </button>
+          <button
+            onClick={handleModify}
+            className="h-[22px] px-[10px] rounded-[5px] font-['Inter:Medium',sans-serif] font-medium text-[10px] leading-[12px] cursor-pointer border-none transition-colors"
+            style={{ backgroundColor: "rgba(87,177,255,0.08)", color: "#57b1ff" }}
+            onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(87,177,255,0.14)"; }}
+            onMouseLeave={e => { e.currentTarget.style.backgroundColor = "rgba(87,177,255,0.08)"; }}
+          >
+            Modify
+          </button>
+          <button
+            onClick={handleCancel}
+            className="h-[22px] px-[8px] font-['Inter:Regular',sans-serif] font-normal text-[10px] text-[#4a5568] leading-[12px] cursor-pointer border-none bg-transparent hover:text-[#62707D] transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
+      {/* Running — show cancel */}
+      {data.status === "running" && (
+        <div
+          className="px-[12px] py-[8px] flex items-center"
+          style={{ borderTop: "1px solid rgba(14,28,38,0.6)" }}
+        >
+          <button
+            onClick={handleCancel}
+            className="h-[22px] px-[8px] font-['Inter:Regular',sans-serif] font-normal text-[10px] text-[#4a5568] leading-[12px] cursor-pointer border-none bg-transparent hover:text-[#62707D] transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+    </div>
+  );
+});
