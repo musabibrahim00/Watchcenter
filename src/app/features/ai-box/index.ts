@@ -66,3 +66,9 @@ export type { ProactiveScenario } from "../../../imports/AiBoxLiveData";
 /* ── AiBox open/close context ── */
 export { AiBoxProvider, useAiBox } from "./AiBoxContext";
 export type { AiBoxPageContext, AiBoxSuggestion } from "./AiBoxContext";
+
+/* ── Deep-link entry ── */
+export { useAiBoxDeepLink } from "./useAiBoxDeepLink";
+export { resolveDeepLinkContext, derivePageRoute } from "./deepLinkResolver";
+export { buildDeepLink } from "./deepLinkUtils";
+export type { AlertActionSource } from "./deepLinkUtils";

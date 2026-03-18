@@ -10,6 +10,7 @@ import React, { useState } from "react";
 import { Download } from "lucide-react";
 import type { CaseReport } from "./case-data";
 import { caseColors } from "./design-tokens";
+import { debug } from "../../shared/utils/debug";
 
 const colors = caseColors;
 
@@ -95,7 +96,7 @@ export default function CaseReportingTab({ report, caseId }: CaseReportingTabPro
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
   const handleDownload = () => {
-    console.log("Downloading report for case:", caseId);
+    debug.log("Downloading report for case:", caseId);
     // Implement download logic here
   };
 

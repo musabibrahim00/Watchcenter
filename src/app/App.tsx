@@ -2,6 +2,7 @@ import React, { Suspense } from "react";
 import { RouterProvider } from "react-router";
 import { router } from "./routes";
 import { Toaster } from "sonner";
+import { debug } from "./shared/utils/debug";
 
 function LoadingFallback() {
   return (
@@ -34,7 +35,7 @@ class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("App Error:", error, errorInfo);
+    debug.error("App Error:", error, errorInfo);
     // Auto-reload on module fetch errors
     if (error.message?.includes("Failed to fetch dynamically imported module")) {
       setTimeout(() => {

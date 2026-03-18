@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router";
 import svgPaths from "./svg-sx6d9u7tbs";
-import imgOld from "figma:asset/976dde1a603f5a46e2c8728e96db5d977bcbfff3.png";
+import imgOld from "../assets/TeammateAvatar.png";
 import { buildAndRenderAiResponse, buildActionResponse, buildTaskInvestigation, extractContext, renderAiResponse, EMPTY_CONTEXT, ACTION_NAVIGATION, type InteractionContext } from "./AiBoxRenderer";
 import { AiBoxActionProvider, FallbackSuggestion, SuccessConfirmation, ResponseContext } from "./AiBoxModules";
 import { getRankedProactiveScenarios, type ProactiveScenario } from "./AiBoxLiveData";
@@ -418,7 +418,7 @@ function ChatArea({ messages, isTyping, onSuggestionClick, onAction, messagesEnd
   proactiveScenario?: ProactiveScenario | null; onDismissProactive?: () => void;
 }) {
   return (
-    <div className="flex-[1_0_0] min-h-px min-w-px relative w-full z-[2] overflow-y-auto" style={{ scrollbarWidth: "none" }}
+    <div className="flex-1 min-h-0 min-w-0 relative w-full z-[2] overflow-y-auto" style={{ scrollbarWidth: "none" }}
       onClick={(e) => { const el = (e.target as HTMLElement).closest("[data-suggestion]") as HTMLElement|null; if (el?.dataset.suggestion) onSuggestionClick(el.dataset.suggestion); }}>
       {messages.length === 0 && !isTyping && !proactiveScenario ? <SharedWelcomeScreen suggestions={WELCOME_SUGGESTIONS}/> : (
         <div className="flex flex-col py-[12px] min-h-full justify-end">
@@ -771,14 +771,20 @@ export default function AiBox() {
 
   return (
     <AiBoxActionProvider onAction={handleAction}>
-      <div className="bg-[rgba(3,6,9,0.16)] relative rounded-[16px] size-full min-h-0" data-name="AiBox">
+      <div
+        className="bg-[rgba(3,6,9,0.16)] relative rounded-[16px] size-full min-h-0"
+        data-name="AiBox"
+        style={{
+          border: "1px solid #030609",
+          boxShadow: "0px 24px 48px 0px rgba(0,0,0,0.48), inset 0 0 0 1px rgba(87,177,255,0.13)",
+        }}
+      >
         <div className="content-stretch flex flex-col isolate items-center overflow-hidden relative rounded-[inherit] size-full min-h-0">
           <AiBoxHeader hasProactive={hasProactive}/>
           <ChatArea messages={messages} isTyping={isTyping} onSuggestionClick={send} onAction={handleAction} messagesEndRef={endRef}
             proactiveScenario={proactiveScenario} onDismissProactive={dismissProactive}/>
           <SharedChatInput inputValue={inputValue} onInputChange={setInputValue} onSend={onSend} placeholder="Ask about threats, agents, or investigations..." sendIcon={AiBoxSendIcon} sendButtonSize={48} sendButtonRadius={12}/>
         </div>
-        <div aria-hidden="true" className="absolute border border-[rgba(87,177,255,0.16)] border-solid inset-0 pointer-events-none rounded-[16px]"/>
       </div>
     </AiBoxActionProvider>
   );

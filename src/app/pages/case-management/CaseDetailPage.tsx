@@ -21,6 +21,7 @@ import CaseInvestigationTab from "./CaseInvestigationTab";
 import CaseReportingTab from "./CaseReportingTab";
 import type { CaseDetailLocationState } from "./case-integration";
 import { caseColors } from "./design-tokens";
+import { debug } from "../../shared/utils/debug";
 
 type TabType = "investigation" | "reporting";
 
@@ -34,7 +35,7 @@ function DownloadReportModal({ isOpen, onClose, caseId }: DownloadReportModalPro
   if (!isOpen) return null;
 
   const handleDownload = () => {
-    console.log("Downloading report for case:", caseId);
+    debug.log("Downloading report for case:", caseId);
     // Implement download logic here
     onClose();
   };

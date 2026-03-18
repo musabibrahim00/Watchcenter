@@ -10,6 +10,7 @@
  */
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { debug } from "../../shared/utils/debug";
 import {
   AlertTriangle, FileText, MessageSquare, User, Database,
   Shield, Clock, Zap, Bell, Search, GitBranch, Lock,
@@ -201,10 +202,10 @@ interface WorkflowBuilderProps {
   workflowName: string;
 }
 
-export function WorkflowBuilder({ workflowId, workflowName }: WorkflowBuilderProps) {
+function WorkflowBuilderInner({ workflowId, workflowName }: WorkflowBuilderProps) {
   const { testRun: engineTestRun } = usePlaybookEngine();
   const { isActive: timeTravelActive } = useTimeTravel();
-  const { openWithContext: openAiBox } = useAiBox();
+  const { openWithContext: openAiBox, setPageContext: setAiBoxPageContext } = useAiBox();
   const [workflow, setWorkflow] = useState<WorkflowData | null>(null);
   const [contextMenu, setContextMenu] = useState<{ step: WorkflowStep; rect: DOMRect } | null>(null);
 
@@ -231,6 +232,15 @@ export function WorkflowBuilder({ workflowId, workflowName }: WorkflowBuilderPro
       awaitingApproval: 0,
     },
   };
+
+  /* ── Sync read-only state to AIBox context when time travel changes ── */
+  useEffect(() => {
+    if (timeTravelActive) {
+      setAiBoxPageContext(prev => prev ? { ...prev, isReadOnly: true } : prev);
+    } else {
+      setAiBoxPageContext(prev => prev ? { ...prev, isReadOnly: false } : prev);
+    }
+  }, [timeTravelActive, setAiBoxPageContext]);
 
   // Load workflow — 4 clean playbook steps
   useEffect(() => {
@@ -410,7 +420,7 @@ export function WorkflowBuilder({ workflowId, workflowName }: WorkflowBuilderPro
     if (missing.length > 0) {
       setShowIntegrationRequiredModal(true);
     } else {
-      console.log("Publishing workflow...");
+      debug.log("Publishing workflow...");
     }
   }, [getMissingIntegrations]);
 
@@ -796,4 +806,5 @@ export function WorkflowBuilder({ workflowId, workflowName }: WorkflowBuilderPro
   );
 }
 
+export const WorkflowBuilder = React.memo(WorkflowBuilderInner);
 export default WorkflowBuilder;

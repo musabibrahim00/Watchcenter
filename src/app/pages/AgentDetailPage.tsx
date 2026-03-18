@@ -1117,7 +1117,7 @@ const AgentImpactPanel = React.memo(function AgentImpactPanel({ agentId }: { age
 
 const MAX_VISIBLE_INSIGHTS = 3;
 
-function InsightRow({ insight, agentRole }: { insight: InsightItem; agentRole: string }) {
+function InsightRow({ insight, agentRole, showUpdatedTag }: { insight: InsightItem; agentRole: string; showUpdatedTag?: boolean }) {
   return (
     <div className="flex items-center gap-[12px] py-[10px] px-[14px] relative">
       {/* Subtle bottom border */}
@@ -1131,9 +1131,14 @@ function InsightRow({ insight, agentRole }: { insight: InsightItem; agentRole: s
 
       {/* Content */}
       <div className="flex flex-col gap-[2px] flex-1 min-w-0">
-        <p className="font-['Inter',sans-serif] text-[12px] text-[#dadfe3] leading-[16px] truncate">
-          {insight.title}
-        </p>
+        <div className="flex items-center gap-[6px]">
+          <p className="font-['Inter',sans-serif] text-[12px] text-[#dadfe3] leading-[16px] truncate">
+            {insight.title}
+          </p>
+          {showUpdatedTag && (
+            <span className="ai-updated-tag shrink-0">Updated by AI</span>
+          )}
+        </div>
         <p className="font-['Inter',sans-serif] text-[10px] text-[#62707D] leading-[13px] truncate">
           {agentRole} — {insight.description}
         </p>
@@ -1150,7 +1155,7 @@ function InsightRow({ insight, agentRole }: { insight: InsightItem; agentRole: s
   );
 }
 
-function InsightActivitySection({ agentId }: { agentId: AgentId }) {
+function InsightActivitySection({ agentId, aiUpdated }: { agentId: AgentId; aiUpdated?: boolean }) {
   const insights = AGENT_INSIGHTS[agentId] || [];
   const [showAll, setShowAll] = useState(false);
 
@@ -1191,8 +1196,13 @@ function InsightActivitySection({ agentId }: { agentId: AgentId }) {
         />
 
         <div className="relative flex flex-col overflow-y-auto flex-1 min-h-0" style={{ scrollbarWidth: "thin", scrollbarColor: "#1e2a34 transparent" }}>
-          {visibleItems.map((insight) => (
-            <InsightRow key={insight.id} insight={insight} agentRole={role} />
+          {visibleItems.map((insight, idx) => (
+            <InsightRow
+              key={insight.id}
+              insight={insight}
+              agentRole={role}
+              showUpdatedTag={aiUpdated && idx < 2}
+            />
           ))}
         </div>
 
@@ -1354,6 +1364,29 @@ function AgentDetailInner({
   const { investigateTask } = useTaskInvestigation();
   const { openWithContext, close: closeAiBox } = useAiBox();
 
+  /* ── AI action result: track which sections were updated ── */
+  const [aiUpdatedSections, setAiUpdatedSections] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { scope } = (e as CustomEvent).detail as { resultType: string; scope: string };
+      const sections = new Set<string>();
+      if (scope === "agent" || scope === "investigation") {
+        sections.add("findings");
+        sections.add("impact");
+      }
+      if (scope === "risk") sections.add("impact");
+      if (scope === "asset") { sections.add("findings"); sections.add("impact"); }
+      if (sections.size > 0) {
+        setAiUpdatedSections(sections);
+        const t = setTimeout(() => setAiUpdatedSections(new Set()), 3000);
+        return () => clearTimeout(t);
+      }
+    };
+    window.addEventListener("aibox-page-refresh", handler);
+    return () => window.removeEventListener("aibox-page-refresh", handler);
+  }, []);
+
   /* ── Push agent context to global AIBox and auto-open ── */
   useEffect(() => {
     const agentRole = AGENT_ROLE[id];
@@ -1477,40 +1510,72 @@ function AgentDetailInner({
           </p>
         </div>
 
-        {/* Capabilities — standard-sized buttons that send queries to AIBox */}
+        {/* Capabilities — primary / secondary hierarchy */}
         <div className="relative rounded-[12px] px-[20px] py-[16px]">
           <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[12px]" style={{ background: "rgba(5,11,17,0.6)", border: "1px solid rgba(18,30,39,0.6)" }} />
-          <div className="flex flex-col gap-[10px] relative">
-            <div className="flex items-center gap-[6px]">
-              <span className="font-['Inter',sans-serif] text-[11px] text-[#4a5568] leading-[14px] uppercase tracking-[0.4px]">Capabilities</span>
-            </div>
-            <div className="flex flex-wrap gap-[8px]">
+          <div className="flex flex-col gap-[12px] relative">
+            <span className="font-['Inter',sans-serif] text-[11px] text-[#4a5568] leading-[14px] uppercase tracking-[0.4px]">What this analyst can do</span>
+
+            {/* Primary actions */}
+            <div className="flex gap-[8px]">
               {[
                 { label: "Explain findings", query: `What did the ${AGENT_ROLE[id]} discover?` },
-                { label: "Assess risk", query: `Recalculate risk score for the ${AGENT_ROLE[id]}` },
-                { label: "Trace attack path", query: `Show attack paths related to the ${AGENT_ROLE[id]}` },
-                { label: "Re-run analysis", query: `Re-run analysis for the ${AGENT_ROLE[id]}` },
-                { label: "Simulate impact", query: `Simulate blast radius for the ${AGENT_ROLE[id]} findings` },
+                { label: "Assess risk", query: `Recalculate risk using asset, vulnerability, and exposure context for the ${AGENT_ROLE[id]}` },
               ].map(cap => (
                 <button
                   key={cap.label}
                   onClick={() => window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: cap.query } }))}
-                  className="h-[24px] min-w-[84px] relative rounded-[6px] shrink-0 bg-[#076498] cursor-pointer hover:bg-[#0a7ab8] transition-colors border-none"
+                  className="h-[32px] flex-1 relative rounded-[7px] cursor-pointer border-none transition-colors"
+                  style={{ backgroundColor: "#076498" }}
+                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#0879b5"; }}
+                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = "#076498"; }}
                 >
-                  <div className="content-stretch flex h-full items-center justify-center px-[12px] py-[8px]">
-                    <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] text-[#f1f3ff] text-[10px] text-center">{cap.label}</span>
-                  </div>
+                  <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[13px] text-[#f1f3ff] text-[11px]">{cap.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Secondary actions */}
+            <div className="flex gap-[8px]">
+              {[
+                { label: "Trace attack path", query: `Show attack paths related to the ${AGENT_ROLE[id]}` },
+                { label: "Re-run analysis", query: `Re-run investigation across all relevant analysts for ${AGENT_ROLE[id]}` },
+                { label: "Simulate impact", query: `Simulate cross-agent impact for ${AGENT_ROLE[id]} findings` },
+              ].map(cap => (
+                <button
+                  key={cap.label}
+                  onClick={() => window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: cap.query } }))}
+                  className="h-[28px] flex-1 relative rounded-[6px] cursor-pointer transition-colors"
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "1px solid rgba(87,177,255,0.16)",
+                    color: "#62707D",
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = "rgba(87,177,255,0.28)";
+                    e.currentTarget.style.color = "#89949e";
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = "rgba(87,177,255,0.16)";
+                    e.currentTarget.style.color = "#62707D";
+                  }}
+                >
+                  <span className="font-['Inter:Medium',sans-serif] font-medium leading-[12px] text-[10px]">{cap.label}</span>
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Agent Impact Panel */}
-        <AgentImpactPanel agentId={id} />
+        {/* Agent Impact Panel — subtly highlighted when an AI action updates risk/metrics */}
+        <div className={aiUpdatedSections.has("impact") ? "ai-updated-section" : ""}>
+          <AgentImpactPanel agentId={id} />
+        </div>
 
-        {/* Insight Activity — analyst discoveries */}
-        <InsightActivitySection agentId={id} />
+        {/* Insight Activity — analyst discoveries; highlighted when findings are refreshed */}
+        <div className={aiUpdatedSections.has("findings") ? "ai-updated-section" : ""}>
+          <InsightActivitySection agentId={id} aiUpdated={aiUpdatedSections.has("findings")} />
+        </div>
         <div className="h-px" style={{ backgroundColor: colors.divider }} />
 
         {/* Modules Overview heading */}

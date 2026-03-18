@@ -1,7 +1,7 @@
 import svgPaths from "./svg-6w8b0ukn5u";
-import img5 from "figma:asset/a1d9b7e3c2e2ac7d5a48423ceaf15797baefd768.png";
-import imgOld from "figma:asset/976dde1a603f5a46e2c8728e96db5d977bcbfff3.png";
-import imgInputArea from "figma:asset/e48d3f4f9530b463fdfa63f8bd84ace2538c65c8.png";
+const img5 = "";
+const imgOld = "";
+const imgInputArea = "";
 import { imgGroup, imgTransfer3, imgGroup1 } from "./svg-isslu";
 
 function Group() {

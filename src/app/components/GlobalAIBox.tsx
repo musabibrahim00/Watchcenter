@@ -10,6 +10,7 @@
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Zap } from "lucide-react";
+import { toast } from "sonner";
 import { colors } from "../shared/design-system/tokens";
 import { useAiBox, type AiBoxPageContext } from "../features/ai-box";
 import {
@@ -19,10 +20,18 @@ import {
   ChatInput as SharedChatInput,
   type ChatMessage,
   classifyActionIntent,
+  classifyGuardrailLevel,
   matchAction,
   ActionCard,
+  ContributingAgentsBlock,
+  ActionResultCard,
+  ActionFailureCard,
+  deriveActionResult,
+  deriveActionFailure,
   type ActionCardData,
+  type ActionResultData,
 } from "../../imports/AiBoxShared";
+import { logAction } from "../shared/utils/audit-log";
 import svgPaths from "../../imports/svg-sx6d9u7tbs";
 import { inferWorkflowAiState, getWorkflowPlaceholder } from "../pages/workflows/workflowAiStates";
 import {
@@ -244,6 +253,187 @@ function PlaybookPlanCard({ steps }: { steps: PlanStep[] }) {
       </div>
     </div>
   );
+}
+
+/* ================================================================
+   MULTI-AGENT ORCHESTRATION
+   ================================================================ */
+
+/** Keyword signals mapped to analyst roles for routing */
+const ANALYST_KEYWORDS: Record<string, string[]> = {
+  "Asset Intelligence Analyst":        ["asset", "inventory", "ownership", "classification", "device", "endpoint", "cmdb"],
+  "Vulnerability Analyst":             ["vulnerabilit", "cve", "patch", "exploit", "weakness"],
+  "Exposure Analyst":                  ["exposure", "attack path", "lateral", "internet-facing", "blast radius", "reachable"],
+  "Risk Intelligence Analyst":         ["risk score", "risk posture", "business impact", "risk intelligence", "risk recalcul", "business risk"],
+  "Governance & Compliance Analyst":   ["compliance", "policy", "regulatory", "audit", "approval", "governance"],
+  "Configuration Security Analyst":    ["misconfiguration", "drift", "baseline", "configuration"],
+  "Application Security Analyst":      ["application sec", "code", "dependency", "supply chain"],
+  "Identity Security Analyst":         ["identity", "privilege escalation", "dormant account", "credential"],
+};
+
+const MULTI_AGENT_PATTERNS: RegExp[] = [
+  /reinvestigate/i,
+  /re-?run\s+investigation\s+(across|for\s+all|with\s+all)/i,
+  /reassess\s+(this|findings|issue|exposure|vulnerabilit)/i,
+  /recalculate\s+risk\s+using/i,
+  /simulate\s+(cross.?agent|impact\s+if)/i,
+  /across\s+(all\s+)?(analysts?|agents?|perspectives?)/i,
+  /from\s+a?\s*different\s+(lens|perspective|angle)/i,
+  /comprehensive\s+(review|analysis|assessment|investigation)/i,
+  /full\s+investigation/i,
+  /all\s+(relevant\s+)?(analysts?|agents?)/i,
+  /multiple\s+(analysts?|perspectives?|lenses?)/i,
+];
+
+function detectMultiAgentIntent(query: string): boolean {
+  return MULTI_AGENT_PATTERNS.some(p => p.test(query));
+}
+
+function resolveAnalysts(query: string, ctx: AiBoxPageContext | null): string[] {
+  const q = query.toLowerCase();
+
+  /* Predefined sets for common orchestration patterns */
+  if (/reinvestigate|re-?run\s+investigation/i.test(query)) {
+    return ["Asset Intelligence Analyst", "Vulnerability Analyst", "Exposure Analyst", "Risk Intelligence Analyst"];
+  }
+  if (/recalculate\s+risk\s+using|reassess.*risk/i.test(query)) {
+    return ["Asset Intelligence Analyst", "Vulnerability Analyst", "Exposure Analyst", "Risk Intelligence Analyst"];
+  }
+  if (/simulate\s+(cross|impact\s+if)/i.test(query)) {
+    return ["Exposure Analyst", "Asset Intelligence Analyst", "Risk Intelligence Analyst"];
+  }
+  if (/reassess\s+(findings|this|issue)/i.test(query)) {
+    return ["Asset Intelligence Analyst", "Vulnerability Analyst", "Exposure Analyst", "Governance & Compliance Analyst"];
+  }
+  if (/comprehensive|full\s+investigation/i.test(query)) {
+    return ["Asset Intelligence Analyst", "Vulnerability Analyst", "Exposure Analyst", "Risk Intelligence Analyst", "Governance & Compliance Analyst"];
+  }
+
+  /* Keyword-based resolution */
+  const matched: string[] = [];
+  for (const [analyst, keywords] of Object.entries(ANALYST_KEYWORDS)) {
+    if (keywords.some(kw => q.includes(kw))) matched.push(analyst);
+  }
+  if (matched.length >= 2) return matched.slice(0, 4);
+
+  /* Fallback */
+  return ["Asset Intelligence Analyst", "Exposure Analyst", "Risk Intelligence Analyst"];
+}
+
+/** Analyst → contribution description for a given query type */
+function getAnalystContribution(analyst: string, query: string): string {
+  const q = query.toLowerCase();
+  const isRisk = /risk|posture|score/i.test(q);
+  const isSimulate = /simulat/i.test(q);
+  const isReassess = /reassess/i.test(q);
+
+  const contributions: Record<string, string> = {
+    "Asset Intelligence Analyst":      isRisk ? "provided asset classification and business criticality" : isSimulate ? "assessed downstream asset scope and ownership" : "identified affected assets and established ownership",
+    "Vulnerability Analyst":           isRisk ? "contributed validated CVE severity and patch status" : isReassess ? "re-validated CVE exploitability against current patch state" : "validated exploitable vulnerabilities and CVE impact",
+    "Exposure Analyst":                isSimulate ? "modeled reachable attack paths from the exposed entry point" : isReassess ? "re-assessed lateral movement and reachability" : "mapped reachable attack paths and lateral movement risk",
+    "Risk Intelligence Analyst":       isSimulate ? "estimated business impact score for each blast radius" : "synthesized composite risk score across all analyst inputs",
+    "Governance & Compliance Analyst": isReassess ? "re-evaluated compliance posture against current findings" : "assessed policy impact and approval requirements",
+    "Configuration Security Analyst":  "identified configuration drift and baseline deviations",
+    "Application Security Analyst":    "reviewed dependency exposure and code-level risks",
+    "Identity Security Analyst":       "assessed privilege paths and credential exposure",
+  };
+  return contributions[analyst] || "contributed analysis for this investigation";
+}
+
+/** Build a multi-agent explore/explain response (no Action Card) */
+function buildMultiAgentExploreResponse(
+  query: string,
+  analysts: string[],
+  ctx: AiBoxPageContext | null
+): { content: string; uiModule?: React.ReactNode } {
+  const label = ctx?.label ? `**${ctx.label}**` : "the current scope";
+  const isSimulate = /simulat/i.test(query);
+  const isRisk = /risk/i.test(query);
+  const isReassess = /reassess/i.test(query);
+
+  const summary = isSimulate
+    ? `Simulating impact across ${analysts.length} analysts for ${label}. The analysis covers attack path reachability, asset exposure, and estimated business impact.`
+    : isRisk
+    ? `Recalculating risk for ${label} using inputs from ${analysts.length} analysts. The composite score incorporates asset criticality, vulnerability severity, exposure reachability, and threat intelligence.`
+    : isReassess
+    ? `Reassessing findings for ${label} across ${analysts.length} analysts. Each analyst re-evaluates their domain against the current state.`
+    : `Re-running investigation for ${label} across ${analysts.length} analysts. Each analyst contributes domain-specific findings to a synthesized result.`;
+
+  const contributions = analysts
+    .map(a => `- **${a}** → ${getAnalystContribution(a, query)}`)
+    .join("\n");
+
+  const nextActions = isSimulate
+    ? ["Create a case from the blast radius findings", "Recalculate risk with simulation results", "Restrict internet-facing access for affected assets"]
+    : isRisk
+    ? ["Review updated risk score in the Risk Register", "Reassess exposure for top-risk assets", "Create a remediation case for critical findings"]
+    : ["Review updated findings in Agent Detail", "Recalculate risk score with new data", "Create a case from high-severity findings"];
+
+  const content = [
+    `## Summary`,
+    summary,
+    ``,
+    `## Analyst Contributions`,
+    contributions,
+    ``,
+    `## Recommended Next Actions`,
+    nextActions.map(a => `- ${a}`).join("\n"),
+  ].join("\n");
+
+  return { content };
+}
+
+/** Process a multi-agent query — routes to Action Card or structured response */
+function processMultiAgentQuery(
+  query: string,
+  analysts: string[],
+  ctx: AiBoxPageContext | null,
+  onModify?: (data: ActionCardData, refinement: string) => void
+): { content: string; uiModule?: React.ReactNode } {
+  const actionIntent = classifyActionIntent(query);
+
+  if (actionIntent === "act") {
+    const actionData = matchAction(query, ctx?.label);
+    if (actionData) {
+      const enriched: ActionCardData = enrichActionData(
+        { ...actionData, participatingAnalysts: actionData.participatingAnalysts ?? analysts },
+        query,
+        ctx
+      );
+      logAction({
+        user: "current-user",
+        pageContext: ctx?.label || "multi-agent",
+        actionTitle: enriched.title,
+        scope: enriched.scope,
+        guardrailLevel: enriched.guardrailLevel ?? "L2",
+        approvalStatus: enriched.requiresApproval ? "pending" : "not-required",
+        outcome: "initiated",
+      });
+      const previewText = enriched.isReadOnly
+        ? "This action is unavailable in read-only mode."
+        : enriched.requiresApproval
+          ? `I've prepared a multi-analyst action. This is a **Level 3** action and requires approval before it can run.`
+          : `I've prepared a multi-analyst action. Review the participating analysts and parameters, then click **Run** to execute.`;
+      return {
+        content: previewText,
+        uiModule: (
+          <div className="flex flex-col gap-[8px]">
+            <ContributingAgentsBlock analysts={enriched.participatingAnalysts!} />
+            <ActionCard data={enriched} onModify={onModify} />
+          </div>
+        ),
+      };
+    }
+  }
+
+  /* Explain/explore — return structured response with contributing agents block */
+  const exploreResult = buildMultiAgentExploreResponse(query, analysts, ctx);
+  return {
+    ...exploreResult,
+    uiModule: (
+      <ContributingAgentsBlock analysts={analysts} />
+    ),
+  };
 }
 
 /* ================================================================
@@ -1283,6 +1473,21 @@ function processWorkflowQuery(query: string, ctx: AiBoxPageContext): { content: 
   };
 }
 
+/** Enrich ActionCardData with guardrail metadata from the current context */
+function enrichActionData(
+  data: ActionCardData,
+  query: string,
+  ctx: AiBoxPageContext | null
+): ActionCardData {
+  const isReadOnly = ctx?.isReadOnly ?? false;
+  const level = data.guardrailLevel ?? classifyGuardrailLevel(query);
+  return {
+    ...data,
+    guardrailLevel: level,
+    isReadOnly,
+  };
+}
+
 function processAgentQuery(query: string, ctx: AiBoxPageContext, onModifyAction?: (data: ActionCardData, refinement: string) => void): { content: string; uiModule?: React.ReactNode } {
   const q = query.toLowerCase();
 
@@ -1291,15 +1496,27 @@ function processAgentQuery(query: string, ctx: AiBoxPageContext, onModifyAction?
   if (actionIntent === "act") {
     const actionData = matchAction(query, ctx.label);
     if (actionData) {
+      const enriched = enrichActionData(actionData, query, ctx);
+      logAction({
+        user: "current-user",
+        pageContext: ctx?.label || "agent",
+        actionTitle: enriched.title,
+        scope: enriched.scope,
+        guardrailLevel: enriched.guardrailLevel ?? "L2",
+        approvalStatus: enriched.requiresApproval ? "pending" : "not-required",
+        outcome: "initiated",
+      });
+      const previewText = enriched.isReadOnly
+        ? "This action is unavailable in read-only mode."
+        : enriched.requiresApproval
+          ? `I've prepared the following action. This is a **Level 3** action and requires approval before it can run.`
+          : `I've prepared the following action. Review the parameters and click **Run** to execute, or **Modify** to adjust.`;
       return {
-        content: `I've prepared the following action based on your request. Review the parameters and click **Run** to execute, or **Modify** to adjust.`,
+        content: previewText,
         uiModule: (
           <ActionCard
-            data={actionData}
+            data={enriched}
             onModify={onModifyAction}
-            onComplete={(completed) => {
-              // Completion is handled by the ActionCard itself
-            }}
           />
         ),
       };
@@ -1428,11 +1645,26 @@ function processGeneralQuery(query: string, ctx: AiBoxPageContext | null, onModi
   if (actionType === "act") {
     const actionData = matchAction(query, ctx?.label);
     if (actionData) {
+      const enriched = enrichActionData(actionData, query, ctx);
+      logAction({
+        user: "current-user",
+        pageContext: ctx?.label || "general",
+        actionTitle: enriched.title,
+        scope: enriched.scope,
+        guardrailLevel: enriched.guardrailLevel ?? "L2",
+        approvalStatus: enriched.requiresApproval ? "pending" : "not-required",
+        outcome: "initiated",
+      });
+      const previewText = enriched.isReadOnly
+        ? "This action is unavailable in read-only mode."
+        : enriched.requiresApproval
+          ? `I've prepared the following action. This is a **Level 3** action and requires approval before it can run.`
+          : `I've prepared the following action. Review the parameters and click **Run** to execute, or **Modify** to adjust.`;
       return {
-        content: `I've prepared the following action based on your request. Review the parameters and click **Run** to execute, or **Modify** to adjust.`,
+        content: previewText,
         uiModule: (
           <ActionCard
-            data={actionData}
+            data={enriched}
             onModify={onModifyAction}
           />
         ),
@@ -1450,14 +1682,85 @@ function processGeneralQuery(query: string, ctx: AiBoxPageContext | null, onModi
    COMPONENT
    ================================================================ */
 
-export function GlobalAIBox() {
-  const { isOpen, pageContext } = useAiBox();
+function GlobalAIBoxInner() {
+  const { isOpen, pageContext, pendingEntryQuery, setPendingEntryQuery } = useAiBox();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [runningAction, setRunningAction] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevContextKeyRef = useRef<string>("");
   const prevInitialQueryRef = useRef<string>("");
+
+  /* ── Action status events from ActionCard ── */
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as {
+        running: boolean;
+        title: string;
+        completed?: boolean;
+        failed?: boolean;
+        analystCount?: number;
+        actionData?: ActionCardData;
+      };
+
+      if (detail.running) {
+        setRunningAction(detail.title);
+        return;
+      }
+
+      setRunningAction(null);
+
+      if (detail.completed && detail.actionData) {
+        /* Derive structured result and dispatch page-refresh event */
+        const result: ActionResultData = deriveActionResult(detail.actionData);
+        window.dispatchEvent(new CustomEvent("aibox-page-refresh", {
+          detail: { resultType: result.resultType, scope: detail.actionData.scope },
+        }));
+
+        /* Append "What changed" summary to chat */
+        setMessages(prev => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: "agent" as const,
+            text: "",
+            timestamp: new Date(),
+            renderedUI: <ActionResultCard result={result} />,
+          },
+        ]);
+
+        /* Toast for quick confirmation */
+        const analystCount = detail.analystCount;
+        toast.success("Action completed", {
+          description: analystCount && analystCount > 1
+            ? `${detail.title} finished across ${analystCount} analysts. Results updated.`
+            : `${detail.title} finished. Results updated.`,
+          duration: 3000,
+        });
+      } else if (detail.failed && detail.actionData) {
+        /* Derive failure info and append failure card to chat */
+        const failure = deriveActionFailure(detail.actionData);
+        setMessages(prev => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: "agent" as const,
+            text: "",
+            timestamp: new Date(),
+            renderedUI: <ActionFailureCard failure={failure} />,
+          },
+        ]);
+
+        toast.error("Action failed", {
+          description: `${detail.title} could not be completed.`,
+          duration: 3500,
+        });
+      }
+    };
+    window.addEventListener("globalaibox-action-status", handler);
+    return () => window.removeEventListener("globalaibox-action-status", handler);
+  }, []);
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
@@ -1512,7 +1815,9 @@ export function GlobalAIBox() {
     setIsProcessing(true);
 
     setTimeout(() => {
-      const result = pageContext?.type === "workflow"
+      const result = detectMultiAgentIntent(pageContext.initialQuery!)
+        ? processMultiAgentQuery(pageContext.initialQuery!, resolveAnalysts(pageContext.initialQuery!, pageContext), pageContext, handleModifyAction)
+        : pageContext?.type === "workflow"
         ? processWorkflowQuery(pageContext.initialQuery!, pageContext)
         : pageContext?.type === "agent"
         ? processAgentQuery(pageContext.initialQuery!, pageContext, handleModifyAction)
@@ -1532,17 +1837,54 @@ export function GlobalAIBox() {
     }, 800);
   }, [pageContext?.initialQuery, isOpen, contextKey]);
 
-  const suggestions = useMemo(() => pageContext?.suggestions || [], [pageContext?.suggestions]);
+  // Inject deep-link entry query once the page context has settled.
+  // pendingEntryQuery is set by useAiBoxDeepLink before the page renders, so
+  // when the page calls openWithContext() it would overwrite initialQuery.
+  // This effect fires after the context is stable and sends the query.
+  useEffect(() => {
+    if (!pendingEntryQuery || !isOpen) return;
+    const query = pendingEntryQuery;
+    setPendingEntryQuery(null);
 
-  /* ── Modify callback for ActionCard — injects a refinement prompt into the chat ── */
-  const handleModifyAction = useCallback((actionData: ActionCardData, refinement: string) => {
-    const agentMsg: ChatMessage = {
+    const userMsg: ChatMessage = {
       id: crypto.randomUUID(),
-      role: "agent",
-      text: `You'd like to modify **${actionData.title}**. You can refine these parameters:\n\n${actionData.parameters.filter(p => p.editable).map(p => `• **${p.label}**: currently "${p.value}"`).join("\n")}\n\nTell me what to change — for example: "Set priority to High" or "Scope to finance-db-01 only".`,
+      role: "user",
+      text: query,
       timestamp: new Date(),
     };
-    setMessages(prev => [...prev, agentMsg]);
+    setMessages(prev => [...prev, userMsg]);
+    setIsProcessing(true);
+
+    setTimeout(() => {
+      const result = detectMultiAgentIntent(query)
+        ? processMultiAgentQuery(query, resolveAnalysts(query, pageContext), pageContext, handleModifyAction)
+        : pageContext?.type === "workflow"
+        ? processWorkflowQuery(query, pageContext)
+        : pageContext?.type === "agent"
+        ? processAgentQuery(query, pageContext, handleModifyAction)
+        : processGeneralQuery(query, pageContext, handleModifyAction);
+
+      const newMsgs: ChatMessage[] = [];
+      if (result.uiModule && result.content) {
+        newMsgs.push({ id: crypto.randomUUID(), role: "agent", text: result.content, timestamp: new Date() });
+        newMsgs.push({ id: crypto.randomUUID(), role: "agent", text: "", timestamp: new Date(), renderedUI: result.uiModule });
+      } else if (result.uiModule) {
+        newMsgs.push({ id: crypto.randomUUID(), role: "agent", text: "", timestamp: new Date(), renderedUI: result.uiModule });
+      } else {
+        newMsgs.push({ id: crypto.randomUUID(), role: "agent", text: result.content, timestamp: new Date() });
+      }
+      setMessages(prev => [...prev, ...newMsgs]);
+      setIsProcessing(false);
+    }, 800);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingEntryQuery, isOpen]);
+
+  const suggestions = useMemo(() => pageContext?.suggestions || [], [pageContext?.suggestions]);
+
+  /* ── Modify callback for ActionCard — no-op; inline editing handled by ActionCard itself ── */
+  const handleModifyAction = useCallback((_actionData: ActionCardData, _refinement: string) => {
+    // Modification is now handled inline within the ActionCard component.
+    // This callback is kept for API compatibility but performs no action.
   }, []);
 
   const handleSend = useCallback((promptText?: string) => {
@@ -1559,8 +1901,24 @@ export function GlobalAIBox() {
 
     setIsProcessing(true);
 
+    /* Block L2/L3 actions in read-only mode before processing */
+    if (pageContext?.isReadOnly && classifyGuardrailLevel(messageText) !== "L1") {
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          id: crypto.randomUUID(),
+          role: "agent" as const,
+          text: "This action is unavailable in read-only mode. Switch to live view to execute changes.",
+          timestamp: new Date(),
+        }]);
+        setIsProcessing(false);
+      }, 300);
+      return;
+    }
+
     setTimeout(() => {
-      const result = pageContext?.type === "workflow"
+      const result = detectMultiAgentIntent(messageText)
+        ? processMultiAgentQuery(messageText, resolveAnalysts(messageText, pageContext), pageContext, handleModifyAction)
+        : pageContext?.type === "workflow"
         ? processWorkflowQuery(messageText, pageContext!)
         : pageContext?.type === "agent"
         ? processAgentQuery(messageText, pageContext!, handleModifyAction)
@@ -1611,10 +1969,17 @@ export function GlobalAIBox() {
   );
 
   return (
-    <div className="bg-[rgba(3,6,9,0.16)] relative rounded-[16px] size-full min-h-0" data-name="GlobalAIBox">
+    <div
+      className="bg-[rgba(3,6,9,0.16)] relative rounded-[16px] size-full min-h-0"
+      data-name="GlobalAIBox"
+      style={{
+        border: "1px solid #030609",
+        boxShadow: "0px 24px 48px 0px rgba(0,0,0,0.48), inset 0 0 0 1px rgba(87,177,255,0.13)",
+      }}
+    >
       <div className="content-stretch flex flex-col isolate items-center overflow-hidden relative rounded-[inherit] size-full min-h-0">
 
-        {/* ── Header — matches Watch Center AiBoxHeader ── */}
+        {/* ── Header ── */}
         <div className="relative shrink-0 w-full z-[3]">
           <div aria-hidden="true" className="absolute border-[#121e27] border-b border-solid inset-0 pointer-events-none" />
           <div className="flex flex-row items-center size-full">
@@ -1629,18 +1994,29 @@ export function GlobalAIBox() {
                 </div>
                 <div className="flex flex-col min-w-0">
                   <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[14px] not-italic relative shrink-0 text-[#dadfe3] text-[12px] whitespace-nowrap">Alex</p>
-                  <p className="font-['Inter:Regular',sans-serif] font-normal leading-[14px] not-italic relative shrink-0 text-[#4a5568] text-[10px] whitespace-nowrap mt-[2px] truncate max-w-[140px]">{contextSubtitle}</p>
+                  <p className="font-['Inter:Regular',sans-serif] font-normal leading-[14px] not-italic relative shrink-0 text-[#4a5568] text-[10px] whitespace-nowrap mt-[2px]">Digital Security Teammate</p>
                 </div>
               </div>
-              {/* Status indicator — matches Watch Center */}
+              {/* Status indicator */}
               <div className="content-stretch flex gap-[8px] items-center relative shrink-0">
-                <div className="flex items-center gap-[4px] px-[6px] py-[2px] rounded-[4px]"
-                  style={{ background: "rgba(87,177,255,0.06)", border: "1px solid rgba(87,177,255,0.12)" }}>
+                <div
+                  className="flex items-center gap-[4px] px-[6px] py-[2px] rounded-[4px] transition-all duration-300"
+                  style={{
+                    background: runningAction ? "rgba(59,130,246,0.06)" : "rgba(87,177,255,0.06)",
+                    border: `1px solid ${runningAction ? "rgba(59,130,246,0.20)" : "rgba(87,177,255,0.12)"}`,
+                  }}
+                >
                   <span className="relative size-[6px] shrink-0">
-                    <span className="absolute inset-0 rounded-full bg-[#57b1ff]"/>
+                    <span
+                      className={`absolute inset-0 rounded-full ${runningAction ? "animate-pulse" : ""}`}
+                      style={{ backgroundColor: runningAction ? "#3b82f6" : "#57b1ff" }}
+                    />
                   </span>
-                  <span className="font-['Inter:Medium',sans-serif] text-[8px] leading-[11px] text-[#57b1ff] uppercase tracking-wider">
-                    Standby
+                  <span
+                    className="font-['Inter:Medium',sans-serif] text-[8px] leading-[11px] uppercase tracking-wider transition-colors duration-300"
+                    style={{ color: runningAction ? "#3b82f6" : "#57b1ff" }}
+                  >
+                    {runningAction ? "Running" : "Standby"}
                   </span>
                 </div>
               </div>
@@ -1648,9 +2024,37 @@ export function GlobalAIBox() {
           </div>
         </div>
 
-        {/* ── Chat area — matches Watch Center layout ── */}
+        {/* ── Context strip — shown when a page context is active ── */}
+        {pageContext && (
+          <div className="relative shrink-0 w-full z-[2] px-[16px] py-[8px] flex flex-col gap-[2px]"
+            style={{ borderBottom: "1px solid #121e27", background: "rgba(6,13,20,0.6)" }}>
+            <p className="font-['Inter:Medium',sans-serif] text-[8px] leading-[10px] uppercase tracking-[0.08em] text-[#3a4754]">
+              {contextSubtitle}
+            </p>
+            <p className="font-['Inter:Semi_Bold',sans-serif] text-[11px] leading-[14px] text-[#89949e] truncate">
+              {pageContext.label}
+            </p>
+          </div>
+        )}
+
+        {/* ── Running action status strip ── */}
+        {runningAction && (
+          <div
+            className="relative shrink-0 w-full px-[16px] py-[5px] flex items-center gap-[6px]"
+            style={{ background: "rgba(59,130,246,0.04)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}
+          >
+            <span className="relative size-[6px] shrink-0">
+              <span className="absolute inset-0 rounded-full bg-[#3b82f6] animate-pulse" />
+            </span>
+            <span className="font-['Inter:Medium',sans-serif] text-[9px] leading-[12px] text-[#3b82f6] truncate">
+              Running: {runningAction}
+            </span>
+          </div>
+        )}
+
+        {/* ── Chat area ── */}
         <div
-          className="flex-[1_0_0] min-h-px min-w-px relative w-full z-[2] overflow-y-auto"
+          className="flex-1 min-h-0 min-w-0 relative w-full z-[2] overflow-y-auto"
           style={{ scrollbarWidth: "none" }}
           onClick={(e) => {
             const el = (e.target as HTMLElement).closest("[data-suggestion]") as HTMLElement | null;
@@ -1658,14 +2062,13 @@ export function GlobalAIBox() {
           }}
         >
           {messages.length === 0 && !isProcessing ? (
-            /* Welcome state — suggestions in WelcomeScreen style */
             <div className="flex flex-col items-center justify-end size-full gap-[10px] px-[20px] pb-[8px]">
               <div className="flex flex-col gap-[5px] w-full max-w-[260px]">
                 {suggestions.map((s, i) => (
                   <div key={i} className="bg-[#060d14] border border-[#121e27] rounded-[6px] px-[10px] py-[7px] cursor-pointer hover:border-[#1e3a5f] transition-colors group" data-suggestion={s.prompt}>
                     <div className="flex items-center gap-[6px]">
                       <svg className="size-[8px] shrink-0 opacity-30 group-hover:opacity-60 transition-opacity" viewBox="0 0 10 10" fill="none"><path d="M3.5 2L6.5 5L3.5 8" stroke="#57b1ff" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                      <p className="font-['Inter:Regular',sans-serif] font-normal leading-[13px] text-[#62707D] group-hover:text-[#89949e] transition-colors text-[10px]">{s.label}</p>
+                      <p className="font-['Inter:Regular',sans-serif] font-normal leading-[13px] text-[#62707D] group-hover:text-[#89949e] transition-colors text-[12px]">{s.label}</p>
                     </div>
                   </div>
                 ))}
@@ -1682,7 +2085,7 @@ export function GlobalAIBox() {
           )}
         </div>
 
-        {/* ── Input — matches Watch Center SharedChatInput ── */}
+        {/* ── Input ── */}
         <SharedChatInput
           inputValue={inputValue}
           onInputChange={setInputValue}
@@ -1694,8 +2097,8 @@ export function GlobalAIBox() {
           sendIcon={sendIcon}
         />
       </div>
-      {/* Decorative border — matches Watch Center AiBox */}
-      <div aria-hidden="true" className="absolute border border-[rgba(87,177,255,0.16)] border-solid inset-0 pointer-events-none rounded-[16px]"/>
     </div>
   );
 }
+
+export const GlobalAIBox = React.memo(GlobalAIBoxInner);

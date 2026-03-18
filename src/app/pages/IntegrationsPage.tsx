@@ -29,7 +29,7 @@ interface Integration {
   name: string;
   category: string;
   description: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
   iconColor: string;
   status: ConnectionStatus;
   lastTested?: string;

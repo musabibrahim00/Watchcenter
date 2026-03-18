@@ -2,6 +2,8 @@
  * Workflow Types — Core data models for Workflows and Runs
  */
 
+import type React from "react";
+
 /* ================================================================
    RUN TYPES
    ================================================================ */
@@ -41,7 +43,7 @@ export interface WorkflowRun {
   timelineEvents?: TimelineEvent[];
   errorMessage?: string;
   triggeredBy?: string; // User or system
-  metadata?: Record<string, any>;
+  metadata?: Record<string, string | number | boolean | null | undefined>;
 }
 
 export interface StepExecution {
@@ -101,14 +103,18 @@ export interface TimelineEvent {
    WORKFLOW TYPES
    ================================================================ */
 
+export interface WorkflowStepConfig {
+  [key: string]: string | number | boolean | null | undefined;
+}
+
 export interface WorkflowStep {
   id: string;
   templateId: string;
   name: string;
-  icon?: any;
+  icon?: React.ComponentType<{ size?: number; className?: string }>;
   status?: "idle" | "running" | "success" | "failed";
   executionTime?: string;
-  config?: Record<string, any>;
+  config?: WorkflowStepConfig;
   requiresIntegration?: string;
 }
 

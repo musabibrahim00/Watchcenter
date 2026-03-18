@@ -1,3 +1,44 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
+
+[data-name="InputArea"] textarea::placeholder,
+[data-name="GlobalInputArea"] textarea::placeholder {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.input-area-bg {
+  background-color: #060d14;
+  background-image: radial-gradient(circle, rgba(87, 177, 255, 0.07) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
+/* AI-action result: subtle glow pulse on updated page sections */
+@keyframes ai-updated-glow {
+  0%   { box-shadow: none; }
+  18%  { box-shadow: 0 0 0 1px rgba(47, 216, 151, 0.22), 0 0 16px rgba(47, 216, 151, 0.07); }
+  100% { box-shadow: none; }
+}
+
+.ai-updated-section {
+  border-radius: 12px;
+  animation: ai-updated-glow 2.8s ease-out forwards;
+}
+
+/* Updated-by-AI label tag */
+.ai-updated-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(47, 216, 151, 0.07);
+  border: 1px solid rgba(47, 216, 151, 0.14);
+  font-size: 9px;
+  line-height: 11px;
+  color: #2fd897;
+  white-space: nowrap;
+  font-weight: 500;
+}

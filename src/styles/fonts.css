@@ -1,1 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&display=swap');
+@font-face {
+  font-family: 'Roboto Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../assets/RobotoMono-Bold.ttf') format('truetype');
+}

@@ -9,21 +9,8 @@ import React, { useState } from "react";
 import { Sparkles, AlertTriangle, Link2, Database, ChevronDown } from "lucide-react";
 import { colors } from "../../shared/design-system/tokens";
 import { WorkflowDataPanel, SampleDataPreview, TokenInput } from "./VariableMapping";
-
-/* ================================================================
-   TYPES
-   ================================================================ */
-
-interface WorkflowStep {
-  id: string;
-  templateId: string;
-  name: string;
-  icon: any;
-  status: string;
-  executionTime?: string;
-  config?: Record<string, any>;
-  requiresIntegration?: string;
-}
+import type { WorkflowStep } from "./types";
+import { debug } from "../../shared/utils/debug";
 
 interface StepConfigurationFormProps {
   step: WorkflowStep;
@@ -501,7 +488,7 @@ function SlackConfigForm({ step, onUpdate }: StepConfigurationFormProps) {
           multiline
           rows={3}
           onChange={(value, tokens) => {
-            console.log("Message updated:", value, tokens);
+            debug.log("Message updated:", value, tokens);
           }}
         />
         <div className="mt-[6px] text-[10px]" style={{ color: colors.textDim }}>

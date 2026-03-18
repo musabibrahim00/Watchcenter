@@ -103,7 +103,7 @@ const STATE_DEFS: Record<WorkflowAiState, WorkflowAiStateDef> = {
   edit: {
     sublabel: WORKFLOW_SUBLABEL,
     greeting: (name) =>
-      `I have **${name}** loaded. Tell me what you'd like to change and I'll update the playbook canvas automatically.\n\nFor example:\n• "Add an enrichment step after the trigger"\n• "Replace Slack with Jira"\n• "Add approval before escalation"`,
+      `I have **${name}** context loaded.\n\nI can help you diagnose failures, explain steps, optimize performance, and review runs.`,
     suggestions: () => [
       { label: "Add enrichment", prompt: "Add an enrichment step to enrich the alert with threat intelligence" },
       { label: "Add approval step", prompt: "Add an approval step before any destructive action" },
@@ -121,7 +121,7 @@ const STATE_DEFS: Record<WorkflowAiState, WorkflowAiStateDef> = {
   diagnose: {
     sublabel: WORKFLOW_SUBLABEL,
     greeting: (name) =>
-      `Running diagnostics on **${name}**…\n\nI'll check integration health, recent run failures, step performance, and error patterns.`,
+      `I have **${name}** context loaded.\n\nI can help you diagnose failures, explain steps, optimize performance, and review runs.`,
     suggestions: () => [
       { label: "Why is this workflow failing?", prompt: "Why is this workflow failing?" },
       { label: "Show recent workflow runs", prompt: "Show recent workflow runs" },
@@ -137,7 +137,7 @@ const STATE_DEFS: Record<WorkflowAiState, WorkflowAiStateDef> = {
   explain: {
     sublabel: WORKFLOW_SUBLABEL,
     greeting: (name) =>
-      `I can explain **${name}** in plain language — how it works, why it exists, and what each step does.\n\nWhat would you like to understand?`,
+      `I have **${name}** context loaded.\n\nI can help you diagnose failures, explain steps, optimize performance, and review runs.`,
     suggestions: () => [
       { label: "Explain this workflow", prompt: "Explain this workflow end-to-end in plain language" },
       { label: "Explain this trigger", prompt: "Explain what triggers this workflow" },
@@ -152,7 +152,7 @@ const STATE_DEFS: Record<WorkflowAiState, WorkflowAiStateDef> = {
   optimize: {
     sublabel: WORKFLOW_SUBLABEL,
     greeting: (name) =>
-      `I've analyzed **${name}** based on recent runs, failure patterns, and integration health.\n\nHere are a few areas I can help you improve — pick one or ask me anything.`,
+      `I have **${name}** context loaded.\n\nI can help you diagnose failures, explain steps, optimize performance, and review runs.`,
     suggestions: () => [
       { label: "Optimize this workflow", prompt: "Optimize this workflow based on recent performance" },
       { label: "Reduce failures", prompt: "How can I reduce failures in this workflow?" },
@@ -169,7 +169,7 @@ const STATE_DEFS: Record<WorkflowAiState, WorkflowAiStateDef> = {
   library: {
     sublabel: WORKFLOW_SUBLABEL,
     greeting: (name) =>
-      `I have **${name}** loaded. I can walk you through what it does, help you tailor it to your environment, or get it running right away.\n\nJust pick an option below or describe what you need in your own words.`,
+      `I have **${name}** context loaded.\n\nI can help you diagnose failures, explain steps, optimize performance, and review runs.`,
     suggestions: () => [
       { label: "Explain this template", prompt: "Explain this template" },
       { label: "Customize this workflow", prompt: "Customize this workflow" },

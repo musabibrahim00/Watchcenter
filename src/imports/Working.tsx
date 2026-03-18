@@ -274,18 +274,14 @@ function AgentTooltip({ agentId }: { agentId: AgentId }) {
           </div>
         )}
 
-        {/* "Click to interact" hint */}
-        {!investigationActive && (
-          <>
-            <div className="h-px w-full" style={{ background: "rgba(87,177,255,0.06)" }} />
-            <span
-              className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic text-[#3E4E5A]"
-              style={{ fontSize: 8 }}
-            >
-              Click to view details or interact
-            </span>
-          </>
-        )}
+        {/* "Click to interact" hint — always visible */}
+        <div className="h-px w-full" style={{ background: "rgba(87,177,255,0.06)" }} />
+        <span
+          className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic text-[#3E4E5A]"
+          style={{ fontSize: 8 }}
+        >
+          Click to view details or interact
+        </span>
       </div>
     </div>
   );

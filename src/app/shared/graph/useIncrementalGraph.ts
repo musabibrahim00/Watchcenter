@@ -22,6 +22,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { GraphDataStore } from "./GraphDataStore";
 import type { GraphStoreSnapshot } from "./GraphDataStore";
+import type { SGNode, SGEdge } from "./security-graph-data";
 import { useFocusedGraph } from "./useFocusedGraph";
 import type { FocusedNode, FocusedEdge, FocusedGraphState, FocusedGraphConfig } from "./useFocusedGraph";
 
@@ -68,8 +69,8 @@ export function useIncrementalGraph<
   const storeRef = useRef<GraphDataStore | null>(null);
   if (!storeRef.current) {
     storeRef.current = options.store ?? new GraphDataStore(
-      allNodes as any[],
-      allEdges as any[],
+      allNodes as unknown as SGNode[],
+      allEdges as unknown as SGEdge[],
     );
   }
   const store = storeRef.current;

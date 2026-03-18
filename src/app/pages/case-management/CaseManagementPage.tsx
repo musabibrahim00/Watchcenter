@@ -13,7 +13,7 @@ import { caseColors } from "./design-tokens";
 
 type TabType = "dashboard" | "cases";
 
-export default function CaseManagementPage() {
+function CaseManagementPage() {
   const location = useLocation();
   const locationState = location.state as { activeTab?: string } | undefined;
   const [activeTab, setActiveTab] = useState<TabType>(
@@ -84,3 +84,5 @@ export default function CaseManagementPage() {
     </div>
   );
 }
+
+export default React.memo(CaseManagementPage);

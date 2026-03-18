@@ -1,6 +1,5 @@
 import svgPaths from "./svg-8fodtn1stz";
-import imgOld from "figma:asset/976dde1a603f5a46e2c8728e96db5d977bcbfff3.png";
-import imgInputArea from "figma:asset/1c91905cf1040f1f9ab28c91e0b812f347608093.png";
+import imgOld from "../assets/TeammateAvatar.png";
 
 function Teammate() {
   return (
@@ -83,8 +82,7 @@ function ChatArea() {
 
 function InputArea() {
   return (
-    <div className="flex-[1_0_0] h-[48px] min-h-px min-w-px relative rounded-[8px]" data-name="InputArea">
-      <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none rounded-[8px] size-full" src={imgInputArea} />
+    <div className="input-area-bg flex-[1_0_0] h-[48px] min-h-px min-w-px relative rounded-[8px]" data-name="InputArea">
       <div aria-hidden="true" className="absolute border border-[#030609] border-solid inset-0 pointer-events-none rounded-[8px] shadow-[0px_24px_48px_0px_rgba(0,0,0,0.48)]" />
       <div className="flex flex-row items-center size-full">
         <div className="content-stretch flex items-center p-[16px] relative size-full">

@@ -652,9 +652,9 @@ function WorkflowsIndexPageInner() {
 
       const bullets = actions.map(a => `- ${a}`).join("\n");
       const greeting =
-        `I have **${templateName}** loaded. Here's what this workflow will do:\n\n` +
+        `I have **${templateName}** context loaded.\n\n` +
         bullets +
-        `\n\nYou can ask me to customize it before creating it — for example, change the trigger, add an approval step, or switch notification targets.`;
+        `\n\nI can help you diagnose failures, explain steps, optimize performance, and review runs.`;
 
       openAiBox({ ...ctx, greeting, initialQuery: undefined });
     } else {
@@ -688,9 +688,7 @@ function WorkflowsIndexPageInner() {
         });
         setAiBoxPageContext({
           ...ctx,
-          greeting: debugSelectedRun
-            ? `I have **run ${debugSelectedRun.id}** loaded for **${wf.title}**. I can help you understand what happened, identify errors, and suggest fixes.`
-            : `I'm ready to help debug **${wf.title}**. Select a run from the list, or ask me about recent failures and errors.`,
+          greeting: `I have **${wf.title}** context loaded.\n\nI can help you diagnose failures, explain steps, optimize performance, and review runs.`,
           suggestions: [
             { label: "Why did the last run fail?", prompt: "Why is this workflow failing?" },
             { label: "Find bottlenecks", prompt: "Find bottleneck steps in this workflow" },
@@ -710,7 +708,7 @@ function WorkflowsIndexPageInner() {
         });
         setAiBoxPageContext({
           ...ctx,
-          greeting: `I can help you understand the execution history of **${wf.title}** — recent runs, failure patterns, and performance trends.\n\nAsk me anything or pick a suggestion below.`,
+          greeting: `I have **${wf.title}** context loaded.\n\nI can help you diagnose failures, explain steps, optimize performance, and review runs.`,
           suggestions: [
             { label: "Show recent runs", prompt: "Show recent workflow runs" },
             { label: "Why is this workflow failing?", prompt: "Why is this workflow failing?" },
@@ -730,7 +728,7 @@ function WorkflowsIndexPageInner() {
         });
         setAiBoxPageContext({
           ...ctx,
-          greeting: `I can help you configure **${wf.title}** — integrations, variables, secrets, and environment settings.\n\nAsk me anything or pick a suggestion below.`,
+          greeting: `I have **${wf.title}** context loaded.\n\nI can help you diagnose failures, explain steps, optimize performance, and review runs.`,
           suggestions: [
             { label: "What integrations are needed?", prompt: "Check integrations for this workflow" },
             { label: "Explain workflow variables", prompt: "Explain what variables this workflow uses" },
@@ -823,7 +821,7 @@ function WorkflowsIndexPageInner() {
     });
     openAiBox({
       ...ctx,
-      greeting: `Analyzing run **${context.runId}** for **${context.workflowName}**...`,
+      greeting: `I have **${context.workflowName}** context loaded.\n\nI can help you diagnose failures, explain steps, optimize performance, and review runs.`,
       initialQuery: debugQuery,
     });
   }, [openAiBox]);
@@ -840,9 +838,7 @@ function WorkflowsIndexPageInner() {
     });
     openAiBox({
       ...ctx,
-      greeting: hasError
-        ? `I see **run ${run.id}** for **${workflowName}** has failed. I can help you understand what went wrong and suggest fixes.`
-        : `I have **run ${run.id}** for **${workflowName}** loaded. Ask me anything about this execution.`,
+      greeting: `I have **${workflowName}** context loaded.\n\nI can help you diagnose failures, explain steps, optimize performance, and review runs.`,
       initialQuery: hasError
         ? `Why did run ${run.id} fail?`
         : `Show me the details of run ${run.id}`,

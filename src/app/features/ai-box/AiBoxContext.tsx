@@ -24,6 +24,8 @@ export interface AiBoxPageContext {
   initialQuery?: string;
   /** Unique key to detect context changes */
   contextKey?: string;
+  /** When true, AI-triggered executable actions are blocked */
+  isReadOnly?: boolean;
 }
 
 /* ================================================================
@@ -38,9 +40,15 @@ interface AiBoxContextType {
   /** Current page context — set by the active page */
   pageContext: AiBoxPageContext | null;
   /** Pages call this to push their context into the global AIBox */
-  setPageContext: (ctx: AiBoxPageContext | null) => void;
+  setPageContext: (ctx: AiBoxPageContext | null | ((prev: AiBoxPageContext | null) => AiBoxPageContext | null)) => void;
   /** Open AIBox AND set context + optional initial query simultaneously */
   openWithContext: (ctx: AiBoxPageContext) => void;
+  /**
+   * Preserved deep-link query that survives page-level context overwrites.
+   * GlobalAIBox reads this once and clears it after injection.
+   */
+  pendingEntryQuery: string | null;
+  setPendingEntryQuery: (q: string | null) => void;
 }
 
 const AiBoxContext = createContext<AiBoxContextType>({
@@ -51,18 +59,25 @@ const AiBoxContext = createContext<AiBoxContextType>({
   pageContext: null,
   setPageContext: () => {},
   openWithContext: () => {},
+  pendingEntryQuery: null,
+  setPendingEntryQuery: () => {},
 });
 
 export function AiBoxProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [pageContext, setPageContextState] = useState<AiBoxPageContext | null>(null);
+  const [pendingEntryQuery, setPendingEntryQuery] = useState<string | null>(null);
 
   const toggle = useCallback(() => setIsOpen((prev) => !prev), []);
   const open = useCallback(() => setIsOpen(true), []);
   const close = useCallback(() => setIsOpen(false), []);
 
-  const setPageContext = useCallback((ctx: AiBoxPageContext | null) => {
-    setPageContextState(ctx);
+  const setPageContext = useCallback((ctx: AiBoxPageContext | null | ((prev: AiBoxPageContext | null) => AiBoxPageContext | null)) => {
+    if (typeof ctx === "function") {
+      setPageContextState(ctx);
+    } else {
+      setPageContextState(ctx);
+    }
   }, []);
 
   const openWithContext = useCallback((ctx: AiBoxPageContext) => {
@@ -71,7 +86,7 @@ export function AiBoxProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AiBoxContext.Provider value={{ isOpen, toggle, open, close, pageContext, setPageContext, openWithContext }}>
+    <AiBoxContext.Provider value={{ isOpen, toggle, open, close, pageContext, setPageContext, openWithContext, pendingEntryQuery, setPendingEntryQuery }}>
       {children}
     </AiBoxContext.Provider>
   );

@@ -2,7 +2,7 @@ import { Outlet } from "react-router";
 import { useState, useEffect } from "react";
 import SidebarNavigation from "../../imports/SidebarNavigation";
 import Header from "../../imports/Header";
-import { AiBoxProvider, useAiBox } from "../features/ai-box";
+import { AiBoxProvider, useAiBox, useAiBoxDeepLink } from "../features/ai-box";
 import { colors } from "../shared/design-system/tokens";
 import { CommandPalette } from "./CommandPalette";
 import { TimeTravelProvider, useTimeTravel } from "../shared/contexts/TimeTravelContext";
@@ -111,6 +111,7 @@ function TimeTravelBanner() {
 
 function LayoutInner() {
   const { isOpen: isAiBoxOpen } = useAiBox();
+  useAiBoxDeepLink();
 
   return (
     <div className="flex h-screen w-full overflow-hidden" style={{ backgroundColor: colors.bgApp }} data-name="WatchDST">

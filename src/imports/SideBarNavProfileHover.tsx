@@ -1,4 +1,4 @@
-import img5 from "figma:asset/a1d9b7e3c2e2ac7d5a48423ceaf15797baefd768.png";
+import img5 from "../assets/TeammateAvatar.png";
 
 function NavigationItems() {
   return (

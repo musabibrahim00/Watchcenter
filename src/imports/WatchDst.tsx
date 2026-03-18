@@ -116,6 +116,104 @@ const Bg = React.memo(function Bg() {
   );
 });
 
+/* ── Current Situation data ─────────────────────────────────────────────────── */
+
+const SITUATION_SIGNALS: { type: "critical" | "warning" | "info" | "good"; text: string }[] = [
+  {
+    type: "critical",
+    text: "2 critical attack paths active — finance-db-01 and root account reachable from internet-facing services",
+  },
+  {
+    type: "warning",
+    text: "Asset Intelligence Analyst escalated risk to Critical on account prod-0384 — 5 new indicators identified in the last hour",
+  },
+  {
+    type: "warning",
+    text: "3 crown jewel assets have unacknowledged exposure — immediate review required",
+  },
+  {
+    type: "info",
+    text: "Slack integration disconnected — 2 workflow notification steps are currently blocked",
+  },
+  {
+    type: "good",
+    text: "12 alerts resolved in the last 24 hours — lateral movement indicators cleared from staging",
+  },
+];
+
+const SIGNAL_DOT: Record<string, string> = {
+  critical: "#ef4444",
+  warning:  "#f59e0b",
+  info:     "#57b1ff",
+  good:     "#2fd897",
+};
+
+function CurrentSituation({ maxWidth }: { maxWidth: number }) {
+  return (
+    <div
+      className="mt-[14px] rounded-[12px] px-[16px] py-[13px]"
+      style={{
+        width: Math.max(320, maxWidth),
+        background: "rgba(3, 8, 16, 0.78)",
+        border: "1px solid rgba(87, 177, 255, 0.09)",
+        backdropFilter: "blur(10px)",
+      }}
+    >
+      <div className="flex items-start gap-[12px]">
+        {/* Vertical label */}
+        <div
+          className="shrink-0 pt-[1px]"
+          style={{
+            fontSize: 8,
+            fontFamily: "'Inter:Medium', sans-serif",
+            fontWeight: 500,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            color: "rgba(87,177,255,0.45)",
+            lineHeight: "11px",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Current<br />Situation
+        </div>
+
+        {/* Divider */}
+        <div
+          className="self-stretch w-[1px] shrink-0 mx-[2px]"
+          style={{ backgroundColor: "rgba(87,177,255,0.10)" }}
+        />
+
+        {/* Signal list */}
+        <div className="flex-1 flex flex-col gap-[5px] min-w-0">
+          {SITUATION_SIGNALS.map((signal, i) => (
+            <div key={i} className="flex items-start gap-[7px]">
+              <div
+                className="shrink-0 rounded-full mt-[4px]"
+                style={{
+                  width: 5,
+                  height: 5,
+                  backgroundColor: SIGNAL_DOT[signal.type],
+                  opacity: 0.85,
+                }}
+              />
+              <span
+                style={{
+                  fontSize: 10,
+                  lineHeight: "14px",
+                  fontFamily: "'Inter:Regular', sans-serif",
+                  color: "rgba(137,148,158,0.88)",
+                }}
+              >
+                {signal.text}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Container() {
   const [isDetailView, setIsDetailView] = React.useState(false);
   const [hoveredAgent, setHoveredAgent] = React.useState<AgentId | null>(null);
@@ -156,7 +254,8 @@ function Container() {
       <div ref={containerRef} className="relative h-full bg-[#030609] overflow-clip" data-name="Container">
         <Bg />
         <div className="absolute inset-0 flex flex-col items-center">
-          <div className="relative w-full flex justify-center mt-[32px]">
+          <CurrentSituation maxWidth={Math.min(660, Math.max(340, dims.w - 2 * (sideW + 56)))} />
+          <div className="relative w-full flex justify-center mt-[8px]">
             <div
               className="shrink-0 z-[1] relative"
               style={{

@@ -19,12 +19,13 @@
 import { createCaseFromAIRecommendation, createCaseFromAttackPath } from "./case-integration";
 import { addCase, addObservation, addPlaybooks, CASES } from "./case-data";
 import type { AIRecommendationContext, AttackPathContext } from "./case-integration";
+import { debug } from "../../shared/utils/debug";
 
 /**
  * Test Case 1: Create a case from Watch Center AI recommendation
  */
 export function testWatchCenterAICase(): void {
-  console.log("🧪 Testing Watch Center AI → Cases Integration...");
+  debug.log("🧪 Testing Watch Center AI → Cases Integration...");
   
   const aiContext: AIRecommendationContext = {
     type: "insight",
@@ -45,7 +46,7 @@ export function testWatchCenterAICase(): void {
   };
 
   const beforeCount = CASES.length;
-  console.log(`📊 Cases count before: ${beforeCount}`);
+  debug.log(`📊 Cases count before: ${beforeCount}`);
 
   const { caseData, initialObservation, recommendedPlaybooks } = createCaseFromAIRecommendation(
     aiContext,
@@ -58,9 +59,9 @@ export function testWatchCenterAICase(): void {
   addPlaybooks(caseData.id, recommendedPlaybooks);
 
   const afterCount = CASES.length;
-  console.log(`📊 Cases count after: ${afterCount}`);
-  console.log(`✅ New case created: ${caseData.id}`);
-  console.log(`📋 Case details:`, {
+  debug.log(`📊 Cases count after: ${afterCount}`);
+  debug.log(`✅ New case created: ${caseData.id}`);
+  debug.log(`📋 Case details:`, {
     id: caseData.id,
     title: caseData.title,
     severity: caseData.severity,
@@ -71,11 +72,11 @@ export function testWatchCenterAICase(): void {
     owner: caseData.owner.name,
     createdAt: caseData.createdAt,
   });
-  console.log(`📝 Observations: ${initialObservation.title}`);
-  console.log(`📚 Playbooks: ${recommendedPlaybooks.length} generated`);
-  console.log(`\n✨ Case will appear at the top of the Cases list (newest first sorting)`);
-  console.log(`✨ Summary bar will update automatically`);
-  console.log(`✨ Filters will include this case\n`);
+  debug.log(`📝 Observations: ${initialObservation.title}`);
+  debug.log(`📚 Playbooks: ${recommendedPlaybooks.length} generated`);
+  debug.log(`\n✨ Case will appear at the top of the Cases list (newest first sorting)`);
+  debug.log(`✨ Summary bar will update automatically`);
+  debug.log(`✨ Filters will include this case\n`);
 
   return;
 }
@@ -84,7 +85,7 @@ export function testWatchCenterAICase(): void {
  * Test Case 2: Create a case from Attack Path investigation
  */
 export function testAttackPathCase(): void {
-  console.log("🧪 Testing Attack Path → Cases Integration...");
+  debug.log("🧪 Testing Attack Path → Cases Integration...");
 
   const attackPathContext: AttackPathContext = {
     attackPathId: "AP-183",
@@ -109,7 +110,7 @@ export function testAttackPathCase(): void {
   };
 
   const beforeCount = CASES.length;
-  console.log(`📊 Cases count before: ${beforeCount}`);
+  debug.log(`📊 Cases count before: ${beforeCount}`);
 
   const { caseData, initialObservation, recommendedPlaybooks } = createCaseFromAttackPath(
     attackPathContext
@@ -121,9 +122,9 @@ export function testAttackPathCase(): void {
   addPlaybooks(caseData.id, recommendedPlaybooks);
 
   const afterCount = CASES.length;
-  console.log(`📊 Cases count after: ${afterCount}`);
-  console.log(`✅ New case created: ${caseData.id}`);
-  console.log(`📋 Case details:`, {
+  debug.log(`📊 Cases count after: ${afterCount}`);
+  debug.log(`✅ New case created: ${caseData.id}`);
+  debug.log(`📋 Case details:`, {
     id: caseData.id,
     title: caseData.title,
     severity: caseData.severity,
@@ -136,15 +137,15 @@ export function testAttackPathCase(): void {
     assignedTeam: caseData.assignedTeam,
     createdAt: caseData.createdAt,
   });
-  console.log(`📝 Observations: ${initialObservation.title}`);
-  console.log(`📚 Playbooks: ${recommendedPlaybooks.length} generated`);
+  debug.log(`📝 Observations: ${initialObservation.title}`);
+  debug.log(`📚 Playbooks: ${recommendedPlaybooks.length} generated`);
   recommendedPlaybooks.forEach((pb, i) => {
-    console.log(`   ${i + 1}. ${pb.title}`);
+    debug.log(`   ${i + 1}. ${pb.title}`);
   });
-  console.log(`\n✨ Case will appear at the top of the Cases list`);
-  console.log(`✨ Blast radius info: ${attackPathContext.blastRadiusAssets} assets affected`);
-  console.log(`✨ Vulnerabilities: ${attackPathContext.vulnerabilityCount}`);
-  console.log(`✨ Misconfigurations: ${attackPathContext.misconfigurationCount}\n`);
+  debug.log(`\n✨ Case will appear at the top of the Cases list`);
+  debug.log(`✨ Blast radius info: ${attackPathContext.blastRadiusAssets} assets affected`);
+  debug.log(`✨ Vulnerabilities: ${attackPathContext.vulnerabilityCount}`);
+  debug.log(`✨ Misconfigurations: ${attackPathContext.misconfigurationCount}\n`);
 
   return;
 }
@@ -153,26 +154,26 @@ export function testAttackPathCase(): void {
  * Test Case 3: Verify reactive updates
  */
 export function testReactiveUpdates(): void {
-  console.log("🧪 Testing Reactive Updates (useSyncExternalStore)...");
+  debug.log("🧪 Testing Reactive Updates (useSyncExternalStore)...");
   
-  console.log(`\n📌 The Cases list page uses useSyncExternalStore to subscribe to case changes.`);
-  console.log(`📌 When addCase() is called, it triggers _notifyListeners().`);
-  console.log(`📌 This causes the CasesListPage component to re-render automatically.`);
-  console.log(`📌 New cases appear instantly without manual refresh.\n`);
+  debug.log(`\n📌 The Cases list page uses useSyncExternalStore to subscribe to case changes.`);
+  debug.log(`📌 When addCase() is called, it triggers _notifyListeners().`);
+  debug.log(`📌 This causes the CasesListPage component to re-render automatically.`);
+  debug.log(`📌 New cases appear instantly without manual refresh.\n`);
   
-  console.log(`✅ Reactive update flow verified in code:`);
-  console.log(`   1. addCase(caseData) → CASES.unshift(caseData) → _notifyListeners()`);
-  console.log(`   2. subscribeCases() listeners triggered`);
-  console.log(`   3. getCasesSnapshot() returns incremented version`);
-  console.log(`   4. useSyncExternalStore detects change`);
-  console.log(`   5. CasesListPage re-renders with new data\n`);
+  debug.log(`✅ Reactive update flow verified in code:`);
+  debug.log(`   1. addCase(caseData) → CASES.unshift(caseData) → _notifyListeners()`);
+  debug.log(`   2. subscribeCases() listeners triggered`);
+  debug.log(`   3. getCasesSnapshot() returns incremented version`);
+  debug.log(`   4. useSyncExternalStore detects change`);
+  debug.log(`   5. CasesListPage re-renders with new data\n`);
 }
 
 /**
  * Test Case 4: Verify all required fields are populated correctly
  */
 export function testCaseFieldPopulation(): void {
-  console.log("🧪 Testing Case Field Population...");
+  debug.log("🧪 Testing Case Field Population...");
 
   const testContext: AIRecommendationContext = {
     type: "insight",
@@ -184,7 +185,7 @@ export function testCaseFieldPopulation(): void {
 
   const { caseData } = createCaseFromAIRecommendation(testContext);
 
-  console.log(`\n✅ Checking required fields per spec:\n`);
+  debug.log(`\n✅ Checking required fields per spec:\n`);
 
   const checks = [
     { field: "Case ID", value: caseData.id, expected: "Generated (CASE-XXXX format)", pass: /^CASE-\d{4}$/.test(caseData.id) },
@@ -201,33 +202,33 @@ export function testCaseFieldPopulation(): void {
 
   checks.forEach(check => {
     const icon = check.pass ? "✅" : "❌";
-    console.log(`${icon} ${check.field}: ${check.value} (expected: ${check.expected})`);
+    debug.log(`${icon} ${check.field}: ${check.value} (expected: ${check.expected})`);
   });
 
   const allPassed = checks.every(c => c.pass);
-  console.log(`\n${allPassed ? "✅ All fields populated correctly!" : "❌ Some fields failed validation"}\n`);
+  debug.log(`\n${allPassed ? "✅ All fields populated correctly!" : "❌ Some fields failed validation"}\n`);
 }
 
 /**
  * Run all tests
  */
 export function runAllTests(): void {
-  console.log("═══════════════════════════════════════════════");
-  console.log("🧪 CASES INTEGRATION TEST SUITE");
-  console.log("═══════════════════════════════════════════════\n");
+  debug.log("═══════════════════════════════════════════════");
+  debug.log("🧪 CASES INTEGRATION TEST SUITE");
+  debug.log("═══════════════════════════════════════════════\n");
 
   testCaseFieldPopulation();
   testReactiveUpdates();
   testWatchCenterAICase();
   testAttackPathCase();
 
-  console.log("═══════════════════════════════════════════════");
-  console.log("✅ ALL TESTS COMPLETE");
-  console.log("═══════════════════════════════════════════════");
-  console.log("\n💡 Navigate to /case-management to see the new cases in the list!");
-  console.log("💡 New cases appear at the top (newest first)");
-  console.log("💡 Summary bar updates automatically");
-  console.log("💡 All filters and search work with new cases\n");
+  debug.log("═══════════════════════════════════════════════");
+  debug.log("✅ ALL TESTS COMPLETE");
+  debug.log("═══════════════════════════════════════════════");
+  debug.log("\n💡 Navigate to /case-management to see the new cases in the list!");
+  debug.log("💡 New cases appear at the top (newest first)");
+  debug.log("💡 Summary bar updates automatically");
+  debug.log("💡 All filters and search work with new cases\n");
 }
 
 // Make available in window for easy console access
