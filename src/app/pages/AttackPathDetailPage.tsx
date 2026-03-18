@@ -4,6 +4,8 @@ import { ArrowLeft, ZoomIn, ZoomOut, Shield, Globe, Cloud, Server, Database, Ale
 import { colors } from "../shared/design-system/tokens";
 import { Badge } from "../shared/components/ui/Badge";
 import { useAiBox } from "../features/ai-box";
+import { getPersonaAiBoxSuggestions } from "../shared/skills";
+import { usePersona } from "../features/persona";
 import { getControlsForPath } from "../shared/entity-graph";
 
 /* ================================================================
@@ -2841,11 +2843,16 @@ export default function AttackPathDetailPage() {
   const { pathId } = useParams<{ pathId: string }>();
   const navigate = useNavigate();
   const { setPageContext } = useAiBox();
+  const { persona } = usePersona();
   const resolvedPathId = pathId || "";
-  const pathData = ATTACK_PATHS[resolvedPathId] || DEFAULT_PATH;
+  const knownPath = resolvedPathId in ATTACK_PATHS;
+  const pathData = knownPath ? ATTACK_PATHS[resolvedPathId] : DEFAULT_PATH;
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   useEffect(() => {
+    // Skip context setup for unknown paths — not-found guard renders below
+    if (!knownPath) return;
+
     const contributingGaps = getControlsForPath(resolvedPathId);
     const gapSummary = contributingGaps.length > 0
       ? contributingGaps.map(g => `${g.control} (${g.framework}): ${g.title}`).join("; ")
@@ -2857,14 +2864,7 @@ export default function AttackPathDetailPage() {
       sublabel: "Attack Path Graph",
       contextKey: `attack-path-detail:${resolvedPathId}`,
       greeting: `I have the **${pathData.name}** attack path loaded. ${contributingGaps.length > 0 ? `${contributingGaps.length} compliance gap${contributingGaps.length > 1 ? "s" : ""} contribute to this path's reachability.` : ""} I can walk through the attack chain, explain each hop, or help you build a remediation case.`,
-      suggestions: [
-        { label: "Explain this attack chain", prompt: `Explain the full attack chain for "${pathData.name}"` },
-        { label: "What's the blast radius?", prompt: `What assets are in the blast radius for "${pathData.name}"?` },
-        { label: "Which controls break this path?", prompt: `Which compliance controls, if remediated, would break or reduce the "${pathData.name}" attack path?` },
-        { label: "Recommend fixes", prompt: `What are the top mitigations for "${pathData.name}"?` },
-        { label: "Create remediation case", prompt: `Create a remediation case for the "${pathData.name}" attack path` },
-        { label: "Simulate impact", prompt: `Simulate the impact if "${pathData.name}" is exploited` },
-      ],
+      suggestions: getPersonaAiBoxSuggestions("attack-path", persona, pathData.name, undefined, resolvedPathId),
       // Graph context — compliance gaps that enable this path
       graphContext: {
         pathId: resolvedPathId,
@@ -2885,6 +2885,30 @@ export default function AttackPathDetailPage() {
   const handleSelectNode = useCallback((nodeId: string | null, _node?: PathNode) => {
     setSelectedNodeId(nodeId);
   }, []);
+
+  // Guard (after all hooks): unknown pathId — clean not-found state, no misleading skeleton
+  if (!knownPath) {
+    return (
+      <div className="flex-1 flex items-center justify-center" style={{ backgroundColor: colors.bgApp }}>
+        <div className="flex flex-col items-center gap-4 text-center">
+          <AlertTriangle size={32} color={colors.textDim} strokeWidth={1.5} />
+          <p className="font-['Inter',sans-serif] text-[14px]" style={{ color: colors.textPrimary }}>
+            Attack path not found
+          </p>
+          <p className="font-['Inter',sans-serif] text-[12px]" style={{ color: colors.textDim }}>
+            Path <code style={{ color: colors.accent, fontFamily: "monospace" }}>{pathId}</code> does not exist.
+          </p>
+          <button
+            onClick={() => navigate("/attack-paths")}
+            className="flex items-center gap-2 rounded-lg px-4 py-2 text-[12px] transition-colors cursor-pointer"
+            style={{ backgroundColor: `${colors.accent}14`, border: `1px solid ${colors.accent}30`, color: colors.accent }}
+          >
+            <ArrowLeft size={12} /> Back to Attack Paths
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full min-h-screen" style={{ backgroundColor: colors.bgApp }}>

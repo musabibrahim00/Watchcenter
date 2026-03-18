@@ -1373,7 +1373,24 @@ export default function AgentDetailPage() {
   if (!meta || !taskData) {
     return (
       <div className="flex-1 flex items-center justify-center" style={{ backgroundColor: colors.bgApp }}>
-        <span className="font-['Inter',sans-serif] text-[14px]" style={{ color: colors.textDim }}>Agent not found</span>
+        <div className="flex flex-col items-center gap-4 text-center">
+          <p style={{ fontSize: 15, fontWeight: 600, color: colors.textPrimary, margin: 0 }}>Agent not found</p>
+          <p style={{ fontSize: 12, color: colors.textMuted, margin: 0 }}>
+            Agent <code style={{ color: colors.accent, fontFamily: "monospace" }}>{agentId}</code> does not exist.
+          </p>
+          <button
+            onClick={() => navigate("/")}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "8px 16px", borderRadius: 8,
+              border: `1px solid ${colors.border}`,
+              background: "transparent", color: colors.textMuted,
+              fontSize: 12, cursor: "pointer",
+            }}
+          >
+            <ArrowLeft size={12} /> Back to Watch Center
+          </button>
+        </div>
       </div>
     );
   }
