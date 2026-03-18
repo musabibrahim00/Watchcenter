@@ -6,11 +6,43 @@
  * Uses the same product-facing language as the UI.
  */
 
+import { getSkillsForContext } from "./skills-registry.mjs";
+
 // ── Response shape ────────────────────────────────────────────────────────────
 // { sections: [{ title, bullets }], riskLevel, nextSteps }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const s = (title, bullets) => ({ title, bullets });
+
+/**
+ * Derive next-step CLI suggestions from the skills registry for an agent context.
+ * Returns up to `count` suggestions excluding the skill that maps to the current intent.
+ */
+function agentNextSteps(label, agentId, currentIntent, count = 2) {
+  const intentToAlias = {
+    summarise: "summarise",
+    assess:    "assess",
+    trace:     "trace",
+    explain:   "explain",
+    diagnose:  "diagnose",
+    rerun:     "rerun",
+    simulate:  "simulate",
+  };
+  const currentAlias = intentToAlias[currentIntent];
+  return getSkillsForContext("agent", agentId)
+    .filter(sk => !currentAlias || !(sk.cliAliases ?? []).includes(currentAlias))
+    .slice(0, count)
+    .map(sk => `secops agent "${label}" "${sk.label.toLowerCase()}"`);
+}
+
+/**
+ * Derive next-step CLI suggestions for a non-agent context.
+ */
+function contextNextSteps(contextType, entityLabel, count = 2) {
+  return getSkillsForContext(contextType)
+    .slice(0, count)
+    .map(sk => `secops ${contextType} "${entityLabel}" "${sk.label.toLowerCase()}"`);
+}
 
 // ── Agent responses ───────────────────────────────────────────────────────────
 function agentResponse(ctx, intent) {
@@ -245,29 +277,10 @@ function agentResponse(ctx, intent) {
     "Identity Security Analyst":     "high",
   };
 
-  const nextSteps = {
-    summarise: [
-      `secops agent "${label}" "assess current risk"`,
-      `secops rerun "${label}"`,
-    ],
-    assess: [
-      `secops agent "${label}" "explain recent findings"`,
-      `secops agent "${label}" "recommend actions"`,
-    ],
-    trace: [
-      `secops agent "${label}" "recommend mitigations"`,
-      `secops rerun "${label}"`,
-    ],
-    explain: [
-      `secops agent "${label}" "explain recent findings"`,
-      `secops agent "${label}" "assess current risk"`,
-    ],
-  };
-
   return {
     sections: [section],
     riskLevel: riskLevels[label] ?? "high",
-    nextSteps: nextSteps[mappedIntent] ?? nextSteps.summarise,
+    nextSteps: agentNextSteps(label, ctx.agentId, mappedIntent),
   };
 }
 

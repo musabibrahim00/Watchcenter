@@ -1,5 +1,7 @@
 import type { AiBoxPageContext } from "./AiBoxContext";
 import { AGENT_ROLE_LABELS } from "../../shared/types/agent-types";
+import type { AgentId } from "../../shared/types/agent-types";
+import { getAiBoxSuggestions } from "../../shared/skills";
 
 /* ================================================================
    DEEP LINK RESOLVER
@@ -42,12 +44,7 @@ function agentContext(id: string, query?: string): AiBoxPageContext {
     contextKey: `agent:${id}`,
     greeting: `I have **${label}** context loaded. I can summarise findings, explain risk signals, or help you investigate this analyst's activity.`,
     initialQuery: query,
-    suggestions: [
-      { label: "Summarise findings",   prompt: `Summarise the latest findings for the ${label}` },
-      { label: "Explain risk signals", prompt: `Explain the current risk signals from the ${label}` },
-      { label: "Recent activity",      prompt: `What has the ${label} flagged in the last 24 hours?` },
-      { label: "Recommend actions",    prompt: `What actions should I take based on the ${label}'s findings?` },
-    ],
+    suggestions: getAiBoxSuggestions("agent", label, id as AgentId, id),
   };
 }
 
@@ -60,12 +57,7 @@ function assetContext(id: string, query?: string): AiBoxPageContext {
     contextKey: `asset:${id}`,
     greeting: `I have **${label}** asset context loaded. I can explain vulnerabilities, misconfigurations, or exposure paths for this asset.`,
     initialQuery: query,
-    suggestions: [
-      { label: "Show vulnerabilities",    prompt: `What vulnerabilities affect ${label}?` },
-      { label: "Explain exposure",        prompt: `How is ${label} exposed to external threats?` },
-      { label: "List misconfigurations",  prompt: `What misconfigurations are present on ${label}?` },
-      { label: "Recommend remediations",  prompt: `What should I do to secure ${label}?` },
-    ],
+    suggestions: getAiBoxSuggestions("asset", label, undefined, id),
   };
 }
 
@@ -78,12 +70,7 @@ function attackPathContext(id: string, query?: string): AiBoxPageContext {
     contextKey: `attack-path:${id}`,
     greeting: `I have **${label}** context loaded. I can explain this attack path, identify impacted assets, or recommend mitigations.`,
     initialQuery: query,
-    suggestions: [
-      { label: "Explain this path",      prompt: `Explain the attack path ${id}` },
-      { label: "Show impacted assets",   prompt: `What assets are impacted by attack path ${id}?` },
-      { label: "Recommend mitigations",  prompt: `What mitigations are recommended for attack path ${id}?` },
-      { label: "Create case",            prompt: `Create an investigation case for attack path ${id}` },
-    ],
+    suggestions: getAiBoxSuggestions("attack-path", label, undefined, id),
   };
 }
 
@@ -96,12 +83,7 @@ function workflowContext(id: string, query?: string): AiBoxPageContext {
     contextKey: `workflow:${id}`,
     greeting: `I have **${label}** workflow context loaded. I can explain runs, debug failures, or suggest improvements.`,
     initialQuery: query,
-    suggestions: [
-      { label: "Summarise recent runs",  prompt: `Summarise recent runs for workflow ${label}` },
-      { label: "Debug failures",         prompt: `Why did the last run of ${label} fail?` },
-      { label: "Suggest improvements",   prompt: `How can I improve workflow ${label}?` },
-      { label: "Show configuration",     prompt: `Explain the configuration of workflow ${label}` },
-    ],
+    suggestions: getAiBoxSuggestions("workflow", label, undefined, id),
   };
 }
 
@@ -114,12 +96,7 @@ function caseContext(id: string, query?: string): AiBoxPageContext {
     contextKey: `case:${id}`,
     greeting: `I have **${label}** loaded. I can summarise the investigation, show findings, or suggest next actions.`,
     initialQuery: query,
-    suggestions: [
-      { label: "Summarise case",   prompt: `Summarise case ${id}` },
-      { label: "Show findings",    prompt: `What findings are linked to case ${id}?` },
-      { label: "Next actions",     prompt: `What are the recommended next actions for case ${id}?` },
-      { label: "Escalation path",  prompt: `What is the escalation path for case ${id}?` },
-    ],
+    suggestions: getAiBoxSuggestions("case", label, undefined, id),
   };
 }
 
@@ -132,12 +109,7 @@ function generalContext(query?: string): AiBoxPageContext {
     greeting:
       "I'm ready to help. Ask me anything about your security posture, attack paths, analysts, or workflows.",
     initialQuery: query,
-    suggestions: [
-      { label: "Current risk summary",  prompt: "Summarise the current risk posture" },
-      { label: "Active threats",        prompt: "What active threats require immediate attention?" },
-      { label: "Top recommendations",   prompt: "What are the top security recommendations right now?" },
-      { label: "Recent activity",       prompt: "What has changed in the last 24 hours?" },
-    ],
+    suggestions: getAiBoxSuggestions("watch-center", "Watch Center"),
   };
 }
 
@@ -150,12 +122,7 @@ function complianceContext(id: string, query?: string): AiBoxPageContext {
     contextKey: `compliance:${id}`,
     greeting: `I have **${label}** compliance context loaded. I can explain control status, highlight gaps, or help you plan remediation.`,
     initialQuery: query,
-    suggestions: [
-      { label: "Control status",         prompt: `What is the current control status for ${label}?` },
-      { label: "Compliance gaps",        prompt: `What compliance gaps exist for ${label}?` },
-      { label: "Remediation steps",      prompt: `What remediation steps are needed to meet ${label} requirements?` },
-      { label: "Recent policy changes",  prompt: `What policy changes affect ${label} compliance?` },
-    ],
+    suggestions: getAiBoxSuggestions("compliance", label, undefined, id),
   };
 }
 
@@ -170,12 +137,7 @@ function fallbackContext(type: string, id: string, query?: string): AiBoxPageCon
     greeting:
       "I couldn't load the exact item from this alert, but I've opened the closest available context. I can still help you investigate or answer questions.",
     initialQuery: query,
-    suggestions: [
-      { label: "What needs attention?",   prompt: "What needs immediate attention right now?" },
-      { label: "Summarise recent events", prompt: "Summarise security events from the last 24 hours" },
-      { label: "Current risk posture",    prompt: "What is the current overall risk posture?" },
-      { label: "Top recommendations",     prompt: "What are the top security recommendations right now?" },
-    ],
+    suggestions: getAiBoxSuggestions("watch-center", "Watch Center"),
   };
 }
 

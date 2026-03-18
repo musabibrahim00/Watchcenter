@@ -18,7 +18,7 @@ import {
 import svgPaths from "../../imports/svg-a1mpxm4s4x";
 import watchBgPaths from "../../imports/svg-kxe7qom7bz";
 import { useAiBox } from "../features/ai-box";
-import { AGENT_SUGGESTIONS } from "../shared/types/agent-types";
+import { getDefaultSkills, getAiBoxSuggestions, renderSkillSuggestion } from "../shared/skills";
 import { TaskInvestigationBridgeProvider, useTaskInvestigation, buildTaskRequest, TASK_ANALYST_MAP } from "../features/investigation";
 
 /* ================================================================
@@ -1390,14 +1390,13 @@ function AgentDetailInner({
   /* ── Push agent context to global AIBox and auto-open ── */
   useEffect(() => {
     const agentRole = AGENT_ROLE[id];
-    const suggestions = AGENT_SUGGESTIONS[id] || AGENT_SUGGESTIONS.alpha;
     openWithContext({
       type: "agent",
       label: agentRole,
       sublabel: "Analyst Context",
       contextKey: `agent:${id}`,
       greeting: `I have **${agentRole}** context loaded. I can help you understand this analyst's discoveries, tasks, and impact.`,
-      suggestions: suggestions.map(s => ({ label: s, prompt: s })),
+      suggestions: getAiBoxSuggestions("agent", agentRole, id as AgentId),
     });
     return () => { closeAiBox(); };
   }, [id, meta.label, openWithContext, closeAiBox]);
@@ -1517,53 +1516,56 @@ function AgentDetailInner({
             <span className="font-['Inter',sans-serif] text-[11px] text-[#4a5568] leading-[14px] uppercase tracking-[0.4px]">What this analyst can do</span>
 
             {/* Primary actions */}
-            <div className="flex gap-[8px]">
-              {[
-                { label: "Explain findings", query: `What did the ${AGENT_ROLE[id]} discover?` },
-                { label: "Assess risk", query: `Recalculate risk using asset, vulnerability, and exposure context for the ${AGENT_ROLE[id]}` },
-              ].map(cap => (
-                <button
-                  key={cap.label}
-                  onClick={() => window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: cap.query } }))}
-                  className="h-[32px] flex-1 relative rounded-[7px] cursor-pointer border-none transition-colors"
-                  style={{ backgroundColor: "#076498" }}
-                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#0879b5"; }}
-                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = "#076498"; }}
-                >
-                  <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[13px] text-[#f1f3ff] text-[11px]">{cap.label}</span>
-                </button>
-              ))}
-            </div>
+            {(() => {
+              const agentRole = AGENT_ROLE[id];
+              const allSkills = getDefaultSkills("agent", id as AgentId);
+              const primarySkills = allSkills.slice(0, 2).map(s => renderSkillSuggestion(s, agentRole, id));
+              const secondarySkills = allSkills.slice(2, 5).map(s => renderSkillSuggestion(s, agentRole, id));
+              return (
+                <>
+                  <div className="flex gap-[8px]">
+                    {primarySkills.map(cap => (
+                      <button
+                        key={cap.label}
+                        onClick={() => window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: cap.prompt } }))}
+                        className="h-[32px] flex-1 relative rounded-[7px] cursor-pointer border-none transition-colors"
+                        style={{ backgroundColor: "#076498" }}
+                        onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#0879b5"; }}
+                        onMouseLeave={e => { e.currentTarget.style.backgroundColor = "#076498"; }}
+                      >
+                        <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[13px] text-[#f1f3ff] text-[11px]">{cap.label}</span>
+                      </button>
+                    ))}
+                  </div>
 
-            {/* Secondary actions */}
-            <div className="flex gap-[8px]">
-              {[
-                { label: "Trace attack path", query: `Show attack paths related to the ${AGENT_ROLE[id]}` },
-                { label: "Re-run analysis", query: `Re-run investigation across all relevant analysts for ${AGENT_ROLE[id]}` },
-                { label: "Simulate impact", query: `Simulate cross-agent impact for ${AGENT_ROLE[id]} findings` },
-              ].map(cap => (
-                <button
-                  key={cap.label}
-                  onClick={() => window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: cap.query } }))}
-                  className="h-[28px] flex-1 relative rounded-[6px] cursor-pointer transition-colors"
-                  style={{
-                    backgroundColor: "transparent",
-                    border: "1px solid rgba(87,177,255,0.16)",
-                    color: "#62707D",
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.borderColor = "rgba(87,177,255,0.28)";
-                    e.currentTarget.style.color = "#89949e";
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.borderColor = "rgba(87,177,255,0.16)";
-                    e.currentTarget.style.color = "#62707D";
-                  }}
-                >
-                  <span className="font-['Inter:Medium',sans-serif] font-medium leading-[12px] text-[10px]">{cap.label}</span>
-                </button>
-              ))}
-            </div>
+                  {/* Secondary actions */}
+                  <div className="flex gap-[8px]">
+                    {secondarySkills.map(cap => (
+                      <button
+                        key={cap.label}
+                        onClick={() => window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: cap.prompt } }))}
+                        className="h-[28px] flex-1 relative rounded-[6px] cursor-pointer transition-colors"
+                        style={{
+                          backgroundColor: "transparent",
+                          border: "1px solid rgba(87,177,255,0.16)",
+                          color: "#62707D",
+                        }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.borderColor = "rgba(87,177,255,0.28)";
+                          e.currentTarget.style.color = "#89949e";
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.borderColor = "rgba(87,177,255,0.16)";
+                          e.currentTarget.style.color = "#62707D";
+                        }}
+                      >
+                        <span className="font-['Inter:Medium',sans-serif] font-medium leading-[12px] text-[10px]">{cap.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
 

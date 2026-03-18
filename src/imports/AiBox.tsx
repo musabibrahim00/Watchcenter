@@ -394,14 +394,8 @@ const renderTaskGraph = (taskGraph: TaskGraph) => <TaskGraphBubble taskGraph={ta
    Welcome + Chat Area + Input
    ═══════════════════════════════════════════════════════════ */
 
-const WELCOME_SUGGESTIONS = [
-  "What needs attention?",
-  "Show me what happened",
-  "What did the system do today?",
-  "Risk trend graph",
-  "Show attack path",
-  "What should I approve?",
-];
+import { getDefaultSkills } from "../app/shared/skills";
+const WELCOME_SUGGESTIONS = getDefaultSkills("watch-center").map(s => s.label);
 
 /* ── Custom send icon matching Figma design ── */
 const AiBoxSendIcon = (

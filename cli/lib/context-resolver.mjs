@@ -6,17 +6,8 @@
  * as the UI; never exposes internal agent IDs in user-facing output.
  */
 
-// ── Agent role registry (mirrors AGENT_ROLE_LABELS from agent-types.ts) ──────
-export const AGENT_ROLES = {
-  alpha:   "Asset Intelligence Analyst",
-  bravo:   "Configuration Security Analyst",
-  charlie: "Application Security Analyst",
-  delta:   "Governance & Compliance Analyst",
-  echo:    "Risk Intelligence Analyst",
-  foxtrot: "Exposure Analyst",
-  golf:    "Identity Security Analyst",
-  hotel:   "Vulnerability Analyst",
-};
+import { AGENT_ROLES, getAiBoxSuggestions } from "./skills-registry.mjs";
+export { AGENT_ROLES };
 
 // Reverse map: role label → agent id
 const ROLE_TO_ID = Object.fromEntries(
