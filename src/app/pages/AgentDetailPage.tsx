@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router";
-import { ArrowLeft, Shield, Activity, Bug, Settings2, Briefcase, FolderOpen, ClipboardCheck, ShieldCheck, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Shield, Activity, Bug, Settings2, Briefcase, FolderOpen, ClipboardCheck, ShieldCheck, ChevronLeft, ChevronRight, MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Check, ChevronDown } from "lucide-react";
@@ -1128,9 +1128,20 @@ const AgentImpactPanel = React.memo(function AgentImpactPanel({ agentId }: { age
 
 const MAX_VISIBLE_INSIGHTS = 3;
 
-function InsightRow({ insight, agentRole, showUpdatedTag }: { insight: InsightItem; agentRole: string; showUpdatedTag?: boolean }) {
+function InsightRow({ insight, agentRole, showUpdatedTag, onAskAI }: {
+  insight: InsightItem;
+  agentRole: string;
+  showUpdatedTag?: boolean;
+  onAskAI?: (prompt: string) => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+
   return (
-    <div className="flex items-center gap-[12px] py-[10px] px-[14px] relative">
+    <div
+      className="flex items-center gap-[12px] py-[10px] px-[14px] relative"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
       {/* Subtle bottom border */}
       <div aria-hidden="true" className="absolute bottom-0 left-[14px] right-[14px] h-px" style={{ backgroundColor: colors.divider }} />
 
@@ -1155,13 +1166,37 @@ function InsightRow({ insight, agentRole, showUpdatedTag }: { insight: InsightIt
         </p>
       </div>
 
-      {/* Status badge */}
-      <span
-        className="font-['Inter',sans-serif] text-[10px] leading-[12px] whitespace-nowrap capitalize shrink-0"
-        style={{ color: getInsightStatusColor(insight.status) }}
-      >
-        {insight.status}
-      </span>
+      {/* Right side: "Explain this" on hover, status badge at rest */}
+      <div className="shrink-0 flex items-center" style={{ minWidth: "56px", justifyContent: "flex-end" }}>
+        {hovered && onAskAI ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onAskAI(`Explain this finding: "${insight.title}". ${insight.description}`);
+            }}
+            style={{
+              fontSize: "10px",
+              padding: "3px 8px",
+              borderRadius: "99px",
+              border: `1px solid ${colors.accent}33`,
+              background: `${colors.accent}12`,
+              color: colors.accent,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              lineHeight: "1.4",
+            }}
+          >
+            Explain this
+          </button>
+        ) : (
+          <span
+            className="font-['Inter',sans-serif] text-[10px] leading-[12px] whitespace-nowrap capitalize"
+            style={{ color: getInsightStatusColor(insight.status) }}
+          >
+            {insight.status}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -1169,6 +1204,9 @@ function InsightRow({ insight, agentRole, showUpdatedTag }: { insight: InsightIt
 function InsightActivitySection({ agentId, aiUpdated }: { agentId: AgentId; aiUpdated?: boolean }) {
   const insights = AGENT_INSIGHTS[agentId] || [];
   const [showAll, setShowAll] = useState(false);
+  const handleAskAI = useCallback((prompt: string) => {
+    window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: prompt } }));
+  }, []);
 
   if (insights.length === 0) return null;
 
@@ -1180,7 +1218,7 @@ function InsightActivitySection({ agentId, aiUpdated }: { agentId: AgentId; aiUp
     <div className="content-stretch flex flex-col items-start relative w-full gap-[8px]">
       {/* Section heading */}
       <div className="flex items-center gap-[10px]">
-        <span className="font-['Inter',sans-serif] font-medium text-[13px] text-[#89949e] leading-[19.5px]">
+        <span className="font-['Inter',sans-serif] font-medium text-[13px] text-[#dadfe3] leading-[19.5px]">
           Insight Activity
         </span>
         <span className="font-['Inter',sans-serif] text-[11px] text-[#4a5568] leading-[14px]">
@@ -1193,7 +1231,7 @@ function InsightActivitySection({ agentId, aiUpdated }: { agentId: AgentId; aiUp
         <div
           aria-hidden="true"
           className="absolute inset-0 pointer-events-none rounded-[10px]"
-          style={{ backgroundColor: "rgba(7,16,25,0.60)" }}
+          style={{ backgroundColor: "rgba(8,18,30,0.55)" }}
         />
         <div
           aria-hidden="true"
@@ -1213,6 +1251,7 @@ function InsightActivitySection({ agentId, aiUpdated }: { agentId: AgentId; aiUp
               insight={insight}
               agentRole={role}
               showUpdatedTag={aiUpdated && idx < 2}
+              onAskAI={handleAskAI}
             />
           ))}
         </div>
@@ -1375,6 +1414,7 @@ function AgentDetailInner({
   const { investigateTask } = useTaskInvestigation();
   const { openWithContext, close: closeAiBox } = useAiBox();
   const { persona } = usePersona();
+  const agentRole = AGENT_ROLE[id];
 
   /* ── AI action result: track which sections were updated ── */
   const [aiUpdatedSections, setAiUpdatedSections] = useState<Set<string>>(new Set());
@@ -1505,14 +1545,42 @@ function AgentDetailInner({
                 </span>
               </div>
             </div>
-            {isActive && (
-              <div className="flex items-center gap-[6px]">
-                <PulsingDot color="#00A46E" />
-                <span className="font-['Inter',sans-serif] text-[11px] text-[#00A46E] leading-[14px]">
-                  Processing signals
-                </span>
-              </div>
-            )}
+            <div className="flex items-center gap-[10px]">
+              {isActive && (
+                <div className="flex items-center gap-[6px]">
+                  <PulsingDot color="#00A46E" />
+                  <span className="font-['Inter',sans-serif] text-[11px] text-[#00A46E] leading-[14px]">
+                    Processing signals
+                  </span>
+                </div>
+              )}
+              <button
+                onClick={() => openWithContext({
+                  type: "agent",
+                  label: agentRole,
+                  sublabel: "Analyst Context",
+                  contextKey: `agent:${id}`,
+                  greeting: `I have **${agentRole}** context loaded. Ask me anything about findings, tasks, or risk.`,
+                  suggestions: getPersonaAiBoxSuggestions("agent", persona, agentRole, id as AgentId),
+                })}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  padding: "5px 10px",
+                  borderRadius: "99px",
+                  border: `1px solid ${colors.accent}33`,
+                  background: `${colors.accent}0e`,
+                  color: colors.accent,
+                  fontSize: "10px",
+                  cursor: "pointer",
+                  lineHeight: "1",
+                }}
+              >
+                <MessageCircle size={10} />
+                Ask analyst
+              </button>
+            </div>
           </div>
 
           {/* Description */}
@@ -1523,13 +1591,12 @@ function AgentDetailInner({
 
         {/* Capabilities — primary / secondary hierarchy */}
         <div className="relative rounded-[12px] px-[20px] py-[16px]">
-          <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[12px]" style={{ background: "rgba(5,11,17,0.6)", border: "1px solid rgba(18,30,39,0.6)" }} />
+          <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[12px]" style={{ background: "rgba(8,16,28,0.5)", border: "1px solid rgba(30,50,70,0.45)" }} />
           <div className="flex flex-col gap-[12px] relative">
-            <span className="font-['Inter',sans-serif] text-[11px] text-[#4a5568] leading-[14px] uppercase tracking-[0.4px]">What this analyst can do</span>
+            <span className="font-['Inter',sans-serif] text-[11px] text-[#62707D] leading-[14px] uppercase tracking-[0.4px]">What this analyst can do</span>
 
             {/* Primary actions */}
             {(() => {
-              const agentRole = AGENT_ROLE[id];
               const allSkills = getPersonaDefaultSkills("agent", persona, id as AgentId);
               const primarySkills = allSkills.slice(0, 2).map(s => renderSkillSuggestion(s, agentRole, id));
               const secondarySkills = allSkills.slice(2, 5).map(s => renderSkillSuggestion(s, agentRole, id));
