@@ -1204,9 +1204,15 @@ function InsightRow({ insight, agentRole, showUpdatedTag, onAskAI }: {
 function InsightActivitySection({ agentId, aiUpdated }: { agentId: AgentId; aiUpdated?: boolean }) {
   const insights = AGENT_INSIGHTS[agentId] || [];
   const [showAll, setShowAll] = useState(false);
+  const { isOpen: isAiBoxOpen, open: openAiBox, setPendingEntryQuery } = useAiBox();
   const handleAskAI = useCallback((prompt: string) => {
-    window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: prompt } }));
-  }, []);
+    if (isAiBoxOpen) {
+      window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: prompt } }));
+    } else {
+      setPendingEntryQuery(prompt);
+      openAiBox();
+    }
+  }, [isAiBoxOpen, openAiBox, setPendingEntryQuery]);
 
   if (insights.length === 0) return null;
 
@@ -1429,7 +1435,7 @@ function AgentDetailInner({
   doneTodayItems: DoneTodayItem[];
 }) {
   const { investigateTask } = useTaskInvestigation();
-  const { openWithContext, close: closeAiBox } = useAiBox();
+  const { isOpen: isAiBoxOpen, open: openAiBox, openWithContext, close: closeAiBox, setPendingEntryQuery } = useAiBox();
   const { persona } = usePersona();
   const agentRole = AGENT_ROLE[id];
 
@@ -1623,7 +1629,14 @@ function AgentDetailInner({
                     {primarySkills.map(cap => (
                       <button
                         key={cap.label}
-                        onClick={() => window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: cap.prompt } }))}
+                        onClick={() => {
+                          if (isAiBoxOpen) {
+                            window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: cap.prompt } }));
+                          } else {
+                            setPendingEntryQuery(cap.prompt);
+                            openAiBox();
+                          }
+                        }}
                         className="h-[32px] flex-1 relative rounded-[7px] cursor-pointer border-none transition-colors"
                         style={{ backgroundColor: "#076498" }}
                         onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#0879b5"; }}
@@ -1639,7 +1652,14 @@ function AgentDetailInner({
                     {secondarySkills.map(cap => (
                       <button
                         key={cap.label}
-                        onClick={() => window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: cap.prompt } }))}
+                        onClick={() => {
+                          if (isAiBoxOpen) {
+                            window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: cap.prompt } }));
+                          } else {
+                            setPendingEntryQuery(cap.prompt);
+                            openAiBox();
+                          }
+                        }}
                         className="h-[28px] flex-1 relative rounded-[6px] cursor-pointer transition-colors"
                         style={{
                           backgroundColor: "transparent",

@@ -1,4 +1,4 @@
-import { Outlet } from "react-router";
+import { Outlet, useLocation } from "react-router";
 import { useState, useEffect } from "react";
 import SidebarNavigation from "../../imports/SidebarNavigation";
 import Header from "../../imports/Header";
@@ -126,6 +126,9 @@ function TimeTravelBanner() {
 
 function LayoutInner() {
   const { isOpen: isAiBoxOpen } = useAiBox();
+  const { pathname } = useLocation();
+  // Watch Center has its own embedded AiBox — GlobalAIBox must not render alongside it
+  const isOnWatchCenter = pathname === "/";
   useAiBoxDeepLink();
 
   return (
@@ -152,8 +155,9 @@ function LayoutInner() {
             <Outlet />
           </div>
 
-          {/* GlobalAIBox - Right sidebar (inline, not fixed) */}
-          {isAiBoxOpen && (
+          {/* GlobalAIBox - Right sidebar (inline, not fixed).
+              Suppressed on Watch Center (/) which has its own embedded AiBox. */}
+          {isAiBoxOpen && !isOnWatchCenter && (
             <div className="shrink-0 h-full p-[24px]" style={{ width: "clamp(308px, calc(20vw + 48px), 348px)" }}>
               <GlobalAIBox />
             </div>

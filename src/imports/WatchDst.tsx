@@ -188,7 +188,7 @@ function Container() {
             <div className="w-full max-w-[1237px] flex flex-col gap-[12px] pointer-events-auto">
               {!isDetailView && (
                 <div className="flex items-center justify-center w-full">
-                  <p className="bg-clip-text bg-gradient-to-r font-['Inter:Regular',sans-serif] font-normal from-[#ffcba3] from-[6.932%] leading-[20px] not-italic shrink-0 text-[16px] text-[transparent] to-[48.267%] to-white via-[#ffe8a3] via-[1.412%] whitespace-nowrap">Here are some of the core insights that needs your attention</p>
+                  <p className="bg-clip-text bg-gradient-to-r font-['Inter:Regular',sans-serif] font-normal from-[#ffcba3] from-[6.932%] leading-[20px] not-italic shrink-0 text-[16px] text-[transparent] to-[48.267%] to-white via-[#ffe8a3] via-[1.412%] whitespace-nowrap">Priority insights that need your attention</p>
                 </div>
               )}
               <div className="min-h-[160px] h-[192px]">
