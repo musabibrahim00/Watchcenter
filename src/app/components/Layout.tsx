@@ -12,7 +12,22 @@ import { GlobalAIBox } from "./GlobalAIBox";
 /**
  * Global Application Layout Architecture
  * =======================================
- * 
+ *
+ * ⚠️  WATCH CENTER LAYOUT CONSTRAINT ⚠️
+ * ─────────────────────────────────────
+ * Watch Center (WatchDst, rendered at `/`) is a fixed-layout surface.
+ * The layout below MUST NOT alter the Watch Center's internal structure,
+ * panel positioning, grid, spacing, or composition.
+ *
+ * Changes to this file must be evaluated for Watch Center impact before
+ * merging. Specifically:
+ *   • Do NOT add margin/padding to the <Outlet> wrapper.
+ *   • Do NOT resize the AIBox panel in a way that collapses Watch Center.
+ *   • Do NOT introduce a second AI container alongside GlobalAIBox.
+ *   • GlobalAIBox remains the SINGLE interaction surface platform-wide.
+ *
+ * ─────────────────────────────────────
+ *
  * This component defines the root application shell for the entire platform.
  * All pages and modules render within this layout structure.
  * 

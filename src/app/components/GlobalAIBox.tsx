@@ -35,6 +35,15 @@ import { logAction } from "../shared/utils/audit-log";
 import svgPaths from "../../imports/svg-sx6d9u7tbs";
 import { inferWorkflowAiState, getWorkflowPlaceholder } from "../pages/workflows/workflowAiStates";
 import {
+  type PlanStep, WORKFLOW_PLANS,
+  matchPlanKey, matchTemplateToPlan,
+  dispatchCanvasUpdate, type CanvasEditOp, dispatchCanvasEdit, nextEditStepId,
+} from "../features/ai-box/workflowAiEngine";
+import {
+  detectMultiAgentIntent, resolveAnalysts,
+  buildMultiAgentExploreResponse,
+} from "../features/ai-box/multiAgentEngine";
+import {
   InsightCard,
   DecisionCard,
 } from "../../imports/AiBoxModules";
@@ -50,125 +59,18 @@ import {
    TYPES  (ChatMessage is imported from AiBoxShared)
    ================================================================ */
 
-/* ================================================================
-   WORKFLOW PLAN TEMPLATES — step blueprints for create mode
-   ================================================================ */
-
-interface PlanStep {
-  id: string;
-  templateId: string;
-  name: string;
-  type: "trigger" | "action";
-  integration?: string;
-}
-
-const WORKFLOW_PLANS: Record<string, { name: string; steps: PlanStep[] }> = {
-  critical_alert: {
-    name: "Critical Alert Response",
-    steps: [
-      { id: "s1", templateId: "alert-trigger", name: "Alert Trigger", type: "trigger" },
-      { id: "s2", templateId: "enrich-alert", name: "Enrich Alert", type: "action", integration: "VirusTotal" },
-      { id: "s3", templateId: "create-case", name: "Create Investigation Case", type: "action" },
-      { id: "s4", templateId: "assign-analyst", name: "Assign Analyst", type: "action" },
-      { id: "s5", templateId: "notify-slack", name: "Notify Slack", type: "action", integration: "Slack" },
-    ],
-  },
-  vulnerability: {
-    name: "Vulnerability Remediation",
-    steps: [
-      { id: "s1", templateId: "alert-trigger", name: "Vulnerability Detected", type: "trigger" },
-      { id: "s2", templateId: "enrich-alert", name: "Query Patch Status", type: "action", integration: "Nessus" },
-      { id: "s3", templateId: "create-case", name: "Create Jira Ticket", type: "action", integration: "Jira" },
-      { id: "s4", templateId: "assign-analyst", name: "Assign Asset Owner", type: "action" },
-      { id: "s5", templateId: "notify-slack", name: "Notify Team", type: "action", integration: "Slack" },
-    ],
-  },
-  compliance: {
-    name: "Weekly Compliance Report",
-    steps: [
-      { id: "s1", templateId: "alert-trigger", name: "Scheduled Trigger (Weekly)", type: "trigger" },
-      { id: "s2", templateId: "run-scan", name: "Run Compliance Scan", type: "action" },
-      { id: "s3", templateId: "query-threat-intel", name: "Check Policy Violations", type: "action" },
-      { id: "s4", templateId: "create-case", name: "Generate Audit Report", type: "action" },
-      { id: "s5", templateId: "notify-slack", name: "Distribute to Leadership", type: "action", integration: "Slack" },
-    ],
-  },
-  manual: {
-    name: "Manual SOC Workflow",
-    steps: [
-      { id: "s1", templateId: "alert-trigger", name: "Manual Trigger", type: "trigger" },
-      { id: "s2", templateId: "enrich-alert", name: "Gather Context", type: "action" },
-      { id: "s3", templateId: "create-case", name: "Create Case", type: "action" },
-      { id: "s4", templateId: "notify-slack", name: "Notify Team", type: "action", integration: "Slack" },
-    ],
-  },
-  generic: {
-    name: "Custom Workflow",
-    steps: [
-      { id: "s1", templateId: "alert-trigger", name: "Alert Trigger", type: "trigger" },
-      { id: "s2", templateId: "create-case", name: "Create Investigation Case", type: "action" },
-      { id: "s3", templateId: "assign-analyst", name: "Assign Analyst", type: "action" },
-      { id: "s4", templateId: "notify-slack", name: "Notify Slack", type: "action", integration: "Slack" },
-    ],
-  },
-};
-
-function matchPlanKey(query: string): string | null {
-  const q = query.toLowerCase();
-  if (q.includes("critical") && q.includes("alert")) return "critical_alert";
-  if (q.includes("vulnerabilit") || q.includes("remediation") || q.includes("patch")) return "vulnerability";
-  if (q.includes("compliance") || q.includes("audit") || q.includes("report")) return "compliance";
-  if (q.includes("manual")) return "manual";
-  if (q.includes("create") || q.includes("build") || q.includes("workflow") || q.includes("respond") || q.includes("automate")) return "generic";
-  return null;
-}
-
-/** Maps a template display name to the best-matching WORKFLOW_PLANS key */
-function matchTemplateToPlan(templateName: string): string {
-  const n = templateName.toLowerCase();
-  if (n.includes("critical") && n.includes("alert")) return "critical_alert";
-  if (n.includes("enrichment")) return "critical_alert";
-  if (n.includes("vulnerab")) return "vulnerability";
-  if (n.includes("compliance") || n.includes("report")) return "compliance";
-  if (n.includes("asset") || n.includes("onboarding")) return "generic";
-  if (n.includes("access") || n.includes("provision")) return "generic";
-  return "generic";
-}
-
-/** Dispatch full canvas replacement (used by create mode) */
-function dispatchCanvasUpdate(steps: PlanStep[]) {
-  window.dispatchEvent(new CustomEvent("workflow-canvas-update", {
-    detail: {
-      steps: steps.map(s => ({
-        id: s.id,
-        templateId: s.templateId,
-        name: s.name,
-        status: "idle" as const,
-        requiresIntegration: s.integration,
-      })),
-    },
-  }));
-}
-
-/**
- * Dispatch a semantic canvas edit operation (used by edit mode).
- * WorkflowBuilder listens and applies the mutation to existing state.
+/*
+ * Workflow plan templates, canvas dispatchers, and multi-agent engine
+ * functions are imported from dedicated modules:
+ *
+ *   workflowAiEngine.ts  — WORKFLOW_PLANS, matchPlanKey, dispatchCanvas*
+ *   multiAgentEngine.ts  — detectMultiAgentIntent, resolveAnalysts, ...
+ *
+ * JSX-producing workflow/multi-agent functions (PlaybookPlanCard,
+ * processWorkflowQuery, processMultiAgentQuery) remain below because
+ * they depend on React, InsightCard, ActionCard, and other imports
+ * already present in this file.
  */
-type CanvasEditOp =
-  | { type: "add-after"; afterTemplateId: string; newStep: { id: string; templateId: string; name: string; requiresIntegration?: string } }
-  | { type: "add-end"; newStep: { id: string; templateId: string; name: string; requiresIntegration?: string } }
-  | { type: "remove"; templateId: string }
-  | { type: "replace"; oldTemplateId: string; newStep: { id: string; templateId: string; name: string; requiresIntegration?: string } }
-  | { type: "change-trigger"; newStep: { id: string; templateId: string; name: string; requiresIntegration?: string } };
-
-function dispatchCanvasEdit(op: CanvasEditOp) {
-  setTimeout(() => {
-    window.dispatchEvent(new CustomEvent("workflow-canvas-edit", { detail: op }));
-  }, 200);
-}
-
-let _editStepCounter = 100;
-function nextEditStepId() { return `ai-step-${++_editStepCounter}`; }
 
 /* ── PlaybookPlanCard — rendered in chat to show generated plan ── */
 
@@ -264,131 +166,9 @@ function PlaybookPlanCard({ steps }: { steps: PlanStep[] }) {
 
 /* ================================================================
    MULTI-AGENT ORCHESTRATION
+   Pure detection/resolution functions are imported from multiAgentEngine.ts.
+   processMultiAgentQuery (below) handles JSX output and stays here.
    ================================================================ */
-
-/** Keyword signals mapped to analyst roles for routing */
-const ANALYST_KEYWORDS: Record<string, string[]> = {
-  "Asset Intelligence Analyst":        ["asset", "inventory", "ownership", "classification", "device", "endpoint", "cmdb"],
-  "Vulnerability Analyst":             ["vulnerabilit", "cve", "patch", "exploit", "weakness"],
-  "Exposure Analyst":                  ["exposure", "attack path", "lateral", "internet-facing", "blast radius", "reachable"],
-  "Risk Intelligence Analyst":         ["risk score", "risk posture", "business impact", "risk intelligence", "risk recalcul", "business risk"],
-  "Governance & Compliance Analyst":   ["compliance", "policy", "regulatory", "audit", "approval", "governance"],
-  "Configuration Security Analyst":    ["misconfiguration", "drift", "baseline", "configuration"],
-  "Application Security Analyst":      ["application sec", "code", "dependency", "supply chain"],
-  "Identity Security Analyst":         ["identity", "privilege escalation", "dormant account", "credential"],
-};
-
-const MULTI_AGENT_PATTERNS: RegExp[] = [
-  /reinvestigate/i,
-  /re-?run\s+investigation\s+(across|for\s+all|with\s+all)/i,
-  /reassess\s+(this|findings|issue|exposure|vulnerabilit)/i,
-  /recalculate\s+risk\s+using/i,
-  /simulate\s+(cross.?agent|impact\s+if)/i,
-  /across\s+(all\s+)?(analysts?|agents?|perspectives?)/i,
-  /from\s+a?\s*different\s+(lens|perspective|angle)/i,
-  /comprehensive\s+(review|analysis|assessment|investigation)/i,
-  /full\s+investigation/i,
-  /all\s+(relevant\s+)?(analysts?|agents?)/i,
-  /multiple\s+(analysts?|perspectives?|lenses?)/i,
-];
-
-function detectMultiAgentIntent(query: string): boolean {
-  return MULTI_AGENT_PATTERNS.some(p => p.test(query));
-}
-
-function resolveAnalysts(query: string, ctx: AiBoxPageContext | null): string[] {
-  const q = query.toLowerCase();
-
-  /* Predefined sets for common orchestration patterns */
-  if (/reinvestigate|re-?run\s+investigation/i.test(query)) {
-    return ["Asset Intelligence Analyst", "Vulnerability Analyst", "Exposure Analyst", "Risk Intelligence Analyst"];
-  }
-  if (/recalculate\s+risk\s+using|reassess.*risk/i.test(query)) {
-    return ["Asset Intelligence Analyst", "Vulnerability Analyst", "Exposure Analyst", "Risk Intelligence Analyst"];
-  }
-  if (/simulate\s+(cross|impact\s+if)/i.test(query)) {
-    return ["Exposure Analyst", "Asset Intelligence Analyst", "Risk Intelligence Analyst"];
-  }
-  if (/reassess\s+(findings|this|issue)/i.test(query)) {
-    return ["Asset Intelligence Analyst", "Vulnerability Analyst", "Exposure Analyst", "Governance & Compliance Analyst"];
-  }
-  if (/comprehensive|full\s+investigation/i.test(query)) {
-    return ["Asset Intelligence Analyst", "Vulnerability Analyst", "Exposure Analyst", "Risk Intelligence Analyst", "Governance & Compliance Analyst"];
-  }
-
-  /* Keyword-based resolution */
-  const matched: string[] = [];
-  for (const [analyst, keywords] of Object.entries(ANALYST_KEYWORDS)) {
-    if (keywords.some(kw => q.includes(kw))) matched.push(analyst);
-  }
-  if (matched.length >= 2) return matched.slice(0, 4);
-
-  /* Fallback */
-  return ["Asset Intelligence Analyst", "Exposure Analyst", "Risk Intelligence Analyst"];
-}
-
-/** Analyst → contribution description for a given query type */
-function getAnalystContribution(analyst: string, query: string): string {
-  const q = query.toLowerCase();
-  const isRisk = /risk|posture|score/i.test(q);
-  const isSimulate = /simulat/i.test(q);
-  const isReassess = /reassess/i.test(q);
-
-  const contributions: Record<string, string> = {
-    "Asset Intelligence Analyst":      isRisk ? "provided asset classification and business criticality" : isSimulate ? "assessed downstream asset scope and ownership" : "identified affected assets and established ownership",
-    "Vulnerability Analyst":           isRisk ? "contributed validated CVE severity and patch status" : isReassess ? "re-validated CVE exploitability against current patch state" : "validated exploitable vulnerabilities and CVE impact",
-    "Exposure Analyst":                isSimulate ? "modeled reachable attack paths from the exposed entry point" : isReassess ? "re-assessed lateral movement and reachability" : "mapped reachable attack paths and lateral movement risk",
-    "Risk Intelligence Analyst":       isSimulate ? "estimated business impact score for each blast radius" : "synthesized composite risk score across all analyst inputs",
-    "Governance & Compliance Analyst": isReassess ? "re-evaluated compliance posture against current findings" : "assessed policy impact and approval requirements",
-    "Configuration Security Analyst":  "identified configuration drift and baseline deviations",
-    "Application Security Analyst":    "reviewed dependency exposure and code-level risks",
-    "Identity Security Analyst":       "assessed privilege paths and credential exposure",
-  };
-  return contributions[analyst] || "contributed analysis for this investigation";
-}
-
-/** Build a multi-agent explore/explain response (no Action Card) */
-function buildMultiAgentExploreResponse(
-  query: string,
-  analysts: string[],
-  ctx: AiBoxPageContext | null
-): { content: string; uiModule?: React.ReactNode } {
-  const label = ctx?.label ? `**${ctx.label}**` : "the current scope";
-  const isSimulate = /simulat/i.test(query);
-  const isRisk = /risk/i.test(query);
-  const isReassess = /reassess/i.test(query);
-
-  const summary = isSimulate
-    ? `Simulating impact across ${analysts.length} analysts for ${label}. The analysis covers attack path reachability, asset exposure, and estimated business impact.`
-    : isRisk
-    ? `Recalculating risk for ${label} using inputs from ${analysts.length} analysts. The composite score incorporates asset criticality, vulnerability severity, exposure reachability, and threat intelligence.`
-    : isReassess
-    ? `Reassessing findings for ${label} across ${analysts.length} analysts. Each analyst re-evaluates their domain against the current state.`
-    : `Re-running investigation for ${label} across ${analysts.length} analysts. Each analyst contributes domain-specific findings to a synthesized result.`;
-
-  const contributions = analysts
-    .map(a => `- **${a}** → ${getAnalystContribution(a, query)}`)
-    .join("\n");
-
-  const nextActions = isSimulate
-    ? ["Create a case from the blast radius findings", "Recalculate risk with simulation results", "Restrict internet-facing access for affected assets"]
-    : isRisk
-    ? ["Review updated risk score in the Risk Register", "Reassess exposure for top-risk assets", "Create a remediation case for critical findings"]
-    : ["Review updated findings in Agent Detail", "Recalculate risk score with new data", "Create a case from high-severity findings"];
-
-  const content = [
-    `## Summary`,
-    summary,
-    ``,
-    `## Analyst Contributions`,
-    contributions,
-    ``,
-    `## Recommended Next Actions`,
-    nextActions.map(a => `- ${a}`).join("\n"),
-  ].join("\n");
-
-  return { content };
-}
 
 /** Process a multi-agent query — routes to Action Card or structured response */
 function processMultiAgentQuery(
@@ -2125,15 +1905,13 @@ function GlobalAIBoxInner() {
     } else {
       // Context switch — keep history, append a subtle separator
       if (!pageContext?.label) return;
-      const switchLabel = pageContext.sublabel
-        ? `${pageContext.label} — ${pageContext.sublabel}`
-        : pageContext.label;
+      const switchLabel = pageContext.label;
       setMessages(prev => [
         ...prev,
         {
           id: crypto.randomUUID(),
           role: "divider" as const,
-          text: `Context switched to ${switchLabel}`,
+          text: switchLabel,
           timestamp: new Date(),
         },
         ...(pageContext?.greeting ? [{

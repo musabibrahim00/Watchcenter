@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { colors, fontSize, fontWeight, radius } from "../shared/design-system/tokens";
 import { useAiBox } from "../features/ai-box";
+import { getPersonaAiBoxSuggestions } from "../shared/skills";
+import { usePersona } from "../features/persona";
 
 /* ================================================================
    DATA
@@ -499,6 +501,7 @@ function KpiCard({ label, value, color }: {
 function PathRow({ path, last }: { path: PathSummary; last: boolean }) {
   const navigate = useNavigate();
   const { openWithContext } = useAiBox();
+  const { persona } = usePersona();
   const [hovered, setHovered] = React.useState(false);
 
   function handleAskAI(e: React.MouseEvent) {
@@ -509,12 +512,7 @@ function PathRow({ path, last }: { path: PathSummary; last: boolean }) {
       sublabel: "Attack Path",
       contextKey: `attack-path-overview-ask:${path.id}`,
       greeting: `I have the **${path.name}** attack path loaded. Priority: **${path.priority}** — ${path.assets} assets, ${path.vulnerabilities} vulnerabilities, ${path.misconfigurations} misconfigurations. What would you like to know?`,
-      suggestions: [
-        { label: "Explain this path",     prompt: `Explain the attack chain for "${path.name}"` },
-        { label: "Why is this risky?",    prompt: `Why is the "${path.name}" path considered ${path.priority} priority?` },
-        { label: "Assess blast radius",   prompt: `Assess the blast radius for "${path.name}"` },
-        { label: "Recommend mitigations", prompt: `What mitigations would address "${path.name}"?` },
-      ],
+      suggestions: getPersonaAiBoxSuggestions("attack-path", persona, path.name, undefined, path.id),
       graphContext: {
         pathId: path.id,
         priority: path.priority,

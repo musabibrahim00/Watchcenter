@@ -72,3 +72,16 @@ export { useAiBoxDeepLink } from "./useAiBoxDeepLink";
 export { resolveDeepLinkContext, derivePageRoute } from "./deepLinkResolver";
 export { buildDeepLink } from "./deepLinkUtils";
 export type { AlertActionSource } from "./deepLinkUtils";
+
+/* ── Extracted AI engines (pure, no JSX) ── */
+export {
+  WORKFLOW_PLANS, matchPlanKey, matchTemplateToPlan,
+  dispatchCanvasUpdate, dispatchCanvasEdit, nextEditStepId,
+} from "./workflowAiEngine";
+export type { PlanStep, CanvasEditOp } from "./workflowAiEngine";
+
+export {
+  ANALYST_KEYWORDS, MULTI_AGENT_PATTERNS,
+  detectMultiAgentIntent, resolveAnalysts,
+  getAnalystContribution, buildMultiAgentExploreResponse,
+} from "./multiAgentEngine";
