@@ -403,11 +403,11 @@ export default function AttackPathPage() {
           }}>
             {["Attack Path", "Assets", "Misconfigs", "Vulns", "Priority", ""].map((col, i) => (
               <span key={i} style={{
-                fontSize: "9px",
+                fontSize: "10px",
                 fontWeight: fontWeight.semibold,
-                color: colors.textDim,
+                color: colors.textMuted,
                 textTransform: "uppercase",
-                letterSpacing: "0.09em",
+                letterSpacing: "0.07em",
               }}>
                 {col}
               </span>
@@ -469,11 +469,11 @@ function KpiCard({ label, value, color }: {
       gap: 0,
     }}>
       <span style={{
-        fontSize: "10px",
+        fontSize: "11px",
         fontWeight: fontWeight.semibold,
-        color: colors.textDim,
+        color: colors.textMuted,
         textTransform: "uppercase",
-        letterSpacing: "0.08em",
+        letterSpacing: "0.07em",
         marginBottom: 10,
         display: "block",
       }}>
@@ -564,31 +564,30 @@ function PathRow({ path, last }: { path: PathSummary; last: boolean }) {
         }}>
           {path.name}
         </span>
-        {hovered && (
-          <button
-            onClick={handleAskAI}
-            title="Ask AI about this path"
-            style={{
-              flexShrink: 0,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
-              padding: "1px 7px",
-              borderRadius: radius.full,
-              fontSize: "9px",
-              fontWeight: fontWeight.semibold,
-              background: `${colors.accent}14`,
-              color: colors.accent,
-              border: `1px solid ${colors.accent}28`,
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-              transition: "background 0.1s ease",
-            }}
-          >
-            <Sparkles size={9} />
-            Ask AI
-          </button>
-        )}
+        <button
+          onClick={handleAskAI}
+          title="Ask AI about this path"
+          style={{
+            flexShrink: 0,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+            padding: "3px 8px",
+            borderRadius: radius.full,
+            fontSize: "10px",
+            fontWeight: fontWeight.semibold,
+            background: hovered ? `${colors.accent}1a` : `${colors.accent}08`,
+            color: hovered ? colors.accent : colors.textDim,
+            border: `1px solid ${hovered ? colors.accent + "38" : colors.accent + "14"}`,
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+            transition: "all 0.15s ease",
+            opacity: hovered ? 1 : 0.6,
+          }}
+        >
+          <Sparkles size={9} />
+          Ask AI
+        </button>
       </div>
 
       {/* Assets */}

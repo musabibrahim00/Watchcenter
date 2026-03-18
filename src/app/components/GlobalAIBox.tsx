@@ -2115,9 +2115,9 @@ function GlobalAIBoxInner() {
   const placeholder = (() => {
     const wfState = inferWorkflowAiState(pageContext?.contextKey);
     if (wfState && pageContext) return getWorkflowPlaceholder(wfState, pageContext.label);
-    if (pageContext?.type === "agent") return "Ask about this analyst's findings or risks...";
+    if (pageContext?.type === "agent") return `Ask ${pageContext.label} about findings, risks, or tasks...`;
     if (pageContext) return `Ask about ${pageContext.label}...`;
-    return "Ask me anything...";
+    return "Ask Alex anything...";
   })();
 
   /* ── Custom send icon — matches Watch Center AiBox ── */
@@ -2188,12 +2188,15 @@ function GlobalAIBoxInner() {
 
         {/* ── Context strip — shown when a page context is active ── */}
         {pageContext && (
-          <div className="relative shrink-0 w-full z-[2] px-[16px] py-[8px] flex flex-col gap-[2px]"
+          <div className="relative shrink-0 w-full z-[2] px-[16px] py-[8px] flex flex-col gap-[3px]"
             style={{ borderBottom: "1px solid #172a3c", background: "rgba(7,18,30,0.7)" }}>
-            <p className="font-['Inter:Medium',sans-serif] text-[8px] leading-[10px] uppercase tracking-[0.08em] text-[#4a5f72]">
+            <p className="font-['Inter:Medium',sans-serif] text-[9px] leading-[11px] uppercase tracking-[0.07em] text-[#5a7080]">
               {contextSubtitle}
             </p>
-            <p className="font-['Inter:Semi_Bold',sans-serif] text-[11px] leading-[14px] text-[#9fadb9] truncate">
+            <p
+              className="font-['Inter:Semi_Bold',sans-serif] text-[12px] leading-[15px] text-[#b8c8d8] truncate"
+              title={pageContext.label}
+            >
               {pageContext.label}
             </p>
           </div>
@@ -2225,15 +2228,38 @@ function GlobalAIBoxInner() {
         >
           {messages.length === 0 && !isProcessing ? (
             <div className="flex flex-col items-center justify-end size-full gap-[10px] px-[20px] pb-[8px]">
-              <div className="flex flex-col gap-[5px] w-full max-w-[260px]">
-                {suggestions.map((s, i) => (
-                  <div key={i} className="bg-[#0a1828] border border-[#172a3c] rounded-[6px] px-[10px] py-[7px] cursor-pointer hover:border-[#1e3a5f] transition-colors group" data-suggestion={s.prompt}>
-                    <div className="flex items-center gap-[6px]">
-                      <svg className="size-[8px] shrink-0 opacity-30 group-hover:opacity-60 transition-opacity" viewBox="0 0 10 10" fill="none"><path d="M3.5 2L6.5 5L3.5 8" stroke="#57b1ff" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                      <p className="font-['Inter:Regular',sans-serif] font-normal leading-[13px] text-[#7e8e9e] group-hover:text-[#9fadb9] transition-colors text-[12px]">{s.label}</p>
+              <div className="flex flex-col gap-[4px] w-full max-w-[280px]">
+                {suggestions.map((s, i) => {
+                  const isReturning = s.prompt === "What changed since my last visit?";
+                  return (
+                    <div
+                      key={i}
+                      title={s.label}
+                      className={`border rounded-[7px] px-[11px] py-[8px] cursor-pointer transition-all group ${
+                        isReturning
+                          ? "bg-[#0a1c2e] border-[#1e3a52] hover:border-[#2a5070] hover:bg-[#0e2438]"
+                          : "bg-[#081422] border-[#1a2e42] hover:border-[#234060] hover:bg-[#0c1e34]"
+                      }`}
+                      data-suggestion={s.prompt}
+                    >
+                      <div className="flex items-center gap-[7px]">
+                        {isReturning ? (
+                          <svg className="size-[9px] shrink-0 opacity-50 group-hover:opacity-75 transition-opacity" viewBox="0 0 10 10" fill="none">
+                            <circle cx="5" cy="5" r="4" stroke="#57b1ff" strokeWidth="1.2" />
+                            <path d="M5 3v2l1.5 1.5" stroke="#57b1ff" strokeWidth="1.2" strokeLinecap="round" />
+                          </svg>
+                        ) : (
+                          <svg className="size-[8px] shrink-0 opacity-35 group-hover:opacity-65 transition-opacity" viewBox="0 0 10 10" fill="none"><path d="M3.5 2L6.5 5L3.5 8" stroke="#57b1ff" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                        )}
+                        <p className={`font-['Inter:Regular',sans-serif] font-normal leading-[14px] transition-colors text-[12px] truncate ${
+                          isReturning
+                            ? "text-[#6ea8d0] group-hover:text-[#88bedf]"
+                            : "text-[#8fa4b8] group-hover:text-[#adbece]"
+                        }`}>{s.label}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ) : (

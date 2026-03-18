@@ -1614,21 +1614,25 @@ function AgentDetailInner({
 
         {/* Capabilities — primary / secondary hierarchy */}
         <div className="relative rounded-[12px] px-[20px] py-[16px]">
-          <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[12px]" style={{ background: "rgba(8,16,28,0.5)", border: "1px solid rgba(30,50,70,0.45)" }} />
+          <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[12px]" style={{ background: "rgba(6,14,26,0.6)", border: "1px solid rgba(40,65,90,0.5)" }} />
           <div className="flex flex-col gap-[12px] relative">
-            <span className="font-['Inter',sans-serif] text-[11px] text-[#62707D] leading-[14px] uppercase tracking-[0.4px]">What this analyst can do</span>
+            <div className="flex items-center justify-between">
+              <span className="font-['Inter',sans-serif] text-[10px] text-[#7e97b0] leading-[14px] uppercase tracking-[0.5px]">Skills</span>
+              <span className="font-['Inter',sans-serif] text-[9px] text-[#4a5f72] leading-[12px]">Click any skill to open a conversation</span>
+            </div>
 
-            {/* Primary actions */}
+            {/* Primary actions — 2 prominent buttons */}
             {(() => {
               const allSkills = getPersonaDefaultSkills("agent", persona, id as AgentId);
               const primarySkills = allSkills.slice(0, 2).map(s => renderSkillSuggestion(s, agentRole, id));
-              const secondarySkills = allSkills.slice(2, 5).map(s => renderSkillSuggestion(s, agentRole, id));
+              const secondarySkills = allSkills.slice(2, 6).map(s => renderSkillSuggestion(s, agentRole, id));
               return (
                 <>
                   <div className="flex gap-[8px]">
                     {primarySkills.map(cap => (
                       <button
                         key={cap.label}
+                        title={cap.label}
                         onClick={() => {
                           if (isAiBoxOpen) {
                             window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: cap.prompt } }));
@@ -1637,21 +1641,28 @@ function AgentDetailInner({
                             openAiBox();
                           }
                         }}
-                        className="h-[32px] flex-1 relative rounded-[7px] cursor-pointer border-none transition-colors"
-                        style={{ backgroundColor: "#076498" }}
-                        onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#0879b5"; }}
-                        onMouseLeave={e => { e.currentTarget.style.backgroundColor = "#076498"; }}
+                        className="h-[34px] flex-1 relative rounded-[7px] cursor-pointer border-none transition-all"
+                        style={{ backgroundColor: "#076498", border: "1px solid rgba(87,177,255,0.18)" }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.backgroundColor = "#0879b5";
+                          e.currentTarget.style.borderColor = "rgba(87,177,255,0.35)";
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.backgroundColor = "#076498";
+                          e.currentTarget.style.borderColor = "rgba(87,177,255,0.18)";
+                        }}
                       >
                         <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[13px] text-[#f1f3ff] text-[11px]">{cap.label}</span>
                       </button>
                     ))}
                   </div>
 
-                  {/* Secondary actions */}
-                  <div className="flex gap-[8px]">
+                  {/* Secondary actions — 4 smaller outline buttons */}
+                  <div className="flex flex-wrap gap-[6px]">
                     {secondarySkills.map(cap => (
                       <button
                         key={cap.label}
+                        title={cap.label}
                         onClick={() => {
                           if (isAiBoxOpen) {
                             window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: cap.prompt } }));
@@ -1660,19 +1671,22 @@ function AgentDetailInner({
                             openAiBox();
                           }
                         }}
-                        className="h-[28px] flex-1 relative rounded-[6px] cursor-pointer transition-colors"
+                        className="h-[28px] px-[10px] relative rounded-[6px] cursor-pointer transition-all"
                         style={{
-                          backgroundColor: "transparent",
-                          border: "1px solid rgba(87,177,255,0.16)",
-                          color: "#62707D",
+                          backgroundColor: "rgba(87,177,255,0.04)",
+                          border: "1px solid rgba(87,177,255,0.18)",
+                          color: "#89949e",
+                          whiteSpace: "nowrap",
                         }}
                         onMouseEnter={e => {
-                          e.currentTarget.style.borderColor = "rgba(87,177,255,0.28)";
-                          e.currentTarget.style.color = "#89949e";
+                          e.currentTarget.style.backgroundColor = "rgba(87,177,255,0.09)";
+                          e.currentTarget.style.borderColor = "rgba(87,177,255,0.32)";
+                          e.currentTarget.style.color = "#b8c8d8";
                         }}
                         onMouseLeave={e => {
-                          e.currentTarget.style.borderColor = "rgba(87,177,255,0.16)";
-                          e.currentTarget.style.color = "#62707D";
+                          e.currentTarget.style.backgroundColor = "rgba(87,177,255,0.04)";
+                          e.currentTarget.style.borderColor = "rgba(87,177,255,0.18)";
+                          e.currentTarget.style.color = "#89949e";
                         }}
                       >
                         <span className="font-['Inter:Medium',sans-serif] font-medium leading-[12px] text-[10px]">{cap.label}</span>
