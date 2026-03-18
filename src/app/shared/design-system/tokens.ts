@@ -42,33 +42,33 @@ export const colors = {
   /** Primary application background */
   bgApp: "#030A10",
   /** Card / panel default background */
-  bgCard: "#050B11",
+  bgCard: "#071420",
   /** Card / panel hover background */
-  bgCardHover: "#071019",
+  bgCardHover: "#0A1C2E",
   /** Deep dark background (gauge tracks, progress bar backgrounds) */
-  bgDark: "#060c12",
+  bgDark: "#050c14",
   /** Semi-transparent panel background (Watch Center overlays) */
-  bgPanel: "rgba(3,6,9,0.85)",
-  bgPanelLight: "rgba(3,6,9,0.16)",
-  bgOverlay: "rgba(3,6,9,0.95)",
+  bgPanel: "rgba(7,20,32,0.92)",
+  bgPanelLight: "rgba(7,20,32,0.18)",
+  bgOverlay: "rgba(3,6,9,0.97)",
 
   // ── Table colors ──
   /** Table header row background */
-  tableHeaderBg: "#050B11",
+  tableHeaderBg: "#071420",
   /** Table data row default background */
-  tableRowBg: "#071019",
+  tableRowBg: "#0A1828",
   /** Table data row hover background */
-  tableRowHoverBg: "#0C161F",
+  tableRowHoverBg: "#0F1E2C",
 
   // ── Border & Divider ──
   /** Primary border color */
-  border: "#0E1C26",
+  border: "#132638",
   /** Hover-state border */
-  borderHover: "rgba(14,28,38,0.8)",
+  borderHover: "rgba(19,38,56,0.8)",
   /** Strong / emphasis border */
-  borderStrong: "rgba(14,28,38,1)",
+  borderStrong: "rgba(19,38,56,1)",
   /** Divider lines (lighter than border) */
-  divider: "#0C1822",
+  divider: "#0F1E2C",
 
   // ── Primary button states ──
   buttonPrimary: "#076498",
@@ -103,15 +103,15 @@ export const colors = {
   // ── Text colors ──
   textPrimary: "#eef3f8",
   textSecondary: "#dadfe3",
-  textMuted: "#96a4b2",
-  textDim: "#6e87a1",
+  textMuted: "#a8b6c4",
+  textDim: "#7e97b0",
   textWhite: "#f1f3ff",
 
   // ── Interactive states ──
-  hoverBg: "#0C161F",
-  hoverBgLight: "rgba(12,22,31,0.5)",
-  hoverOverlay: "rgba(255,255,255,0.03)",
-  hoverOverlayStrong: "rgba(255,255,255,0.05)",
+  hoverBg: "#0F1E2C",
+  hoverBgLight: "rgba(15,30,44,0.5)",
+  hoverOverlay: "rgba(255,255,255,0.04)",
+  hoverOverlayStrong: "rgba(255,255,255,0.06)",
 } as const;
 
 /* ═══════════════════════════════════════════════════════════
@@ -162,9 +162,10 @@ export const fontWeight = {
    ═══════════════════════════════════════════════════════════ */
 
 export const shadows = {
-  sm: "0 0 0 1px rgba(0,0,0,0.08)",
-  md: "0 4px 12px rgba(0,0,0,0.12)",
-  lg: "0 8px 24px rgba(0,0,0,0.16)",
+  sm: "0 2px 6px rgba(0,0,0,0.36), 0 0 0 1px rgba(255,255,255,0.04)",
+  md: "0 4px 16px rgba(0,0,0,0.44)",
+  lg: "0 8px 32px rgba(0,0,0,0.52)",
+  card: "0 2px 8px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.04)",
   glow: "0 0 24px rgba(87,177,255,0.3)",
 } as const;
 

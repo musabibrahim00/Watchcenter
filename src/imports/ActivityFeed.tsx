@@ -112,7 +112,7 @@ function EventRow({ event, isNew }: { event: ActivityEvent; isNew: boolean }) {
     >
       <span
         className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[10px] shrink-0 tabular-nums"
-        style={{ color: "rgba(137,148,158,0.45)", minWidth: 30 }}
+        style={{ color: "rgba(137,148,158,0.65)", minWidth: 30 }}
       >
         {event.timestamp}
       </span>
@@ -123,7 +123,7 @@ function EventRow({ event, isNew }: { event: ActivityEvent; isNew: boolean }) {
         >
           {event.analyst}
         </span>
-        <span className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[10px] text-[#6b7680]">
+        <span className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[10px] text-[#7e8e9e]">
           {" "}{event.action}
         </span>
       </div>
@@ -162,7 +162,7 @@ export default function ActivityFeed() {
             <div className="h-0 relative shrink-0 w-full">
               <div className="absolute inset-[-0.5px_0]">
                 <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 272 1">
-                  <path d="M0 0.5H272" stroke="#121E27" />
+                  <path d="M0 0.5H272" stroke="#172a3c" />
                 </svg>
               </div>
             </div>

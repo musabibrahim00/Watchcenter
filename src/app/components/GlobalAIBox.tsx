@@ -1973,15 +1973,15 @@ function GlobalAIBoxInner() {
       className="bg-[rgba(3,6,9,0.16)] relative rounded-[16px] size-full min-h-0"
       data-name="GlobalAIBox"
       style={{
-        border: "1px solid #030609",
-        boxShadow: "0px 24px 48px 0px rgba(0,0,0,0.48), inset 0 0 0 1px rgba(87,177,255,0.13)",
+        border: "1px solid #0e1c28",
+        boxShadow: "0px 24px 48px 0px rgba(0,0,0,0.52), inset 0 0 0 1px rgba(87,177,255,0.18)",
       }}
     >
       <div className="content-stretch flex flex-col isolate items-center overflow-hidden relative rounded-[inherit] size-full min-h-0">
 
         {/* ── Header ── */}
         <div className="relative shrink-0 w-full z-[3]">
-          <div aria-hidden="true" className="absolute border-[#121e27] border-b border-solid inset-0 pointer-events-none" />
+          <div aria-hidden="true" className="absolute border-[#172a3c] border-b border-solid inset-0 pointer-events-none" />
           <div className="flex flex-row items-center size-full">
             <div className="content-stretch flex items-center justify-between p-[16px] relative size-full">
               {/* Teammate */}
@@ -1994,7 +1994,7 @@ function GlobalAIBoxInner() {
                 </div>
                 <div className="flex flex-col min-w-0">
                   <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[14px] not-italic relative shrink-0 text-[#dadfe3] text-[12px] whitespace-nowrap">Alex</p>
-                  <p className="font-['Inter:Regular',sans-serif] font-normal leading-[14px] not-italic relative shrink-0 text-[#4a5568] text-[10px] whitespace-nowrap mt-[2px]">Digital Security Teammate</p>
+                  <p className="font-['Inter:Regular',sans-serif] font-normal leading-[14px] not-italic relative shrink-0 text-[#5a6e84] text-[10px] whitespace-nowrap mt-[2px]">Digital Security Teammate</p>
                 </div>
               </div>
               {/* Status indicator */}
@@ -2027,11 +2027,11 @@ function GlobalAIBoxInner() {
         {/* ── Context strip — shown when a page context is active ── */}
         {pageContext && (
           <div className="relative shrink-0 w-full z-[2] px-[16px] py-[8px] flex flex-col gap-[2px]"
-            style={{ borderBottom: "1px solid #121e27", background: "rgba(6,13,20,0.6)" }}>
-            <p className="font-['Inter:Medium',sans-serif] text-[8px] leading-[10px] uppercase tracking-[0.08em] text-[#3a4754]">
+            style={{ borderBottom: "1px solid #172a3c", background: "rgba(7,18,30,0.7)" }}>
+            <p className="font-['Inter:Medium',sans-serif] text-[8px] leading-[10px] uppercase tracking-[0.08em] text-[#4a5f72]">
               {contextSubtitle}
             </p>
-            <p className="font-['Inter:Semi_Bold',sans-serif] text-[11px] leading-[14px] text-[#89949e] truncate">
+            <p className="font-['Inter:Semi_Bold',sans-serif] text-[11px] leading-[14px] text-[#9fadb9] truncate">
               {pageContext.label}
             </p>
           </div>
@@ -2065,10 +2065,10 @@ function GlobalAIBoxInner() {
             <div className="flex flex-col items-center justify-end size-full gap-[10px] px-[20px] pb-[8px]">
               <div className="flex flex-col gap-[5px] w-full max-w-[260px]">
                 {suggestions.map((s, i) => (
-                  <div key={i} className="bg-[#060d14] border border-[#121e27] rounded-[6px] px-[10px] py-[7px] cursor-pointer hover:border-[#1e3a5f] transition-colors group" data-suggestion={s.prompt}>
+                  <div key={i} className="bg-[#0a1828] border border-[#172a3c] rounded-[6px] px-[10px] py-[7px] cursor-pointer hover:border-[#1e3a5f] transition-colors group" data-suggestion={s.prompt}>
                     <div className="flex items-center gap-[6px]">
                       <svg className="size-[8px] shrink-0 opacity-30 group-hover:opacity-60 transition-opacity" viewBox="0 0 10 10" fill="none"><path d="M3.5 2L6.5 5L3.5 8" stroke="#57b1ff" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                      <p className="font-['Inter:Regular',sans-serif] font-normal leading-[13px] text-[#62707D] group-hover:text-[#89949e] transition-colors text-[12px]">{s.label}</p>
+                      <p className="font-['Inter:Regular',sans-serif] font-normal leading-[13px] text-[#7e8e9e] group-hover:text-[#9fadb9] transition-colors text-[12px]">{s.label}</p>
                     </div>
                   </div>
                 ))}

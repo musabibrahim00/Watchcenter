@@ -3,6 +3,7 @@ import { RouterProvider } from "react-router";
 import { router } from "./routes";
 import { Toaster } from "sonner";
 import { debug } from "./shared/utils/debug";
+import { PersonaProvider } from "./features/persona";
 
 function LoadingFallback() {
   return (
@@ -73,19 +74,21 @@ export default function App() {
   return (
     <ErrorBoundary>
       <Suspense fallback={<LoadingFallback />}>
-        <RouterProvider router={router} />
-        <Toaster
-          theme="dark"
-          position="bottom-right"
-          toastOptions={{
-            style: {
-              background: "#0a1520",
-              border: "1px solid #0E1C26",
-              color: "#eef3f8",
-              fontSize: "13px",
-            },
-          }}
-        />
+        <PersonaProvider>
+          <RouterProvider router={router} />
+            <Toaster
+            theme="dark"
+            position="bottom-right"
+            toastOptions={{
+              style: {
+                background: "#0a1520",
+                border: "1px solid #0E1C26",
+                color: "#eef3f8",
+                fontSize: "13px",
+              },
+            }}
+          />
+        </PersonaProvider>
       </Suspense>
     </ErrorBoundary>
   );

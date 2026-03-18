@@ -394,8 +394,8 @@ const renderTaskGraph = (taskGraph: TaskGraph) => <TaskGraphBubble taskGraph={ta
    Welcome + Chat Area + Input
    ═══════════════════════════════════════════════════════════ */
 
-import { getDefaultSkills } from "../app/shared/skills";
-const WELCOME_SUGGESTIONS = getDefaultSkills("watch-center").map(s => s.label);
+import { getPersonaDefaultSkills } from "../app/shared/skills";
+import { usePersona } from "../app/features/persona";
 
 /* ── Custom send icon matching Figma design ── */
 const AiBoxSendIcon = (
@@ -407,14 +407,14 @@ const AiBoxSendIcon = (
   </div>
 );
 
-function ChatArea({ messages, isTyping, onSuggestionClick, onAction, messagesEndRef, proactiveScenario, onDismissProactive }: {
+function ChatArea({ messages, isTyping, onSuggestionClick, onAction, messagesEndRef, proactiveScenario, onDismissProactive, welcomeSuggestions }: {
   messages: ChatMessage[]; isTyping: boolean; onSuggestionClick: (t: string) => void; onAction: (l: string) => void; messagesEndRef: React.RefObject<HTMLDivElement | null>;
-  proactiveScenario?: ProactiveScenario | null; onDismissProactive?: () => void;
+  proactiveScenario?: ProactiveScenario | null; onDismissProactive?: () => void; welcomeSuggestions: string[];
 }) {
   return (
     <div className="flex-1 min-h-0 min-w-0 relative w-full z-[2] overflow-y-auto" style={{ scrollbarWidth: "none" }}
       onClick={(e) => { const el = (e.target as HTMLElement).closest("[data-suggestion]") as HTMLElement|null; if (el?.dataset.suggestion) onSuggestionClick(el.dataset.suggestion); }}>
-      {messages.length === 0 && !isTyping && !proactiveScenario ? <SharedWelcomeScreen suggestions={WELCOME_SUGGESTIONS}/> : (
+      {messages.length === 0 && !isTyping && !proactiveScenario ? <SharedWelcomeScreen suggestions={welcomeSuggestions}/> : (
         <div className="flex flex-col py-[12px] min-h-full justify-end">
           {proactiveScenario && onDismissProactive && (
             <ProactiveCard scenario={proactiveScenario} onDismiss={onDismissProactive}/>
@@ -444,6 +444,8 @@ const PROACTIVE_INTERVAL_MAX  = 180000;  /* maximum 180s between events */
 
 export default function AiBox() {
   const navigate = useNavigate();
+  const { persona } = usePersona();
+  const welcomeSuggestions = getPersonaDefaultSkills("watch-center", persona).map(s => s.label);
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = React.useState("");
   const [isTyping, setIsTyping] = React.useState(false);
@@ -776,7 +778,7 @@ export default function AiBox() {
         <div className="content-stretch flex flex-col isolate items-center overflow-hidden relative rounded-[inherit] size-full min-h-0">
           <AiBoxHeader hasProactive={hasProactive}/>
           <ChatArea messages={messages} isTyping={isTyping} onSuggestionClick={send} onAction={handleAction} messagesEndRef={endRef}
-            proactiveScenario={proactiveScenario} onDismissProactive={dismissProactive}/>
+            proactiveScenario={proactiveScenario} onDismissProactive={dismissProactive} welcomeSuggestions={welcomeSuggestions}/>
           <SharedChatInput inputValue={inputValue} onInputChange={setInputValue} onSend={onSend} placeholder="Ask about threats, agents, or investigations..." sendIcon={AiBoxSendIcon} sendButtonSize={48} sendButtonRadius={12}/>
         </div>
       </div>

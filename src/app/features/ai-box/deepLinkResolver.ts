@@ -1,7 +1,8 @@
 import type { AiBoxPageContext } from "./AiBoxContext";
 import { AGENT_ROLE_LABELS } from "../../shared/types/agent-types";
 import type { AgentId } from "../../shared/types/agent-types";
-import { getAiBoxSuggestions } from "../../shared/skills";
+import { getPersonaAiBoxSuggestions } from "../../shared/skills";
+import type { Persona } from "../../shared/skills";
 
 /* ================================================================
    DEEP LINK RESOLVER
@@ -35,7 +36,7 @@ function humanise(id: string): string {
 
 /* ── Per-entity context builders ──────────────────────────────── */
 
-function agentContext(id: string, query?: string): AiBoxPageContext {
+function agentContext(id: string, query?: string, persona?: Persona | null): AiBoxPageContext {
   const label = (AGENT_ROLE_LABELS as Record<string, string>)[id] ?? humanise(id);
   return {
     type: "agent",
@@ -44,11 +45,11 @@ function agentContext(id: string, query?: string): AiBoxPageContext {
     contextKey: `agent:${id}`,
     greeting: `I have **${label}** context loaded. I can summarise findings, explain risk signals, or help you investigate this analyst's activity.`,
     initialQuery: query,
-    suggestions: getAiBoxSuggestions("agent", label, id as AgentId, id),
+    suggestions: getPersonaAiBoxSuggestions("agent", persona ?? null, label, id as AgentId, id),
   };
 }
 
-function assetContext(id: string, query?: string): AiBoxPageContext {
+function assetContext(id: string, query?: string, persona?: Persona | null): AiBoxPageContext {
   const label = id ? humanise(id) : "Asset";
   return {
     type: "asset",
@@ -57,11 +58,11 @@ function assetContext(id: string, query?: string): AiBoxPageContext {
     contextKey: `asset:${id}`,
     greeting: `I have **${label}** asset context loaded. I can explain vulnerabilities, misconfigurations, or exposure paths for this asset.`,
     initialQuery: query,
-    suggestions: getAiBoxSuggestions("asset", label, undefined, id),
+    suggestions: getPersonaAiBoxSuggestions("asset", persona ?? null, label, undefined, id),
   };
 }
 
-function attackPathContext(id: string, query?: string): AiBoxPageContext {
+function attackPathContext(id: string, query?: string, persona?: Persona | null): AiBoxPageContext {
   const label = id ? `Attack Path ${id.toUpperCase()}` : "Attack Path";
   return {
     type: "general",
@@ -70,11 +71,11 @@ function attackPathContext(id: string, query?: string): AiBoxPageContext {
     contextKey: `attack-path:${id}`,
     greeting: `I have **${label}** context loaded. I can explain this attack path, identify impacted assets, or recommend mitigations.`,
     initialQuery: query,
-    suggestions: getAiBoxSuggestions("attack-path", label, undefined, id),
+    suggestions: getPersonaAiBoxSuggestions("attack-path", persona ?? null, label, undefined, id),
   };
 }
 
-function workflowContext(id: string, query?: string): AiBoxPageContext {
+function workflowContext(id: string, query?: string, persona?: Persona | null): AiBoxPageContext {
   const label = id ? humanise(id) : "Workflow";
   return {
     type: "workflow",
@@ -83,11 +84,11 @@ function workflowContext(id: string, query?: string): AiBoxPageContext {
     contextKey: `workflow:${id}`,
     greeting: `I have **${label}** workflow context loaded. I can explain runs, debug failures, or suggest improvements.`,
     initialQuery: query,
-    suggestions: getAiBoxSuggestions("workflow", label, undefined, id),
+    suggestions: getPersonaAiBoxSuggestions("workflow", persona ?? null, label, undefined, id),
   };
 }
 
-function caseContext(id: string, query?: string): AiBoxPageContext {
+function caseContext(id: string, query?: string, persona?: Persona | null): AiBoxPageContext {
   const label = id ? `Case ${id.toUpperCase()}` : "Case";
   return {
     type: "case",
@@ -96,11 +97,11 @@ function caseContext(id: string, query?: string): AiBoxPageContext {
     contextKey: `case:${id}`,
     greeting: `I have **${label}** loaded. I can summarise the investigation, show findings, or suggest next actions.`,
     initialQuery: query,
-    suggestions: getAiBoxSuggestions("case", label, undefined, id),
+    suggestions: getPersonaAiBoxSuggestions("case", persona ?? null, label, undefined, id),
   };
 }
 
-function generalContext(query?: string): AiBoxPageContext {
+function generalContext(query?: string, persona?: Persona | null): AiBoxPageContext {
   return {
     type: "general",
     label: "Security Overview",
@@ -109,11 +110,11 @@ function generalContext(query?: string): AiBoxPageContext {
     greeting:
       "I'm ready to help. Ask me anything about your security posture, attack paths, analysts, or workflows.",
     initialQuery: query,
-    suggestions: getAiBoxSuggestions("watch-center", "Watch Center"),
+    suggestions: getPersonaAiBoxSuggestions("watch-center", persona ?? null, "Watch Center"),
   };
 }
 
-function complianceContext(id: string, query?: string): AiBoxPageContext {
+function complianceContext(id: string, query?: string, persona?: Persona | null): AiBoxPageContext {
   const label = id ? humanise(id) : "Compliance";
   return {
     type: "general",
@@ -122,12 +123,12 @@ function complianceContext(id: string, query?: string): AiBoxPageContext {
     contextKey: `compliance:${id}`,
     greeting: `I have **${label}** compliance context loaded. I can explain control status, highlight gaps, or help you plan remediation.`,
     initialQuery: query,
-    suggestions: getAiBoxSuggestions("compliance", label, undefined, id),
+    suggestions: getPersonaAiBoxSuggestions("compliance", persona ?? null, label, undefined, id),
   };
 }
 
 /** Returned when the ctx param is recognised but the entity could not be resolved. */
-function fallbackContext(type: string, id: string, query?: string): AiBoxPageContext {
+function fallbackContext(type: string, id: string, query?: string, persona?: Persona | null): AiBoxPageContext {
   const label = id ? `${humanise(type)}: ${humanise(id)}` : humanise(type);
   return {
     type: "general",
@@ -137,7 +138,7 @@ function fallbackContext(type: string, id: string, query?: string): AiBoxPageCon
     greeting:
       "I couldn't load the exact item from this alert, but I've opened the closest available context. I can still help you investigate or answer questions.",
     initialQuery: query,
-    suggestions: getAiBoxSuggestions("watch-center", "Watch Center"),
+    suggestions: getPersonaAiBoxSuggestions("watch-center", persona ?? null, "Watch Center"),
   };
 }
 
@@ -163,11 +164,13 @@ export function derivePageRoute(type: string, id: string): string {
 /**
  * Convert a raw `ctx` param value (e.g. "agent:alpha", "attack-path:ap-001")
  * and an optional pre-filled `query` into a typed AiBoxPageContext.
+ * Pass `persona` to receive persona-aware suggestion ordering.
  * Returns null if the type is unrecognised.
  */
 export function resolveDeepLinkContext(
   ctx: string,
-  query?: string
+  query?: string,
+  persona?: Persona | null
 ): AiBoxPageContext | null {
   if (!ctx) return null;
 
@@ -176,13 +179,13 @@ export function resolveDeepLinkContext(
   const id   = colonIdx === -1 ? ""  : ctx.slice(colonIdx + 1);
 
   switch (type) {
-    case "agent":       return agentContext(id, query);
-    case "asset":       return assetContext(id, query);
-    case "attack-path": return attackPathContext(id, query);
-    case "workflow":    return workflowContext(id, query);
-    case "case":        return caseContext(id, query);
-    case "compliance":  return complianceContext(id, query);
-    case "general":     return generalContext(query);
-    default:            return fallbackContext(type, id, query);
+    case "agent":       return agentContext(id, query, persona);
+    case "asset":       return assetContext(id, query, persona);
+    case "attack-path": return attackPathContext(id, query, persona);
+    case "workflow":    return workflowContext(id, query, persona);
+    case "case":        return caseContext(id, query, persona);
+    case "compliance":  return complianceContext(id, query, persona);
+    case "general":     return generalContext(query, persona);
+    default:            return fallbackContext(type, id, query, persona);
   }
 }

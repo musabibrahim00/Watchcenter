@@ -81,7 +81,7 @@ function Separator() {
     <div className="h-0 relative shrink-0 w-full">
       <div className="absolute inset-[-0.5px_0]">
         <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 326 1">
-          <path d="M0 0.5H326" stroke="#121E27" />
+          <path d="M0 0.5H326" stroke="#172a3c" />
         </svg>
       </div>
     </div>
@@ -147,7 +147,7 @@ export default function KpiWidget() {
         <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] text-[#dadfe3] text-[12px] tracking-[0.4px] uppercase">
           Insights
         </p>
-        <span className="text-[10px] text-[#596570] font-['Inter:Regular',sans-serif] tracking-[0.3px]">
+        <span className="text-[10px] text-[#6b7c8a] font-['Inter:Regular',sans-serif] tracking-[0.3px]">
           LAST 24H
         </span>
       </div>

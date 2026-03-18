@@ -1,5 +1,5 @@
 import React from "react";
-import { colors, radius } from "../../design-system/tokens";
+import { colors, radius, shadows } from "../../design-system/tokens";
 
 /**
  * Card — Base container component with consistent styling.
@@ -69,7 +69,7 @@ export const Card = React.memo(function Card({
         style={{
           borderRadius,
           border: `1px solid ${borderColor}`,
-          boxShadow: glow ? "0 0 24px rgba(87,177,255,0.3)" : undefined,
+          boxShadow: glow ? "0 0 24px rgba(87,177,255,0.3)" : shadows.card,
         }}
       />
     </div>
@@ -191,7 +191,7 @@ export const PanelCard = React.memo(function PanelCard({
 
   return (
     <div
-      className={`rounded-[18px] border border-[rgba(87,177,255,0.16)] bg-[rgba(3,6,9,0.85)] text-[#dadfe3] shadow-[0_0_0_1px_rgba(0,0,0,0.08)] backdrop-blur-sm overflow-hidden ${padClass} ${className}`}
+      className={`rounded-[18px] border border-[rgba(87,177,255,0.20)] bg-[rgba(7,20,32,0.92)] text-[#dadfe3] shadow-[0_2px_8px_rgba(0,0,0,0.40),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm overflow-hidden ${padClass} ${className}`}
       data-name={props["data-name"]}
     >
       {children}

@@ -7,6 +7,7 @@
  */
 
 import { getSkillsForContext } from "./skills-registry.mjs";
+import { resolvePersona, getPersonaSkills, getPostActionLabels } from "./persona.mjs";
 
 // ── Response shape ────────────────────────────────────────────────────────────
 // { sections: [{ title, bullets }], riskLevel, nextSteps }
@@ -16,9 +17,9 @@ const s = (title, bullets) => ({ title, bullets });
 
 /**
  * Derive next-step CLI suggestions from the skills registry for an agent context.
- * Returns up to `count` suggestions excluding the skill that maps to the current intent.
+ * Returns up to `count` suggestions, persona-ranked, excluding the current intent.
  */
-function agentNextSteps(label, agentId, currentIntent, count = 2) {
+function agentNextSteps(label, agentId, currentIntent, persona, count = 2) {
   const intentToAlias = {
     summarise: "summarise",
     assess:    "assess",
@@ -29,7 +30,8 @@ function agentNextSteps(label, agentId, currentIntent, count = 2) {
     simulate:  "simulate",
   };
   const currentAlias = intentToAlias[currentIntent];
-  return getSkillsForContext("agent", agentId)
+  const skills = getPersonaSkills(getSkillsForContext, "agent", persona, agentId);
+  return skills
     .filter(sk => !currentAlias || !(sk.cliAliases ?? []).includes(currentAlias))
     .slice(0, count)
     .map(sk => `secops agent "${label}" "${sk.label.toLowerCase()}"`);
@@ -45,7 +47,7 @@ function contextNextSteps(contextType, entityLabel, count = 2) {
 }
 
 // ── Agent responses ───────────────────────────────────────────────────────────
-function agentResponse(ctx, intent) {
+function agentResponse(ctx, intent, persona) {
   const { label } = ctx;
 
   const findings = {
@@ -280,7 +282,7 @@ function agentResponse(ctx, intent) {
   return {
     sections: [section],
     riskLevel: riskLevels[label] ?? "high",
-    nextSteps: agentNextSteps(label, ctx.agentId, mappedIntent),
+    nextSteps: agentNextSteps(label, ctx.agentId, mappedIntent, persona),
   };
 }
 
@@ -503,9 +505,15 @@ function generalResponse(_ctx, intent) {
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
-export function generateResponse(ctx, intent) {
+
+/**
+ * Generate a response for the given context and intent.
+ * Persona is resolved automatically from environment / config when not provided.
+ */
+export function generateResponse(ctx, intent, explicitPersona) {
+  const persona = resolvePersona(explicitPersona ?? null);
   switch (ctx.type) {
-    case "agent":       return agentResponse(ctx, intent);
+    case "agent":       return agentResponse(ctx, intent, persona);
     case "workflow":    return workflowResponse(ctx, intent);
     case "asset":       return assetResponse(ctx, intent);
     case "attack-path": return attackPathResponse(ctx, intent);

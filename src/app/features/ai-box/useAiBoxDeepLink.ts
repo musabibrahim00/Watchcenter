@@ -4,6 +4,7 @@ import { useAiBox } from "./AiBoxContext";
 import { resolveDeepLinkContext, derivePageRoute } from "./deepLinkResolver";
 import { logDeepLinkEntry } from "../../shared/utils/audit-log";
 import type { AlertActionSource } from "../../shared/utils/audit-log";
+import { usePersona } from "../../features/persona";
 
 /**
  * useAiBoxDeepLink
@@ -36,6 +37,7 @@ import type { AlertActionSource } from "../../shared/utils/audit-log";
 export function useAiBoxDeepLink(): void {
   const [searchParams, setSearchParams] = useSearchParams();
   const { openWithContext, setPendingEntryQuery } = useAiBox();
+  const { persona } = usePersona();
   const navigate   = useNavigate();
   const location   = useLocation();
 
@@ -44,12 +46,14 @@ export function useAiBoxDeepLink(): void {
   const setPendingRef         = useRef(setPendingEntryQuery);
   const setRef                = useRef(setSearchParams);
   const navigateRef           = useRef(navigate);
+  const personaRef            = useRef(persona);
   const processedRef          = useRef(false);
 
   openRef.current       = openWithContext;
   setPendingRef.current = setPendingEntryQuery;
   setRef.current        = setSearchParams;
   navigateRef.current   = navigate;
+  personaRef.current    = persona;
 
   useEffect(() => {
     if (processedRef.current) return;
@@ -64,7 +68,7 @@ export function useAiBoxDeepLink(): void {
 
     if (!ctx) return;
 
-    const context = resolveDeepLinkContext(ctx, query);
+    const context = resolveDeepLinkContext(ctx, query, personaRef.current);
     if (!context) return;
 
     processedRef.current = true;

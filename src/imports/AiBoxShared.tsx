@@ -63,7 +63,7 @@ export const MessageBubble = React.memo(function MessageBubble({
         <div className="bg-[#076498] rounded-[10px] rounded-tr-[4px] px-[10px] py-[8px] max-w-[80%]">
           <p className="font-['Inter:Regular',sans-serif] font-normal leading-[17px] text-[#f1f3ff] text-[11px] whitespace-pre-wrap break-words">{message.text}</p>
         </div>
-        <p className="font-['Inter:Regular',sans-serif] font-normal leading-[12px] text-[#3a4754] text-[9px] mt-[3px] mr-[4px]">{time}</p>
+        <p className="font-['Inter:Regular',sans-serif] font-normal leading-[12px] text-[#4a5f72] text-[9px] mt-[3px] mr-[4px]">{time}</p>
       </div>
     );
   }
@@ -80,7 +80,7 @@ export const MessageBubble = React.memo(function MessageBubble({
         </div>
         <div className="flex flex-col flex-1 min-w-0 overflow-hidden" style={{ animation: "moduleSlideIn 0.35s ease-out" }}>
           {message.renderedUI}
-          <p className="font-['Inter:Regular',sans-serif] font-normal leading-[12px] text-[#3a4754] text-[9px] mt-[3px] ml-[4px]">{time}</p>
+          <p className="font-['Inter:Regular',sans-serif] font-normal leading-[12px] text-[#4a5f72] text-[9px] mt-[3px] ml-[4px]">{time}</p>
         </div>
       </div>
     );
@@ -92,10 +92,10 @@ export const MessageBubble = React.memo(function MessageBubble({
         <img alt="" className="size-full object-cover" src={imgAvatar} />
       </div>
       <div className="flex flex-col max-w-[85%]">
-        <div className="bg-[#0a1420] rounded-[10px] rounded-tl-[4px] px-[10px] py-[8px] border border-[#121e27]">
-          <p className="font-['Inter:Regular',sans-serif] font-normal leading-[17px] text-[#89949e] text-[11px] whitespace-pre-wrap break-words">{formatText(message.text)}</p>
+        <div className="bg-[#0e1c2c] rounded-[10px] rounded-tl-[4px] px-[10px] py-[8px] border border-[#172840]">
+          <p className="font-['Inter:Regular',sans-serif] font-normal leading-[17px] text-[#9fadb9] text-[11px] whitespace-pre-wrap break-words">{formatText(message.text)}</p>
         </div>
-        <p className="font-['Inter:Regular',sans-serif] font-normal leading-[12px] text-[#3a4754] text-[9px] mt-[3px] ml-[4px]">{time}</p>
+        <p className="font-['Inter:Regular',sans-serif] font-normal leading-[12px] text-[#4a5f72] text-[9px] mt-[3px] ml-[4px]">{time}</p>
       </div>
     </div>
   );
@@ -205,10 +205,10 @@ export const WelcomeScreen = React.memo(function WelcomeScreen({ suggestions }: 
     <div className="flex flex-col items-center justify-end size-full gap-[10px] px-[20px] pb-[8px]">
       <div className="flex flex-col gap-[5px] w-full max-w-[260px]">
         {suggestions.map(s => (
-          <div key={s} className="bg-[#060d14] border border-[#121e27] rounded-[6px] px-[10px] py-[7px] cursor-pointer hover:border-[#1e3a5f] transition-colors group" data-suggestion={s}>
+          <div key={s} className="bg-[#0a1828] border border-[#172a3c] rounded-[6px] px-[10px] py-[7px] cursor-pointer hover:border-[#1e3a5f] transition-colors group" data-suggestion={s}>
             <div className="flex items-center gap-[6px]">
               <svg className="size-[8px] shrink-0 opacity-30 group-hover:opacity-60 transition-opacity" viewBox="0 0 10 10" fill="none"><path d="M3.5 2L6.5 5L3.5 8" stroke="#57b1ff" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              <p className="font-['Inter:Regular',sans-serif] font-normal leading-[13px] text-[#62707D] group-hover:text-[#89949e] transition-colors text-[12px]">{s}</p>
+              <p className="font-['Inter:Regular',sans-serif] font-normal leading-[13px] text-[#7e8e9e] group-hover:text-[#9fadb9] transition-colors text-[12px]">{s}</p>
             </div>
           </div>
         ))}
@@ -631,9 +631,9 @@ export const ContributingAgentsBlock = React.memo(function ContributingAgentsBlo
   return (
     <div
       className="rounded-[8px] px-[12px] py-[10px] flex flex-col gap-[6px]"
-      style={{ background: "rgba(4,10,16,0.7)", border: "1px solid rgba(87,177,255,0.08)" }}
+      style={{ background: "rgba(7,18,30,0.80)", border: "1px solid rgba(87,177,255,0.12)" }}
     >
-      <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#3a4754] uppercase tracking-[0.06em]">
+      <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#4a5f72] uppercase tracking-[0.06em]">
         Contributing Analysts
       </span>
       <div className="flex flex-col gap-[4px]">
@@ -641,9 +641,9 @@ export const ContributingAgentsBlock = React.memo(function ContributingAgentsBlo
           <div key={a} className="flex items-center gap-[6px]">
             <div
               className="w-[4px] h-[4px] rounded-full shrink-0"
-              style={{ backgroundColor: "#57b1ff", opacity: 0.45 }}
+              style={{ backgroundColor: "#57b1ff", opacity: 0.55 }}
             />
-            <span className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[13px] text-[#62707D]">
+            <span className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[13px] text-[#7e8e9e]">
               {a}
             </span>
           </div>
@@ -862,7 +862,7 @@ export const ActionCard = React.memo(function ActionCard({
     : data.status === "complete"
       ? "#2fd897"
       : data.status === "cancelled" || data.status === "approval-denied" || data.status === "failed"
-        ? "#62707D"
+        ? "#7e8e9e"
         : data.status === "awaiting-approval"
           ? "#d97706"
           : data.guardrailLevel === "L3"
@@ -1015,13 +1015,13 @@ export const ActionCard = React.memo(function ActionCard({
         {/* Participating analysts (multi-agent) — pending state */}
         {!isEditing && data.status === "pending" && data.participatingAnalysts && data.participatingAnalysts.length > 0 && (
           <div className="flex flex-col gap-[4px]">
-            <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#3a4754] uppercase tracking-[0.05em]">
+            <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#4a5f72] uppercase tracking-[0.05em]">
               Participating Analysts
             </span>
             {data.participatingAnalysts.map(a => (
               <div key={a} className="flex items-center gap-[5px]">
-                <div className="w-[4px] h-[4px] rounded-full shrink-0" style={{ backgroundColor: "#57b1ff", opacity: 0.4 }} />
-                <span className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[13px] text-[#62707D]">{a}</span>
+                <div className="w-[4px] h-[4px] rounded-full shrink-0" style={{ backgroundColor: "#57b1ff", opacity: 0.55 }} />
+                <span className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[13px] text-[#7e8e9e]">{a}</span>
               </div>
             ))}
           </div>
@@ -1030,18 +1030,18 @@ export const ActionCard = React.memo(function ActionCard({
         {/* Parameters — view mode (Key → Value format) */}
         {!isEditing && data.status !== "complete" && data.status !== "cancelled" && (
           <div className="flex flex-col gap-[5px]">
-            <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#3a4754] uppercase tracking-[0.05em]">
+            <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#4a5f72] uppercase tracking-[0.05em]">
               Parameters
             </span>
             {data.parameters.map((p, i) => (
               <div key={i} className="flex items-center gap-[5px]">
-                <span className="font-['Inter:Regular',sans-serif] font-normal text-[9px] leading-[12px] text-[#3a4754]">•</span>
-                <span className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[13px] text-[#62707D] shrink-0">
+                <span className="font-['Inter:Regular',sans-serif] font-normal text-[9px] leading-[12px] text-[#4a5f72]">•</span>
+                <span className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[13px] text-[#7e8e9e] shrink-0">
                   {p.label}
                 </span>
-                <span className="font-['Inter:Regular',sans-serif] text-[10px] text-[#3a4754] mx-[2px]">→</span>
+                <span className="font-['Inter:Regular',sans-serif] text-[10px] text-[#4a5f72] mx-[2px]">→</span>
                 <span
-                  className="font-['Inter:Medium',sans-serif] font-medium text-[10px] leading-[13px] text-[#89949e] truncate"
+                  className="font-['Inter:Medium',sans-serif] font-medium text-[10px] leading-[13px] text-[#9fadb9] truncate"
                   style={p.editable ? { borderBottom: "1px dashed rgba(87,177,255,0.18)" } : undefined}
                 >
                   {p.value}
@@ -1059,7 +1059,7 @@ export const ActionCard = React.memo(function ActionCard({
             </span>
             {data.parameters.filter(p => p.editable).map((p, i) => (
               <div key={i} className="flex flex-col gap-[3px]">
-                <span className="font-['Inter:Regular',sans-serif] font-normal text-[9px] leading-[12px] text-[#62707D]">
+                <span className="font-['Inter:Regular',sans-serif] font-normal text-[9px] leading-[12px] text-[#7e8e9e]">
                   {p.label}
                 </span>
                 <input
@@ -1080,10 +1080,10 @@ export const ActionCard = React.memo(function ActionCard({
         {/* Expected outcome */}
         {!isEditing && data.status === "pending" && (
           <div className="flex flex-col gap-[3px]">
-            <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#3a4754] uppercase tracking-[0.05em]">
+            <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#4a5f72] uppercase tracking-[0.05em]">
               Expected Outcome
             </span>
-            <p className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[14px] text-[#4a5a6a]">
+            <p className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[14px] text-[#5e7285]">
               {data.expectedOutcome}
             </p>
           </div>
@@ -1096,7 +1096,7 @@ export const ActionCard = React.memo(function ActionCard({
               <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#3b82f6] uppercase tracking-[0.05em]">
                 {data.participatingAnalysts && data.participatingAnalysts.length > 1 ? "Running multi-agent investigation..." : "Executing"}
               </span>
-              <span className="font-['Inter:Regular',sans-serif] font-normal text-[9px] leading-[11px] text-[#3a4754] tabular-nums">
+              <span className="font-['Inter:Regular',sans-serif] font-normal text-[9px] leading-[11px] text-[#4a5f72] tabular-nums">
                 {progress}%
               </span>
             </div>
@@ -1127,7 +1127,7 @@ export const ActionCard = React.memo(function ActionCard({
                       />
                       <span
                         className="font-['Inter:Regular',sans-serif] font-normal text-[9px] leading-[12px]"
-                        style={{ color: phase === "complete" ? "#62707D" : phase === "running" ? "#89949e" : "#3a4754" }}
+                        style={{ color: phase === "complete" ? "#7e8e9e" : phase === "running" ? "#9fadb9" : "#4a5f72" }}
                       >
                         {phase === "complete" ? `${a} complete` : phase === "running" ? a : a}
                       </span>
@@ -1170,7 +1170,7 @@ export const ActionCard = React.memo(function ActionCard({
                 <circle cx="5" cy="5" r="4" stroke="#62707D" strokeWidth="0.8" />
                 <path d="M3.5 3.5L6.5 6.5M6.5 3.5L3.5 6.5" stroke="#62707D" strokeWidth="0.8" strokeLinecap="round" />
               </svg>
-              <span className="font-['Inter:Medium',sans-serif] font-medium text-[10px] leading-[13px] text-[#62707D]">
+              <span className="font-['Inter:Medium',sans-serif] font-medium text-[10px] leading-[13px] text-[#7e8e9e]">
                 Approval declined
               </span>
             </div>
@@ -1242,7 +1242,7 @@ export const ActionCard = React.memo(function ActionCard({
                 Completed
               </span>
             </div>
-            <p className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[14px] text-[#62707D]">
+            <p className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[14px] text-[#7e8e9e]">
               {data.result || data.expectedOutcome}
             </p>
           </div>
@@ -1281,9 +1281,9 @@ export const ActionCard = React.memo(function ActionCard({
               </button>
               <button
                 onClick={handleCancel}
-                className="h-[24px] px-[8px] font-['Inter:Regular',sans-serif] font-normal text-[10px] text-[#3a4754] leading-[12px] cursor-pointer border-none bg-transparent transition-colors"
-                onMouseEnter={e => { e.currentTarget.style.color = "#62707D"; }}
-                onMouseLeave={e => { e.currentTarget.style.color = "#3a4754"; }}
+                className="h-[24px] px-[8px] font-['Inter:Regular',sans-serif] font-normal text-[10px] text-[#5e7285] leading-[12px] cursor-pointer border-none bg-transparent transition-colors"
+                onMouseEnter={e => { e.currentTarget.style.color = "#7e8e9e"; }}
+                onMouseLeave={e => { e.currentTarget.style.color = "#5e7285"; }}
               >
                 Cancel
               </button>
@@ -1310,9 +1310,9 @@ export const ActionCard = React.memo(function ActionCard({
               </button>
               <button
                 onClick={handleCancel}
-                className="h-[24px] px-[8px] font-['Inter:Regular',sans-serif] font-normal text-[10px] text-[#3a4754] leading-[12px] cursor-pointer border-none bg-transparent transition-colors"
-                onMouseEnter={e => { e.currentTarget.style.color = "#62707D"; }}
-                onMouseLeave={e => { e.currentTarget.style.color = "#3a4754"; }}
+                className="h-[24px] px-[8px] font-['Inter:Regular',sans-serif] font-normal text-[10px] text-[#5e7285] leading-[12px] cursor-pointer border-none bg-transparent transition-colors"
+                onMouseEnter={e => { e.currentTarget.style.color = "#7e8e9e"; }}
+                onMouseLeave={e => { e.currentTarget.style.color = "#5e7285"; }}
               >
                 Cancel
               </button>
@@ -1329,9 +1329,9 @@ export const ActionCard = React.memo(function ActionCard({
         >
           <button
             onClick={handleDenyApproval}
-            className="h-[24px] px-[8px] font-['Inter:Regular',sans-serif] font-normal text-[10px] text-[#3a4754] leading-[12px] cursor-pointer border-none bg-transparent transition-colors"
-            onMouseEnter={e => { e.currentTarget.style.color = "#62707D"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = "#3a4754"; }}
+            className="h-[24px] px-[8px] font-['Inter:Regular',sans-serif] font-normal text-[10px] text-[#5e7285] leading-[12px] cursor-pointer border-none bg-transparent transition-colors"
+            onMouseEnter={e => { e.currentTarget.style.color = "#7e8e9e"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "#5e7285"; }}
           >
             Cancel request
           </button>
@@ -1346,9 +1346,9 @@ export const ActionCard = React.memo(function ActionCard({
         >
           <button
             onClick={handleCancel}
-            className="h-[24px] px-[8px] font-['Inter:Regular',sans-serif] font-normal text-[10px] text-[#3a4754] leading-[12px] cursor-pointer border-none bg-transparent transition-colors"
-            onMouseEnter={e => { e.currentTarget.style.color = "#62707D"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = "#3a4754"; }}
+            className="h-[24px] px-[8px] font-['Inter:Regular',sans-serif] font-normal text-[10px] text-[#5e7285] leading-[12px] cursor-pointer border-none bg-transparent transition-colors"
+            onMouseEnter={e => { e.currentTarget.style.color = "#7e8e9e"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "#5e7285"; }}
           >
             Dismiss
           </button>
@@ -1372,9 +1372,9 @@ export const ActionCard = React.memo(function ActionCard({
           </button>
           <button
             onClick={handleCancelEdit}
-            className="h-[24px] px-[8px] font-['Inter:Regular',sans-serif] font-normal text-[10px] text-[#3a4754] leading-[12px] cursor-pointer border-none bg-transparent transition-colors"
-            onMouseEnter={e => { e.currentTarget.style.color = "#62707D"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = "#3a4754"; }}
+            className="h-[24px] px-[8px] font-['Inter:Regular',sans-serif] font-normal text-[10px] text-[#5e7285] leading-[12px] cursor-pointer border-none bg-transparent transition-colors"
+            onMouseEnter={e => { e.currentTarget.style.color = "#7e8e9e"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "#5e7285"; }}
           >
             Cancel
           </button>
@@ -1389,9 +1389,9 @@ export const ActionCard = React.memo(function ActionCard({
         >
           <button
             onClick={handleCancel}
-            className="h-[24px] px-[8px] font-['Inter:Regular',sans-serif] font-normal text-[10px] text-[#3a4754] leading-[12px] cursor-pointer border-none bg-transparent transition-colors"
-            onMouseEnter={e => { e.currentTarget.style.color = "#62707D"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = "#3a4754"; }}
+            className="h-[24px] px-[8px] font-['Inter:Regular',sans-serif] font-normal text-[10px] text-[#5e7285] leading-[12px] cursor-pointer border-none bg-transparent transition-colors"
+            onMouseEnter={e => { e.currentTarget.style.color = "#7e8e9e"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "#5e7285"; }}
           >
             Cancel
           </button>
@@ -1754,7 +1754,7 @@ export const ActionResultCard = React.memo(function ActionResultCard({
               className="w-[3px] h-[3px] rounded-full shrink-0 mt-[5px]"
               style={{ backgroundColor: isNoChange ? "#57b1ff" : "#2fd897", opacity: 0.5 }}
             />
-            <span className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[14px] text-[#62707D]">
+            <span className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[14px] text-[#7e8e9e]">
               {b}
             </span>
           </div>
@@ -1769,7 +1769,7 @@ export const ActionResultCard = React.memo(function ActionResultCard({
         >
           {/* Section label row */}
           <div className="flex items-center gap-[6px]">
-            <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#3a4754] uppercase tracking-[0.05em]">
+            <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#4a5f72] uppercase tracking-[0.05em]">
               Before
             </span>
             <svg width="14" height="8" viewBox="0 0 14 8" fill="none" className="shrink-0">
@@ -1786,7 +1786,7 @@ export const ActionResultCard = React.memo(function ActionResultCard({
               {/* Field label */}
               <span
                 className="font-['Inter:Regular',sans-serif] font-normal text-[9px] leading-[12px] shrink-0"
-                style={{ color: "#3a4754", minWidth: 90 }}
+                style={{ color: "#4a5f72", minWidth: 90 }}
               >
                 {key}
               </span>
@@ -1826,14 +1826,14 @@ export const ActionResultCard = React.memo(function ActionResultCard({
           className="pl-[12px] pr-[10px] py-[7px] flex flex-col gap-[5px]"
           style={{ borderTop: "1px solid rgba(47,216,151,0.07)" }}
         >
-          <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#3a4754] uppercase tracking-[0.05em]">
+          <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#4a5f72] uppercase tracking-[0.05em]">
             Unchanged
           </span>
           {unchangedPairs.map(([key, val]) => (
             <div key={key} className="flex items-center gap-[5px] min-w-0">
               <span
                 className="font-['Inter:Regular',sans-serif] font-normal text-[9px] leading-[12px] shrink-0"
-                style={{ color: "#3a4754", minWidth: 90 }}
+                style={{ color: "#4a5f72", minWidth: 90 }}
               >
                 {key}
               </span>
@@ -1857,10 +1857,10 @@ export const ActionResultCard = React.memo(function ActionResultCard({
               <path d="M4.5 3.5V4.5M4.5 5.5V5.6" stroke="#3a4754" strokeWidth="0.7" strokeLinecap="round" />
             </svg>
             <div className="flex flex-col gap-[3px]">
-              <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#3a4754] uppercase tracking-[0.05em]">
+              <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#4a5f72] uppercase tracking-[0.05em]">
                 Why it changed
               </span>
-              <p className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[14px] text-[#62707D]">
+              <p className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[14px] text-[#7e8e9e]">
                 {result.whyItChanged}
               </p>
             </div>
@@ -1874,7 +1874,7 @@ export const ActionResultCard = React.memo(function ActionResultCard({
           className="pl-[12px] pr-[10px] py-[6px] flex flex-col gap-[4px]"
           style={{ borderTop: "1px solid rgba(47,216,151,0.07)" }}
         >
-          <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#3a4754] uppercase tracking-[0.05em]">
+          <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#4a5f72] uppercase tracking-[0.05em]">
             Contributing Analysts
           </span>
           {result.analysts!.map(a => (
@@ -1893,7 +1893,7 @@ export const ActionResultCard = React.memo(function ActionResultCard({
         className="pl-[12px] pr-[10px] py-[8px] flex flex-col gap-[5px]"
         style={{ borderTop: "1px solid rgba(47,216,151,0.07)" }}
       >
-        <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#3a4754] uppercase tracking-[0.05em]">
+        <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#4a5f72] uppercase tracking-[0.05em]">
           Next Actions
         </span>
         <div className="flex flex-wrap gap-[5px]">
@@ -1946,7 +1946,7 @@ export const ActionFailureCard = React.memo(function ActionFailureCard({
 
       {/* Reason */}
       <div className="pl-[12px] pr-[10px] pt-[8px] pb-[6px] flex flex-col gap-[6px]">
-        <p className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[14px] text-[#62707D]">
+        <p className="font-['Inter:Regular',sans-serif] font-normal text-[10px] leading-[14px] text-[#7e8e9e]">
           {failure.reason}
         </p>
         {/* Impact */}
@@ -1969,7 +1969,7 @@ export const ActionFailureCard = React.memo(function ActionFailureCard({
         className="pl-[12px] pr-[10px] py-[8px] flex flex-col gap-[5px]"
         style={{ borderTop: "1px solid rgba(239,68,68,0.07)" }}
       >
-        <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#3a4754] uppercase tracking-[0.05em]">
+        <span className="font-['Inter:Medium',sans-serif] font-medium text-[9px] leading-[11px] text-[#4a5f72] uppercase tracking-[0.05em]">
           Next Actions
         </span>
         <div className="flex flex-wrap gap-[5px]">

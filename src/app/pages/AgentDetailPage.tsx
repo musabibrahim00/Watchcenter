@@ -18,7 +18,8 @@ import {
 import svgPaths from "../../imports/svg-a1mpxm4s4x";
 import watchBgPaths from "../../imports/svg-kxe7qom7bz";
 import { useAiBox } from "../features/ai-box";
-import { getDefaultSkills, getAiBoxSuggestions, renderSkillSuggestion } from "../shared/skills";
+import { getPersonaDefaultSkills, getPersonaAiBoxSuggestions, renderSkillSuggestion } from "../shared/skills";
+import { usePersona } from "../features/persona";
 import { TaskInvestigationBridgeProvider, useTaskInvestigation, buildTaskRequest, TASK_ANALYST_MAP } from "../features/investigation";
 
 /* ================================================================
@@ -1363,6 +1364,7 @@ function AgentDetailInner({
 }) {
   const { investigateTask } = useTaskInvestigation();
   const { openWithContext, close: closeAiBox } = useAiBox();
+  const { persona } = usePersona();
 
   /* ── AI action result: track which sections were updated ── */
   const [aiUpdatedSections, setAiUpdatedSections] = useState<Set<string>>(new Set());
@@ -1396,10 +1398,10 @@ function AgentDetailInner({
       sublabel: "Analyst Context",
       contextKey: `agent:${id}`,
       greeting: `I have **${agentRole}** context loaded. I can help you understand this analyst's discoveries, tasks, and impact.`,
-      suggestions: getAiBoxSuggestions("agent", agentRole, id as AgentId),
+      suggestions: getPersonaAiBoxSuggestions("agent", persona, agentRole, id as AgentId),
     });
     return () => { closeAiBox(); };
-  }, [id, meta.label, openWithContext, closeAiBox]);
+  }, [id, meta.label, persona, openWithContext, closeAiBox]);
 
   const handleInvestigateIntervention = useCallback((data: InterventionData) => {
     /* Map intervention to a task-like investigation request */
@@ -1518,7 +1520,7 @@ function AgentDetailInner({
             {/* Primary actions */}
             {(() => {
               const agentRole = AGENT_ROLE[id];
-              const allSkills = getDefaultSkills("agent", id as AgentId);
+              const allSkills = getPersonaDefaultSkills("agent", persona, id as AgentId);
               const primarySkills = allSkills.slice(0, 2).map(s => renderSkillSuggestion(s, agentRole, id));
               const secondarySkills = allSkills.slice(2, 5).map(s => renderSkillSuggestion(s, agentRole, id));
               return (
