@@ -224,7 +224,7 @@ export function detectIntent(query: string): AiIntent {
     return "incident_timeline";
   }
 
-  if (includesAny(q, ["attack path", "attack paths", "lateral movement", "exposure path"])) {
+  if (includesAny(q, ["attack path", "attack paths", "lateral movement", "exposure path", "domain controller", "domain admin", "hop", "pivot", "jump server", "blast radius"])) {
     return "attack_paths";
   }
 
@@ -234,6 +234,10 @@ export function detectIntent(query: string): AiIntent {
 
   if (includesAny(q, ["attention", "urgent", "priority", "critical now", "biggest risk"])) {
     return "attention";
+  }
+
+  if (includesAny(q, ["isolate", "compromised", "c2", "beacon", "containment", "quarantine", "edr"])) {
+    return "incident_timeline";
   }
 
   if (includesAny(q, ["analyst", "reasoning", "why is", "explain this analyst"])) {
@@ -248,11 +252,11 @@ export function detectIntent(query: string): AiIntent {
     return "compliance_status";
   }
 
-  if (includesAny(q, ["vulnerability", "cve", "patch", "patching"])) {
+  if (includesAny(q, ["vulnerability", "cve", "patch", "patching", "certificate", "tls", "rotation", "rce", "remote code"])) {
     return "vulnerability_posture";
   }
 
-  if (includesAny(q, ["asset", "inventory", "exposed asset", "asset exposure"])) {
+  if (includesAny(q, ["asset", "inventory", "exposed asset", "asset exposure", "bucket", "s3", "public access", "misconfigured"])) {
     return "asset_exposure";
   }
 
@@ -260,11 +264,11 @@ export function detectIntent(query: string): AiIntent {
     return "misconfiguration_status";
   }
 
-  if (includesAny(q, ["iam", "identity", "permissions", "privilege"])) {
+  if (includesAny(q, ["iam", "identity", "permissions", "privilege", "mfa", "service account", "token", "api token", "credential", "stale"])) {
     return "iam_exposure";
   }
 
-  if (includesAny(q, ["application", "secret", "appsec", "dependency", "code risk"])) {
+  if (includesAny(q, ["application", "secret", "appsec", "dependency", "code risk", "jenkins", "ci/cd", "supply chain", "pipeline"])) {
     return "appsec_findings";
   }
 

@@ -1459,9 +1459,154 @@ function processGeneralQuery(query: string, ctx: AiBoxPageContext | null, onModi
     }
   }
 
-  const label = ctx?.label || "your request";
+  const q = query.toLowerCase();
+  const label = ctx?.label || "this item";
+  const isAsset = ctx?.type === "asset";
+  const isCase = ctx?.type === "case";
+  const isCompliance = ctx?.contextKey?.includes("compliance") || ctx?.label?.toLowerCase().includes("compliance") || ctx?.sublabel?.toLowerCase().includes("gap");
+
+  /* ── Explain / describe ── */
+  if (/^(explain|describe|what is|what does|tell me about|walk me through|how does)/i.test(query)) {
+    if (isAsset) {
+      return {
+        content: `**${label}** is a monitored asset in your environment. Here's a summary of its security posture:\n\n**Exposure** — This asset has been evaluated across vulnerability, configuration, and access dimensions. Any open findings are linked to the active risk score.\n\n**Connectivity** — It participates in one or more attack paths. The number of hops to a high-value target determines its blast radius priority.\n\n**Ownership** — The asset owner is accountable for patch SLAs and access reviews. Outstanding actions are surfaced in the task queue.\n\nWant me to go deeper on vulnerabilities, attack paths, or open cases for this asset?`,
+      };
+    }
+    if (isCompliance) {
+      return {
+        content: `**${label}** is a compliance control gap identified in your environment.\n\n**What it means** — This control is either missing, partially implemented, or drifted from the required baseline. The gap directly contributes to your current compliance score for the associated framework.\n\n**Why it's flagged** — Evidence collection or automated checks have found that the control objective is not fully satisfied. This may expose the organization to audit findings or regulatory risk.\n\n**Path to closure** — Remediation typically involves configuration changes, process updates, or documentation. I can outline the specific steps if you'd like.\n\nWhat would you like to explore — impact, remediation steps, or related attack paths?`,
+      };
+    }
+    return {
+      content: `**${label}** — here's what I can tell you:\n\nI have the current context loaded. To give you the most useful answer, tell me what aspect you want to focus on:\n\n• **Risk** — What threats or exposures this relates to\n• **Impact** — Business and operational consequences\n• **Actions** — What can be done to address it\n• **Related items** — Attack paths, assets, or cases connected to this`,
+    };
+  }
+
+  /* ── Risk / threat / score ── */
+  if (/risk|threat|score|exposure|posture/i.test(q)) {
+    if (isAsset) {
+      return {
+        content: `**Risk breakdown for ${label}:**\n\n**Vulnerability exposure** — Open CVEs contribute to the raw risk score, weighted by CVSS and active exploitation status. Any KEV-listed CVE elevates this asset to critical priority.\n\n**Attack path position** — If this asset appears on an active attack path, its risk score is amplified by the hop distance to a high-value target and the blast radius of that path.\n\n**Access risk** — Overprivileged accounts, stale credentials, or missing MFA on accounts with access to this asset add to the overall score.\n\n**Business criticality** — Crown jewel classification multiplies all risk signals. If this asset is classified as business-critical, every vulnerability on it should be treated with higher urgency.\n\nWant me to prioritize the highest-impact remediation steps?`,
+        uiModule: (
+          <InsightCard
+            module="Risk Analysis"
+            severity="high"
+            title={`Risk Signals — ${label}`}
+            description="Multiple risk dimensions contribute to the composite score. Vulnerability exposure and attack path position are the primary drivers."
+            supportingStats={[
+              { label: "Risk Driver", value: "Vulnerability + Attack Path" },
+              { label: "Score Impact", value: "Multiplied by asset criticality" },
+              { label: "Top Priority", value: "KEV-listed CVEs" },
+              { label: "Access Risk", value: "Over-privileged accounts" },
+            ]}
+            actions={["Show critical CVEs", "View attack paths", "Create remediation case"]}
+          />
+        ),
+      };
+    }
+    if (isCompliance) {
+      return {
+        content: `**Risk impact of ${label}:**\n\nThis compliance gap has a direct effect on your organization's risk posture:\n\n**Regulatory risk** — An unresolved gap in a required control increases the likelihood of audit findings, mandatory remediation orders, or fines depending on the framework.\n\n**Operational risk** — Missing controls often correspond to security weaknesses. Attack paths that exploit the same gap will elevate in priority.\n\n**Score impact** — Each unresolved gap reduces your compliance score for the associated framework. Scores are used in board reporting and partner due diligence.\n\nWould you like to see the specific attack paths that this gap worsens, or the estimated remediation effort?`,
+      };
+    }
+    return {
+      content: `**Risk context for ${label}:**\n\nRisk in this platform is calculated across three dimensions:\n\n1. **Technical exposure** — Vulnerabilities, misconfigurations, and unpatched CVEs\n2. **Attack path position** — Whether this item appears on a path leading to a high-value target\n3. **Business criticality** — Crown jewel classification amplifies all risk signals\n\nAsk me to drill into any of these dimensions for more detail.`,
+    };
+  }
+
+  /* ── Why / why this matters / critical ── */
+  if (/^why|why (is|does|this|it)|critical|urgent|high.?priority|matter/i.test(q)) {
+    if (isCompliance) {
+      return {
+        content: `**Why ${label} matters:**\n\nCompliance gaps create compounding risk — regulatory, operational, and reputational.\n\n**Regulatory** — Frameworks like SOC 2, ISO 27001, and NIST CSF require demonstrable control effectiveness. A gap that persists through an audit cycle results in findings, remediation requirements, and in regulated industries, potential fines.\n\n**Operational** — Many compliance controls directly correspond to security controls. A gap here often means an adversary has a wider attack surface to exploit.\n\n**Reputational** — Enterprise customers and partners conduct security due diligence. A weak compliance posture can stall or block deals.\n\nThis gap is flagged because the evidence required to close it has not been satisfied. Want me to outline the fastest path to closure?`,
+      };
+    }
+    if (isAsset) {
+      return {
+        content: `**Why ${label} is a priority:**\n\nThis asset has been elevated based on one or more of the following signals:\n\n• **KEV match** — A CVE affecting this asset appears on CISA's Known Exploited Vulnerabilities catalog, meaning it has been actively weaponized in the wild\n• **Attack path position** — It sits on a path leading to a high-value target (domain controller, crown jewel, or PII store)\n• **Crown jewel classification** — The asset is directly classified as business-critical, multiplying all risk signals\n• **Stale access** — Over-privileged or unrotated credentials increase the blast radius of any compromise\n\nAny one of these signals is sufficient justification for immediate action. Want me to show the specific evidence?`,
+      };
+    }
+    return {
+      content: `**Why this is flagged:**\n\nThis item has been surfaced because one or more risk signals exceed the threshold for automatic prioritization. In this platform, that means:\n\n• A vulnerability or misconfiguration with active exploitation evidence\n• Membership in an attack path that reaches a high-value target\n• A compliance gap tied to a framework requirement\n• An asset classified as business-critical with an open finding\n\nTell me which aspect you want to dig into and I'll give you the specific supporting data.`,
+    };
+  }
+
+  /* ── What should I do / next steps / recommend ── */
+  if (/what should|next step|recommend|how (do|should|can) i|what.?s (the|my) next|action/i.test(q)) {
+    if (isCompliance) {
+      return {
+        content: `**Recommended next steps for ${label}:**\n\n**1. Confirm scope** — Identify which systems, processes, or teams are responsible for satisfying this control. The control owner should be the person driving closure.\n\n**2. Gather evidence** — Most frameworks require documented evidence of control effectiveness. This could be configuration exports, policy documents, access logs, or audit reports.\n\n**3. Remediate gaps** — Where evidence can't be produced because the control isn't implemented, you'll need a remediation project: configuration changes, process updates, or tooling.\n\n**4. Validate and close** — Once evidence is collected and reviewed, the gap can be marked resolved and the compliance score will update.\n\nWant me to generate a remediation task for this gap, or estimate the effort involved?`,
+      };
+    }
+    if (isAsset) {
+      return {
+        content: `**Recommended actions for ${label}:**\n\n**Immediate** (within 24h for critical):\n• Patch any KEV-listed CVEs — these have confirmed active exploitation\n• Review and revoke over-privileged access if stale credentials are present\n• Confirm the asset is not internet-exposed unless explicitly required\n\n**Short-term** (within 72h):\n• Validate all attack paths involving this asset — isolate or harden the hop that makes it reachable\n• Ensure EDR/endpoint protection is active and reporting\n• Check whether the asset has an assigned owner accountable for patch SLAs\n\n**Ongoing**:\n• Add to continuous monitoring if not already enrolled\n• Link open cases to this asset for tracking\n\nWant me to create a remediation case or generate an action for any of these?`,
+        uiModule: (
+          <InsightCard
+            module="Recommended Actions"
+            severity="high"
+            title={`Action Plan — ${label}`}
+            description="Prioritized actions based on current risk signals. KEV-listed CVEs and attack path exposure are the highest-priority items."
+            supportingStats={[
+              { label: "Immediate", value: "Patch KEV CVEs + revoke stale access" },
+              { label: "Short-term", value: "Harden attack path hops" },
+              { label: "Ongoing", value: "Continuous monitoring + case tracking" },
+            ]}
+            actions={["Create remediation case", "Isolate asset", "Assign owner"]}
+          />
+        ),
+      };
+    }
+    return {
+      content: `**Recommended next steps:**\n\nBased on the current context, the most effective actions are:\n\n1. **Verify the specific finding** — Confirm the underlying data is accurate before taking action\n2. **Assess blast radius** — Understand how far the impact spreads if this goes unaddressed\n3. **Create a tracked case** — All significant findings should be linked to an investigation for auditability\n4. **Assign an owner** — Every open issue needs a named owner with a due date\n\nTell me more about what you're trying to resolve and I'll give you a more specific action plan.`,
+    };
+  }
+
+  /* ── Summarize ── */
+  if (/summar|overview|brief|snapshot|tldr|tl;dr/i.test(q)) {
+    if (isCompliance) {
+      return {
+        content: `**Summary — ${label}:**\n\nThis is a compliance control gap. In plain terms: the required control is not fully in place, which creates regulatory and security risk.\n\n**What's needed** — Evidence that the control is implemented and effective.\n**Who owns it** — The control owner is responsible for closure.\n**Why it's urgent** — Each audit cycle with an open gap risks a formal finding.\n\nAsk me for remediation steps, impact analysis, or to create a remediation task.`,
+      };
+    }
+    if (isAsset) {
+      return {
+        content: `**Summary — ${label}:**\n\nThis asset is monitored for vulnerabilities, access risk, and attack path exposure. Its composite risk score reflects the combined weight of open findings.\n\n**Current status** — One or more risk signals are elevated, which is why it's surfaced for attention.\n**What to do** — Patch open CVEs, review access, and validate its position on any active attack paths.\n**Who's accountable** — The assigned asset owner is responsible for meeting patch SLAs.\n\nAsk me for specific CVEs, attack paths, or to create a remediation case.`,
+      };
+    }
+    return {
+      content: `**Summary for ${label}:**\n\nThis item has been flagged based on active risk signals in the platform. The highest-priority concern is the one that maps to the shortest path to a high-value target or an actively exploited vulnerability.\n\nAsk me to break down the specific risk, recommend actions, or create a tracked case.`,
+    };
+  }
+
+  /* ── Impact ── */
+  if (/impact|blast.?radius|consequence|affect|damage|what.*happen/i.test(q)) {
+    if (isAsset) {
+      return {
+        content: `**Impact analysis for ${label}:**\n\n**If compromised** — An attacker who gains a foothold on this asset can use it as a pivot point. The blast radius depends on:\n• What accounts have access to it (especially privileged ones)\n• Whether it participates in an attack path to the domain controller or a crown jewel\n• Whether EDR/containment can quickly isolate it\n\n**Business impact** — If this asset hosts business-critical services, a compromise means service disruption in addition to data risk.\n\n**Regulatory impact** — If PII or regulated data is accessible from or stored on this asset, a breach triggers notification requirements.\n\nWant me to simulate the blast radius or show the full attack path?`,
+      };
+    }
+    if (isCompliance) {
+      return {
+        content: `**Impact of ${label}:**\n\n**Audit risk** — This gap creates a formal finding in the next compliance review. Depending on the framework, findings can trigger mandatory remediation timelines and escalating penalties.\n\n**Security risk** — The missing control may correspond to a security weakness. Gaps in access control, logging, or encryption directly expand the attack surface.\n\n**Business risk** — Partners and enterprise customers increasingly require SOC 2 or ISO 27001 evidence. An open gap can stall a deal or trigger a customer security review.\n\nWould you like to see which attack paths are worsened by this gap, or estimate the compliance score impact of closing it?`,
+      };
+    }
+    return {
+      content: `**Impact of ${label}:**\n\nThe blast radius of any unaddressed finding depends on:\n\n1. **Asset criticality** — Crown jewel assets have the highest business impact if affected\n2. **Attack path position** — Items on an active attack path to the domain controller or sensitive data store carry amplified risk\n3. **Exposure breadth** — The more systems or users affected, the larger the operational and regulatory impact\n\nTell me more about what you're analyzing and I'll give you a specific impact estimate.`,
+    };
+  }
+
+  /* ── Context-aware fallback ── */
+  const contextMenu = isCompliance
+    ? `• **Explain** — What this gap means and why it's required\n• **Impact** — Business, regulatory, and security consequences\n• **Remediation** — Specific steps to close this gap\n• **Attack paths** — Which paths this gap worsens\n• **Effort estimate** — How long remediation typically takes`
+    : isAsset
+    ? `• **Risk breakdown** — What's driving the risk score\n• **Vulnerabilities** — Open CVEs and their severity\n• **Attack paths** — How this asset connects to high-value targets\n• **Recommended actions** — What to do and in what order\n• **Create case** — Start a tracked investigation`
+    : isCase
+    ? `• **Timeline** — Sequence of events in this investigation\n• **Key findings** — What analysts have identified\n• **Evidence** — Supporting data and IOCs\n• **Recommended next steps** — How to advance the investigation\n• **Escalate** — When and how to escalate`
+    : `• **Risk** — What threats or exposures this relates to\n• **Impact** — Business and operational consequences\n• **Actions** — What can be done to address it\n• **Explain** — Plain-language breakdown of the issue\n• **Summarize** — Quick snapshot of current status`;
+
   return {
-    content: `I understand your question about **${label}**. I'm analyzing the available context and will provide insights shortly.\n\nTry asking me about:\n• Workflow health and diagnostics\n• Analyst discoveries and findings\n• Run history and failure patterns\n• Performance optimization\n• Integration status`,
+    content: `I have **${label}** loaded. Here's what I can help you with:\n\n${contextMenu}\n\nJust ask in your own words.`,
   };
 }
 
