@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { useAiBox } from "../../features/ai-box";
 import {
   LineChart, Line, CartesianGrid, XAxis, YAxis,
   Tooltip, Cell, PieChart, Pie,
@@ -127,6 +128,26 @@ const PAGE_SIZE = 10;
    ================================================================ */
 
 export default function AssetRegisterPage() {
+  const { setPageContext } = useAiBox();
+
+  useEffect(() => {
+    setPageContext({
+      type: "asset",
+      label: "Asset Register",
+      sublabel: "Inventory",
+      contextKey: "asset-register",
+      suggestions: [
+        { label: "What changed since my last visit?", prompt: "What changed in the asset register since my last visit?" },
+        { label: "Show high-risk assets", prompt: "Show me all high and critical risk assets in the current view" },
+        { label: "Assess exposure", prompt: "Which assets have the highest exposure risk right now?" },
+        { label: "Show open findings", prompt: "Show me assets with open security findings" },
+        { label: "Recommend patches", prompt: "Which assets should be patched first based on current risk?" },
+        { label: "List misconfigurations", prompt: "List assets with active misconfigurations" },
+      ],
+      greeting: "I have visibility into your asset inventory. What would you like to investigate?",
+    });
+  }, [setPageContext]);
+
   const [activeTab, setActiveTab] = useState<TabId>("dashboard");
 
   /* ── Filter state ── */
@@ -831,8 +852,26 @@ function LegendDot({ color, label }: { color: string; label: string }) {
 type SortCol = "securityPlane" | "assetType" | "service" | "cia";
 type SortDir = "asc" | "desc";
 
+function buildAssetContext(asset: Asset) {
+  return {
+    type: "asset" as const,
+    label: asset.name,
+    sublabel: `${asset.service} · ${asset.assetType}`,
+    contextKey: `asset:${asset.id}`,
+    suggestions: [
+      { label: "Explain this asset", prompt: `Explain the risk profile of ${asset.name}` },
+      { label: "Assess risk", prompt: `Assess the current risk for ${asset.name}` },
+      { label: "Reclassify asset", prompt: `Reclassify asset ${asset.name}` },
+      { label: "Show vulnerabilities", prompt: `Show vulnerabilities for ${asset.name}` },
+      { label: "Show attack paths", prompt: `Show attack paths involving ${asset.name}` },
+    ],
+    greeting: `I have **${asset.name}** loaded (${asset.service}, ${asset.severity} severity, risk score ${asset.riskScore}). What would you like to investigate?`,
+  };
+}
+
 function RegisterListView({ filteredAssets }: { filteredAssets: Asset[] }) {
   const navigate = useNavigate();
+  const { openWithContext } = useAiBox();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [sortCol, setSortCol] = useState<SortCol | "">("");
@@ -898,19 +937,20 @@ function RegisterListView({ filteredAssets }: { filteredAssets: Asset[] }) {
               <ThSort label="C.I.A" col="cia" active={sortCol} dir={sortDir} onSort={toggleSort} />
               <ThPlain>Asset Owner</ThPlain>
               <ThPlain>Asset Custodian</ThPlain>
+              <ThPlain></ThPlain>
             </tr>
           </thead>
           <tbody>
             {paged.length === 0 && (
               <tr>
-                <td colSpan={8} style={{ padding: "40px 16px", textAlign: "center", color: colors.textDim, fontSize: 13 }}>
+                <td colSpan={9} style={{ padding: "40px 16px", textAlign: "center", color: colors.textDim, fontSize: 13 }}>
                   No assets match the current filters.
                 </td>
               </tr>
             )}
             {paged.map(asset => (
               <tr key={asset.id}
-                onClick={() => navigate(`/assets/${asset.id}`)}
+                onClick={() => navigate(`/asset/${asset.id}`)}
                 className="transition-colors"
                 style={{ cursor: "pointer", borderBottom: `1px solid rgba(87,177,255,0.06)` }}
                 onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(87,177,255,0.04)")}
@@ -959,6 +999,29 @@ function RegisterListView({ filteredAssets }: { filteredAssets: Asset[] }) {
                       <ChevronDown size={10} color={colors.textDim} />
                     </div>
                   )}
+                </TdCell>
+                {/* AI quick-actions — stop row nav, open AIBox with asset context */}
+                <TdCell>
+                  <div className="flex items-center gap-[5px]" onClick={e => e.stopPropagation()}>
+                    <button
+                      onClick={() => openWithContext({ ...buildAssetContext(asset), initialQuery: `Explain the risk profile of ${asset.name}` })}
+                      className="px-2 py-[3px] rounded-[4px] text-[9px] font-medium border transition-colors"
+                      style={{ color: colors.accent, borderColor: "rgba(87,177,255,0.18)", backgroundColor: "rgba(87,177,255,0.04)" }}
+                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(87,177,255,0.10)")}
+                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = "rgba(87,177,255,0.04)")}
+                    >
+                      Explain
+                    </button>
+                    <button
+                      onClick={() => openWithContext({ ...buildAssetContext(asset), initialQuery: `Assess the current risk for ${asset.name}` })}
+                      className="px-2 py-[3px] rounded-[4px] text-[9px] font-medium border transition-colors"
+                      style={{ color: colors.accent, borderColor: "rgba(87,177,255,0.18)", backgroundColor: "rgba(87,177,255,0.04)" }}
+                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(87,177,255,0.10)")}
+                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = "rgba(87,177,255,0.04)")}
+                    >
+                      Assess
+                    </button>
+                  </div>
                 </TdCell>
               </tr>
             ))}

@@ -564,7 +564,7 @@ function TopItems() {
       </NavItem>
       <Separator />
       {/* Asset Register */}
-      <NavItem to="/assets" label="Assets">
+      <NavItem to="/asset-register" label="Assets">
         <IconAssetRegister />
       </NavItem>
       <Separator />
@@ -578,7 +578,7 @@ function TopItems() {
         <IconRiskRegister />
       </NavItem>
       {/* Attack Paths */}
-      <NavItem to="/attack-path" label="Attack Path">
+      <NavItem to="/attack-paths" label="Attack Path">
         <IconAttackPaths />
       </NavItem>
       {/* Vulnerabilities */}

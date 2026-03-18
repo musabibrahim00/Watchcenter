@@ -38,6 +38,13 @@ import {
   InsightCard,
   DecisionCard,
 } from "../../imports/AiBoxModules";
+import { isReturningUser, getLastVisitLabel, msSinceLastVisit, recordVisit, sealSession } from "../shared/services/SessionAwareness";
+import { isChangeSummaryQuery, getChangeReport, type ChangeContext } from "../shared/services/ChangeDetection";
+import { emitHighlights } from "../shared/services/HighlightBus";
+import {
+  isApprovalQuery, isDelegationQuery, isApproveRejectQuery,
+  getApprovalQueue, getContextApprovalSummary,
+} from "../shared/services/ApprovalQueue";
 
 /* ================================================================
    TYPES  (ChatMessage is imported from AiBoxShared)
@@ -1679,6 +1686,309 @@ function processGeneralQuery(query: string, ctx: AiBoxPageContext | null, onModi
 }
 
 /* ================================================================
+   MANAGER / APPROVAL RESPONSE ENGINE
+   ================================================================ */
+
+/**
+ * processApprovalQueueQuery — handles "what needs approval?", "show blocked",
+ * "summarize pending decisions", "what should I delegate?" queries.
+ *
+ * Returns a structured Section 5 format: Pending Approvals / Blocked Items /
+ * Highest-Risk Items / Recommended Next Decisions.
+ * Respects read-only mode — shows summary but blocks execution.
+ */
+function processApprovalQueueQuery(
+  query: string,
+  ctx: AiBoxPageContext | null
+): { content: string; uiModule?: React.ReactNode } {
+  const isReadOnly = ctx?.isReadOnly ?? false;
+  const q = query.toLowerCase();
+  const isDelegateOnly = isDelegationQuery(query);
+
+  const queue = getApprovalQueue();
+  const ctxSummary = getContextApprovalSummary(ctx?.type ?? "watch-center");
+
+  // Delegation-only variant
+  if (isDelegateOnly) {
+    const fmt = (items: { title: string; suggestedAssignee: string; rationale: string }[]) =>
+      items.map(i => `- **${i.title}** → Suggested: ${i.suggestedAssignee}\n  *${i.rationale}*`).join("\n");
+
+    const content = [
+      `## Delegation Candidates`,
+      fmt(queue.delegationCandidates),
+      ``,
+      `## How to Delegate`,
+      `Say "Delegate [item name] to [assignee]" and I'll prepare a delegation action for your review.`,
+    ].join("\n");
+
+    return {
+      content,
+      uiModule: (
+        <InsightCard
+          module="Delegation Queue"
+          severity="medium"
+          title={`${queue.delegationCandidates.length} items ready for delegation`}
+          description={queue.delegationCandidates[0]?.title ?? "Review delegation candidates"}
+          supportingStats={[
+            { label: "Candidates", value: String(queue.delegationCandidates.length) },
+            { label: "Longest pending", value: "2 days" },
+            { label: "High priority", value: "1" },
+          ]}
+          actions={queue.delegationCandidates.slice(0, 2).map(d => `Delegate to ${d.suggestedAssignee}`)}
+        />
+      ),
+    };
+  }
+
+  // Blocked-only variant
+  const isBlockedOnly = /blocked/i.test(q) && !/approval|pending|delegate/i.test(q);
+  if (isBlockedOnly) {
+    const fmt = (items: { title: string; description: string }[]) =>
+      items.map(i => `- **${i.title}**\n  ${i.description}`).join("\n");
+
+    return {
+      content: [
+        `## Blocked Items`,
+        fmt(queue.blockedItems),
+        ``,
+        isReadOnly
+          ? `**Note:** Approval and delegation actions are unavailable in read-only mode.`
+          : `To unblock items, use "Approve [item]" or "Delegate [item]".`,
+      ].join("\n"),
+      uiModule: (
+        <InsightCard
+          module="Blocked Items"
+          severity="high"
+          title={`${queue.blockedItems.length} items blocked`}
+          description={queue.blockedItems[0]?.description ?? "Items waiting for decision"}
+          supportingStats={[
+            { label: "Blocked", value: String(queue.blockedItems.length) },
+            { label: "Awaiting approval", value: String(queue.blockedItems.filter(b => b.blockedReason === "awaiting-approval").length) },
+            { label: "Missing assignment", value: String(queue.blockedItems.filter(b => b.blockedReason === "missing-assignment").length) },
+          ]}
+          actions={isReadOnly ? [] : ["Approve blocked item", "Delegate to owner", "Diagnose workflow"]}
+        />
+      ),
+    };
+  }
+
+  // Full approval queue summary
+  const fmtApprovals = (items: typeof queue.pendingApprovals) =>
+    items.map(i => `- **${i.title}** — pending ${i.pendingSince} (submitted by ${i.submittedBy})`).join("\n");
+
+  const fmtBlocked = (items: typeof queue.blockedItems) =>
+    items.map(i => `- **${i.title}**`).join("\n");
+
+  const fmtRisk = (items: typeof queue.highRiskItems) =>
+    items.map(i => `- **${i.title}** — ${i.description}`).join("\n");
+
+  const fmtDecisions = (items: string[]) =>
+    items.map(i => `- ${i}`).join("\n");
+
+  const readOnlyNote = isReadOnly
+    ? `\n\n> **Read-only mode:** Approvals and delegation are unavailable. Summaries are still available for review.`
+    : "";
+
+  const content = [
+    `## Pending Approvals`,
+    fmtApprovals(queue.pendingApprovals),
+    ``,
+    `## Blocked Items`,
+    fmtBlocked(queue.blockedItems),
+    ``,
+    `## Highest-Risk Items`,
+    fmtRisk(queue.highRiskItems),
+    ``,
+    `## Recommended Next Decisions`,
+    fmtDecisions(queue.recommendedDecisions),
+    readOnlyNote,
+  ].join("\n");
+
+  const topApproval = queue.pendingApprovals[0];
+
+  return {
+    content,
+    uiModule: topApproval ? (
+      <InsightCard
+        module="Approval Queue"
+        severity={topApproval.severity === "critical" ? "critical" : "high"}
+        title={`${queue.pendingApprovals.length} pending approval${queue.pendingApprovals.length !== 1 ? "s" : ""}, ${queue.blockedItems.length} blocked`}
+        description={topApproval.title}
+        supportingStats={[
+          { label: "Pending approvals", value: String(queue.pendingApprovals.length) },
+          { label: "Blocked items",     value: String(queue.blockedItems.length) },
+          { label: "Delegation needed", value: String(queue.delegationCandidates.length) },
+        ]}
+        actions={isReadOnly
+          ? ["View pending approvals"]
+          : ["Approve top item", "Show blocked workflows", "What should I delegate?"]}
+      />
+    ) : undefined,
+  };
+}
+
+/**
+ * processApproveRejectQuery — handles direct "approve this" / "reject this" commands.
+ * Routes to an ActionCard with appropriate guardrail level and audit logging.
+ */
+function processApproveRejectQuery(
+  query: string,
+  ctx: AiBoxPageContext | null,
+  onModifyAction?: (data: ActionCardData, refinement: string) => void
+): { content: string; uiModule?: React.ReactNode } {
+  const isReadOnly = ctx?.isReadOnly ?? false;
+  if (isReadOnly) {
+    return {
+      content: "Approvals and delegation are unavailable in read-only mode. Switch to live view to execute decisions.",
+    };
+  }
+
+  const isApprove = /^approve/i.test(query.trim());
+  const actionData = matchAction(query, ctx?.label);
+
+  if (actionData) {
+    const enriched: ActionCardData = {
+      ...enrichActionData(actionData, query, ctx),
+      guardrailLevel: "L3",
+      requiresApproval: true,
+    };
+    logAction({
+      user: "current-user",
+      pageContext: ctx?.label || "approval",
+      actionTitle: enriched.title,
+      scope: enriched.scope,
+      guardrailLevel: "L3",
+      approvalStatus: "pending",
+      outcome: "initiated",
+      decisionType: isApprove ? "approved" : "rejected",
+    });
+    const previewText = isApprove
+      ? `I've prepared this approval for your confirmation. This is a **Level 3** decision — review the parameters and click **Run** to authorize.`
+      : `I've prepared this rejection for your confirmation. Once confirmed, the action will be returned to the submitter as declined.`;
+    return {
+      content: previewText,
+      uiModule: <ActionCard data={enriched} onModify={onModifyAction} />,
+    };
+  }
+
+  // No matching action — show the approval queue as context
+  return processApprovalQueueQuery(query, ctx);
+}
+
+/**
+ * processDelegationQuery — handles "delegate [item] to [assignee]" commands.
+ */
+function processDelegationQuery(
+  query: string,
+  ctx: AiBoxPageContext | null,
+  onModifyAction?: (data: ActionCardData, refinement: string) => void
+): { content: string; uiModule?: React.ReactNode } {
+  const isReadOnly = ctx?.isReadOnly ?? false;
+  if (isReadOnly) {
+    return {
+      content: "Delegation is unavailable in read-only mode. Switch to live view to assign items.",
+    };
+  }
+
+  const actionData = matchAction(query, ctx?.label);
+  if (actionData) {
+    const enriched = enrichActionData(actionData, query, ctx);
+    const delegateTo = (query.match(/to\s+(.+?)(?:\s+now)?$/i)?.[1] ?? "SOC Lead").trim();
+    logAction({
+      user: "current-user",
+      pageContext: ctx?.label || "delegation",
+      actionTitle: enriched.title,
+      scope: enriched.scope,
+      guardrailLevel: enriched.guardrailLevel ?? "L2",
+      approvalStatus: "not-required",
+      outcome: "initiated",
+      delegateTo,
+    });
+    return {
+      content: `I've prepared a delegation action. Review the assignee and scope, then click **Run** to delegate.`,
+      uiModule: <ActionCard data={enriched} onModify={onModifyAction} />,
+    };
+  }
+
+  // No specific action matched — show delegation candidates
+  return processApprovalQueueQuery(query, ctx);
+}
+
+/* ================================================================
+   CHANGE SUMMARY RESPONSE ENGINE
+   ================================================================ */
+
+/** Map AiBoxPageContext type → ChangeContext for the change detection model */
+function resolveChangeContext(ctx: AiBoxPageContext | null): ChangeContext {
+  if (!ctx) return "watch-center";
+  if (ctx.type === "workflow") return "workflow";
+  if (ctx.type === "agent")   return "watch-center"; // agents summarize at watch-center level
+  if (ctx.type === "asset")   return "asset";
+  // Detect compliance and attack-path via contextKey or label
+  if (ctx.contextKey?.includes("compliance") || ctx.label?.toLowerCase().includes("compliance")) return "compliance";
+  if (ctx.contextKey?.includes("attack-path") || ctx.label?.toLowerCase().includes("attack path")) return "attack-path";
+  return "watch-center";
+}
+
+function processChangeSummaryQuery(
+  query: string,
+  ctx: AiBoxPageContext | null
+): { content: string; uiModule?: React.ReactNode } {
+  const sinceLabel  = getLastVisitLabel();
+  const sinceMs     = msSinceLastVisit() ?? 0;
+  const changeCtx   = resolveChangeContext(ctx);
+  const report      = getChangeReport(changeCtx, sinceLabel, sinceMs);
+
+  // Emit highlights for referenced page elements
+  const refItems = [...report.newlyImportant, ...report.summary].filter(i => i.reference);
+  if (refItems.length > 0) {
+    emitHighlights(refItems.map(i => ({ page: i.reference!.page, itemId: i.reference!.itemId })));
+  }
+
+  if (!report.hasChanges) {
+    return {
+      content: `Nothing materially changed since ${sinceLabel}.\n\nThe highest priority item remains **${report.fallbackPriority ?? "the current open issues"}**.`,
+    };
+  }
+
+  const fmt = (items: { summary: string }[]) =>
+    items.map(i => `- ${i.summary}`).join("\n");
+
+  const content = [
+    `## Summary`,
+    fmt(report.summary),
+    ``,
+    `## Newly Important`,
+    fmt(report.newlyImportant),
+    ``,
+    `## Resolved`,
+    fmt(report.resolved),
+    ``,
+    `## What to Review Next`,
+    fmt(report.reviewNext),
+  ].join("\n");
+
+  // Surface the top-priority item as an InsightCard for visual emphasis
+  const topItem = report.newlyImportant[0] ?? report.summary[0];
+  const uiModule = topItem ? (
+    <InsightCard
+      module="Since Your Last Visit"
+      severity={topItem.severity === "critical" ? "critical" : topItem.severity === "warning" ? "high" : "medium"}
+      title={`${report.summary.length} change${report.summary.length !== 1 ? "s" : ""} since ${sinceLabel}`}
+      description={topItem.summary}
+      supportingStats={[
+        { label: "Newly important", value: String(report.newlyImportant.length) },
+        { label: "Resolved",        value: String(report.resolved.length) },
+        { label: "Review next",     value: String(report.reviewNext.length) },
+      ]}
+      actions={report.reviewNext.slice(0, 2).map(r => r.summary.replace(/^Review\s+/i, "").split(" ").slice(0, 4).join(" "))}
+    />
+  ) : undefined;
+
+  return { content, uiModule };
+}
+
+/* ================================================================
    COMPONENT
    ================================================================ */
 
@@ -1691,6 +2001,19 @@ function GlobalAIBoxInner() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevContextKeyRef = useRef<string>("");
   const prevInitialQueryRef = useRef<string>("");
+  const returning = useMemo(() => isReturningUser(), []);
+
+  /* ── Session awareness — record visit on open, seal on close/unmount ── */
+  useEffect(() => {
+    if (!isOpen) return;
+    recordVisit(pageContext?.label ?? "Watch Center");
+    const onHide = () => { if (document.visibilityState === "hidden") sealSession(); };
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+    };
+  }, [isOpen, pageContext?.label]);
+  useEffect(() => () => { sealSession(); }, []);
 
   /* ── Action status events from ActionCard ── */
   useEffect(() => {
@@ -1779,24 +2102,50 @@ function GlobalAIBoxInner() {
     return () => window.removeEventListener("globalaibox-inject-query", handler);
   }, []);
 
-  // Reset messages when context changes
+  // Preserve chat history across context changes; add a subtle divider when switching
   const contextKey = pageContext?.contextKey || pageContext?.label || "";
   useEffect(() => {
     if (contextKey === prevContextKeyRef.current) return;
+    const isFirstLoad = prevContextKeyRef.current === "";
     prevContextKeyRef.current = contextKey;
     prevInitialQueryRef.current = "";
 
-    if (pageContext?.greeting) {
-      setMessages([{
-        id: crypto.randomUUID(),
-        role: "agent",
-        text: pageContext.greeting,
-        timestamp: new Date(),
-      }]);
+    if (isFirstLoad) {
+      // Initial page load — show greeting or start empty
+      if (pageContext?.greeting) {
+        setMessages([{
+          id: crypto.randomUUID(),
+          role: "agent",
+          text: pageContext.greeting,
+          timestamp: new Date(),
+        }]);
+      } else {
+        setMessages([]);
+      }
     } else {
-      setMessages([]);
+      // Context switch — keep history, append a subtle separator
+      if (!pageContext?.label) return;
+      const switchLabel = pageContext.sublabel
+        ? `${pageContext.label} — ${pageContext.sublabel}`
+        : pageContext.label;
+      setMessages(prev => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "divider" as const,
+          text: `Context switched to ${switchLabel}`,
+          timestamp: new Date(),
+        },
+        ...(pageContext?.greeting ? [{
+          id: crypto.randomUUID(),
+          role: "agent" as const,
+          text: pageContext.greeting,
+          timestamp: new Date(),
+        }] : []),
+      ]);
     }
-  }, [contextKey, pageContext?.greeting]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contextKey]);
 
   // Handle initial query (from "View AI Insights" button)
   useEffect(() => {
@@ -1815,7 +2164,15 @@ function GlobalAIBoxInner() {
     setIsProcessing(true);
 
     setTimeout(() => {
-      const result = detectMultiAgentIntent(pageContext.initialQuery!)
+      const result = isChangeSummaryQuery(pageContext.initialQuery!)
+        ? processChangeSummaryQuery(pageContext.initialQuery!, pageContext)
+        : isApproveRejectQuery(pageContext.initialQuery!)
+        ? processApproveRejectQuery(pageContext.initialQuery!, pageContext, handleModifyAction)
+        : isDelegationQuery(pageContext.initialQuery!)
+        ? processDelegationQuery(pageContext.initialQuery!, pageContext, handleModifyAction)
+        : isApprovalQuery(pageContext.initialQuery!)
+        ? processApprovalQueueQuery(pageContext.initialQuery!, pageContext)
+        : detectMultiAgentIntent(pageContext.initialQuery!)
         ? processMultiAgentQuery(pageContext.initialQuery!, resolveAnalysts(pageContext.initialQuery!, pageContext), pageContext, handleModifyAction)
         : pageContext?.type === "workflow"
         ? processWorkflowQuery(pageContext.initialQuery!, pageContext)
@@ -1856,7 +2213,15 @@ function GlobalAIBoxInner() {
     setIsProcessing(true);
 
     setTimeout(() => {
-      const result = detectMultiAgentIntent(query)
+      const result = isChangeSummaryQuery(query)
+        ? processChangeSummaryQuery(query, pageContext)
+        : isApproveRejectQuery(query)
+        ? processApproveRejectQuery(query, pageContext, handleModifyAction)
+        : isDelegationQuery(query)
+        ? processDelegationQuery(query, pageContext, handleModifyAction)
+        : isApprovalQuery(query)
+        ? processApprovalQueueQuery(query, pageContext)
+        : detectMultiAgentIntent(query)
         ? processMultiAgentQuery(query, resolveAnalysts(query, pageContext), pageContext, handleModifyAction)
         : pageContext?.type === "workflow"
         ? processWorkflowQuery(query, pageContext)
@@ -1879,7 +2244,18 @@ function GlobalAIBoxInner() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingEntryQuery, isOpen]);
 
-  const suggestions = useMemo(() => pageContext?.suggestions || [], [pageContext?.suggestions]);
+  // Prepend a "what changed" chip for returning users — before standard chips
+  const suggestions = useMemo(() => {
+    const base = pageContext?.suggestions || [];
+    if (!returning) return base;
+    const returningChip = {
+      label: "What changed since my last visit?",
+      prompt: "What changed since my last visit?",
+    };
+    // Avoid duplicate if already in base
+    if (base.some(s => s.prompt === returningChip.prompt)) return base;
+    return [returningChip, ...base];
+  }, [pageContext?.suggestions, returning]);
 
   /* ── Modify callback for ActionCard — no-op; inline editing handled by ActionCard itself ── */
   const handleModifyAction = useCallback((_actionData: ActionCardData, _refinement: string) => {
@@ -1916,7 +2292,15 @@ function GlobalAIBoxInner() {
     }
 
     setTimeout(() => {
-      const result = detectMultiAgentIntent(messageText)
+      const result = isChangeSummaryQuery(messageText)
+        ? processChangeSummaryQuery(messageText, pageContext)
+        : isApproveRejectQuery(messageText)
+        ? processApproveRejectQuery(messageText, pageContext, handleModifyAction)
+        : isDelegationQuery(messageText)
+        ? processDelegationQuery(messageText, pageContext, handleModifyAction)
+        : isApprovalQuery(messageText)
+        ? processApprovalQueueQuery(messageText, pageContext)
+        : detectMultiAgentIntent(messageText)
         ? processMultiAgentQuery(messageText, resolveAnalysts(messageText, pageContext), pageContext, handleModifyAction)
         : pageContext?.type === "workflow"
         ? processWorkflowQuery(messageText, pageContext!)

@@ -16,6 +16,12 @@ export interface AuditEntry {
   guardrailLevel: GuardrailLevel;
   approvalStatus: "not-required" | "pending" | "approved" | "denied" | "bypassed";
   outcome: "initiated" | "completed" | "failed" | "cancelled" | "denied";
+  /** Set when the entry is an approval decision (approve / reject) */
+  decisionType?: "approved" | "rejected";
+  /** Target user or team when an item is delegated */
+  delegateTo?: string;
+  /** Approval queue item ID when the entry links to a pending approval */
+  approvalItemId?: string;
 }
 
 /* ── Deep-link entry traceability ────────────────────────────── */

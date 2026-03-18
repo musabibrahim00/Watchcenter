@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router";
 import { ArrowLeft, ZoomIn, ZoomOut, Shield, Globe, Cloud, Server, Database, AlertTriangle, RotateCcw, Zap, ChevronDown, Crosshair, Bug, Settings2, X, ExternalLink, Network, Copy, Check, FileText } from "lucide-react";
 import { colors } from "../shared/design-system/tokens";
 import { Badge } from "../shared/components/ui/Badge";
+import { useAiBox } from "../features/ai-box";
 
 /* ================================================================
    TYPES
@@ -2762,9 +2763,27 @@ function InsightRow({
 export default function AttackPathDetailPage() {
   const { pathId } = useParams<{ pathId: string }>();
   const navigate = useNavigate();
+  const { setPageContext } = useAiBox();
   const resolvedPathId = pathId || "";
   const pathData = ATTACK_PATHS[resolvedPathId] || DEFAULT_PATH;
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPageContext({
+      type: "general" as const,
+      label: pathData.name,
+      sublabel: "Attack Path Graph",
+      contextKey: `attack-path-detail:${resolvedPathId}`,
+      greeting: `I have the **${pathData.name}** attack path loaded. I can walk through the attack chain, explain each hop, or help you build a remediation case.`,
+      suggestions: [
+        { label: "Explain this attack chain", prompt: `Explain the full attack chain for "${pathData.name}"` },
+        { label: "What's the blast radius?", prompt: `What assets are in the blast radius for "${pathData.name}"?` },
+        { label: "Recommend fixes", prompt: `What are the top mitigations for "${pathData.name}"?` },
+        { label: "Create remediation case", prompt: `Create a remediation case for the "${pathData.name}" attack path` },
+        { label: "Simulate impact", prompt: `Simulate the impact if "${pathData.name}" is exploited` },
+      ],
+    });
+  }, [setPageContext, pathData.name, resolvedPathId]);
 
   const handleSelectNode = useCallback((nodeId: string | null, _node?: PathNode) => {
     setSelectedNodeId(nodeId);

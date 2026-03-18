@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import svgPaths from "./svg-sx6d9u7tbs";
 import imgOld from "../assets/TeammateAvatar.png";
 import { buildAndRenderAiResponse, buildActionResponse, buildTaskInvestigation, extractContext, renderAiResponse, EMPTY_CONTEXT, ACTION_NAVIGATION, type InteractionContext } from "./AiBoxRenderer";
-import { AiBoxActionProvider, FallbackSuggestion, SuccessConfirmation, ResponseContext } from "./AiBoxModules";
+import { AiBoxActionProvider, FallbackSuggestion, SuccessConfirmation, ResponseContext, InsightCard } from "./AiBoxModules";
 import { getRankedProactiveScenarios, type ProactiveScenario } from "./AiBoxLiveData";
 import { useTaskInvestigation } from "./TaskInvestigationBridge";
 import {
@@ -396,6 +396,14 @@ const renderTaskGraph = (taskGraph: TaskGraph) => <TaskGraphBubble taskGraph={ta
 
 import { getPersonaDefaultSkills } from "../app/shared/skills";
 import { usePersona } from "../app/features/persona";
+import { isReturningUser, getLastVisitLabel, msSinceLastVisit, recordVisit, sealSession } from "../app/shared/services/SessionAwareness";
+import { isChangeSummaryQuery, getChangeReport } from "../app/shared/services/ChangeDetection";
+import { emitHighlights } from "../app/shared/services/HighlightBus";
+import {
+  isApprovalQuery, isDelegationQuery, isApproveRejectQuery,
+  getApprovalQueue, getContextApprovalSummary,
+} from "../app/shared/services/ApprovalQueue";
+import { logAction } from "../app/shared/utils/audit-log";
 
 /* ── Custom send icon matching Figma design ── */
 const AiBoxSendIcon = (
@@ -445,13 +453,49 @@ const PROACTIVE_INTERVAL_MAX  = 180000;  /* maximum 180s between events */
 export default function AiBox() {
   const navigate = useNavigate();
   const { persona } = usePersona();
-  const welcomeSuggestions = getPersonaDefaultSkills("watch-center", persona).map(s => s.label);
+  const returning = React.useMemo(() => isReturningUser(), []);
+
+  // Returning-user suggestion chips appear at top; standard chips follow.
+  // The returning chips are excluded from the list when not a returning session.
+  const RETURNING_CHIPS = [
+    "What changed since my last visit?",
+    "What got worse?",
+    "What got resolved?",
+    "What should I review first?",
+    "What requires action now?",
+  ];
+  const MANAGER_CHIPS = [
+    "What needs my approval?",
+    "Show blocked items",
+    "What should I delegate?",
+  ];
+  const standardChips = getPersonaDefaultSkills("watch-center", persona)
+    .filter(s => !RETURNING_CHIPS.includes(s.label) && !MANAGER_CHIPS.includes(s.label))
+    .map(s => s.label);
+  const baseChips = persona === "manager"
+    ? [...MANAGER_CHIPS, ...standardChips]
+    : standardChips;
+  const welcomeSuggestions = returning
+    ? [...RETURNING_CHIPS, ...baseChips].slice(0, 8)
+    : baseChips.slice(0, 6);
+
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = React.useState("");
   const [isTyping, setIsTyping] = React.useState(false);
   const ctxRef = React.useRef<InteractionContext>(EMPTY_CONTEXT);
   const endRef = React.useRef<HTMLDivElement>(null);
   const timersRef = React.useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  /* ── Session awareness ── */
+  React.useEffect(() => {
+    recordVisit("Watch Center");
+    const onHide = () => { if (document.visibilityState === "hidden") sealSession(); };
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      sealSession();
+    };
+  }, []);
 
   /* ── Proactive recommendation state ── */
   const [proactiveScenario, setProactiveScenario] = React.useState<ProactiveScenario | null>(null);
@@ -685,6 +729,188 @@ export default function AiBox() {
         setMessages(p => [...p, { id: crypto.randomUUID(), role: "agent", text: CASUAL_RESPS[Math.floor(Math.random() * CASUAL_RESPS.length)], timestamp: new Date() }]);
         setIsTyping(false);
       }, 400 + Math.random() * 400);
+      timersRef.current = [t];
+      return;
+    }
+
+    /* ── Change Summary — intercept "what changed" queries before action model ── */
+    if (isChangeSummaryQuery(msg)) {
+      setMessages(p => [...p, userMsg]);
+      setIsTyping(true);
+      const t = setTimeout(() => {
+        const sinceLabel = getLastVisitLabel();
+        const sinceMs = msSinceLastVisit() ?? 0;
+        const report = getChangeReport("watch-center", sinceLabel, sinceMs);
+
+        // Emit highlight signals for referenced page elements
+        const refs = [
+          ...report.newlyImportant,
+          ...report.summary,
+        ].filter(i => i.reference);
+        if (refs.length > 0) {
+          emitHighlights(refs.map(i => ({ page: i.reference!.page, itemId: i.reference!.itemId })));
+        }
+
+        let responseText: string;
+        if (!report.hasChanges) {
+          responseText = `Nothing materially changed since ${sinceLabel}.\n\nThe highest priority item remains ${report.fallbackPriority ?? "the current open issues"}.`;
+        } else {
+          const fmt = (items: { summary: string }[]) =>
+            items.map(i => `- ${i.summary}`).join("\n");
+          responseText = [
+            `## Summary`,
+            fmt(report.summary),
+            ``,
+            `## Newly Important`,
+            fmt(report.newlyImportant),
+            ``,
+            `## Resolved`,
+            fmt(report.resolved),
+            ``,
+            `## What to Review Next`,
+            fmt(report.reviewNext),
+          ].join("\n");
+        }
+
+        setMessages(p => [...p, { id: crypto.randomUUID(), role: "agent", text: responseText, timestamp: new Date() }]);
+        setIsTyping(false);
+      }, 600);
+      timersRef.current = [t];
+      return;
+    }
+
+    /* ── Approval Queue / Delegation — intercept manager queries before action model ── */
+    if (isApproveRejectQuery(msg)) {
+      setMessages(p => [...p, userMsg]);
+      setIsTyping(true);
+      const t = setTimeout(() => {
+        const isApprove = /\b(approve|accept|ok)\b/i.test(msg);
+        const actionData: ActionCardData = {
+          id: crypto.randomUUID(),
+          title: isApprove ? "Approve Action" : "Reject Action",
+          scope: "Pending item in approval queue",
+          guardrailLevel: isApprove ? "L3" : "L2",
+          requiresApproval: isApprove,
+          parameters: [
+            { label: "Decision", value: isApprove ? "Approved" : "Rejected", editable: false },
+            { label: "Justification", value: "Manager decision", editable: true },
+          ],
+          expectedOutcome: isApprove
+            ? "Item approved and moved to execution queue"
+            : "Item rejected and submitter notified",
+          status: "pending",
+        };
+        logAction({
+          user: "current-user",
+          pageContext: "watch-center",
+          actionTitle: actionData.title,
+          scope: actionData.scope,
+          guardrailLevel: actionData.guardrailLevel,
+          approvalStatus: isApprove ? "approved" : "not-required",
+          outcome: "initiated",
+          decisionType: isApprove ? "approved" : "rejected",
+        });
+        const handleModify = (data: ActionCardData, _r: string) => {
+          setMessages(prev => [...prev, {
+            id: crypto.randomUUID(), role: "agent",
+            text: `You'd like to modify **${data.title}**. Adjust the justification or cancel the decision.`,
+            timestamp: new Date(),
+          }]);
+        };
+        setMessages(p => [...p,
+          { id: crypto.randomUUID(), role: "agent", text: `Review the ${isApprove ? "approval" : "rejection"} below and confirm.`, timestamp: new Date() },
+          { id: crypto.randomUUID(), role: "agent", text: "", timestamp: new Date(), renderedUI: <ActionCard data={actionData} onModify={handleModify}/> },
+        ]);
+        setIsTyping(false);
+      }, 600);
+      timersRef.current = [t];
+      return;
+    }
+
+    if (isDelegationQuery(msg)) {
+      setMessages(p => [...p, userMsg]);
+      setIsTyping(true);
+      const t = setTimeout(() => {
+        const assigneeMatch = msg.match(/to\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/);
+        const assignee = assigneeMatch?.[1] ?? "Team Lead";
+        const actionData: ActionCardData = {
+          id: crypto.randomUUID(),
+          title: "Delegate Task",
+          scope: "Selected item",
+          guardrailLevel: "L2",
+          requiresApproval: false,
+          parameters: [
+            { label: "Assignee", value: assignee, editable: true },
+            { label: "Due", value: "48 hours", editable: true },
+            { label: "Note", value: "Delegated via Watch Center", editable: true },
+          ],
+          expectedOutcome: `Task assigned to ${assignee} with SLA reminder`,
+          status: "pending",
+        };
+        logAction({
+          user: "current-user",
+          pageContext: "watch-center",
+          actionTitle: actionData.title,
+          scope: actionData.scope,
+          guardrailLevel: "L2",
+          approvalStatus: "not-required",
+          outcome: "initiated",
+          delegateTo: assignee,
+        });
+        const handleModify = (data: ActionCardData, _r: string) => {
+          setMessages(prev => [...prev, {
+            id: crypto.randomUUID(), role: "agent",
+            text: `You'd like to modify **${data.title}**. Adjust assignee, due date, or note.`,
+            timestamp: new Date(),
+          }]);
+        };
+        setMessages(p => [...p,
+          { id: crypto.randomUUID(), role: "agent", text: `Delegating to **${assignee}**. Confirm or adjust below.`, timestamp: new Date() },
+          { id: crypto.randomUUID(), role: "agent", text: "", timestamp: new Date(), renderedUI: <ActionCard data={actionData} onModify={handleModify}/> },
+        ]);
+        setIsTyping(false);
+      }, 600);
+      timersRef.current = [t];
+      return;
+    }
+
+    if (isApprovalQuery(msg)) {
+      setMessages(p => [...p, userMsg]);
+      setIsTyping(true);
+      const t = setTimeout(() => {
+        const report = getApprovalQueue();
+        const summary = getContextApprovalSummary("watch-center");
+        const items = report.pendingApprovals.map(a => `- **${a.title}** — ${a.description} *(submitted by ${a.submittedBy})*`).join("\n");
+        const blocked = report.blockedItems.map(b => `- **${b.title}**: ${b.blockedReason.replace(/-/g, " ")}`).join("\n");
+        const responseText = [
+          `## Pending Approvals (${summary.pendingCount})`,
+          items || "None.",
+          ``,
+          `## Blocked Items (${summary.blockedCount})`,
+          blocked || "None.",
+          ``,
+          `## Recommended Next Action`,
+          summary.topItem ? `Start with **${summary.topItem.title}** — highest urgency pending your decision.` : "Review queue above.",
+        ].join("\n");
+        const insightUI = (
+          <InsightCard
+            module="Approval Queue"
+            severity={summary.pendingCount > 0 ? "critical" : "info"}
+            title="Pending Approvals — Watch Center"
+            description={`${summary.pendingCount} item${summary.pendingCount !== 1 ? "s" : ""} awaiting your decision · ${summary.blockedCount} blocked`}
+            supportingStats={[
+              { label: "Pending", value: String(summary.pendingCount) },
+              { label: "Blocked", value: String(summary.blockedCount) },
+            ]}
+            actions={["Approve top item", "Show blocked", "Delegate"]}
+          />
+        );
+        setMessages(p => [...p,
+          { id: crypto.randomUUID(), role: "agent", text: responseText, timestamp: new Date() },
+          { id: crypto.randomUUID(), role: "agent", text: "", timestamp: new Date(), renderedUI: insightUI },
+        ]);
+        setIsTyping(false);
+      }, 600);
       timersRef.current = [t];
       return;
     }
