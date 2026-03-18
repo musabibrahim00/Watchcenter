@@ -76,7 +76,7 @@ function TimelineStepRow({
             className="flex-1"
             style={{
               width: 1.5,
-              minHeight: 14,
+              minHeight: 8,
               background: isRevealed
                 ? `linear-gradient(to bottom, ${color}60, ${color}15)`
                 : "#1E2A3440",
@@ -87,7 +87,7 @@ function TimelineStepRow({
       </div>
 
       {/* Content */}
-      <div className="flex flex-col gap-[2px] pb-[8px] min-w-0">
+      <div className="flex flex-col gap-[2px] pb-[4px] min-w-0">
         <div className="flex items-center gap-[4px]">
           <span
             className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic truncate"
@@ -142,10 +142,11 @@ export default function InvestigationTimeline({ hoveredAgent }: { hoveredAgent?:
 
   return (
     <div
-      className="relative rounded-[12px] w-full shrink-0"
+      className="relative rounded-[12px] w-full shrink-0 overflow-hidden"
+      style={{ maxHeight: 185 }}
       data-name="InvestigationTimeline"
     >
-      <div className="content-stretch flex flex-col gap-[8px] items-start overflow-hidden p-[12px] relative rounded-[inherit] size-full bg-[rgba(3,6,9,0.85)]">
+      <div className="content-stretch flex flex-col gap-[6px] items-start overflow-hidden p-[10px] relative rounded-[inherit] size-full bg-[rgba(8,18,30,0.80)]">
         {/* Header */}
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-[4px]">

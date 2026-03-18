@@ -1,12 +1,10 @@
 import React from "react";
 
-// ── Priority signals (mirrors WatchDst SITUATION_SIGNALS) ─────────────────
+// ── Priority signals (top 3 highest-value signals for compact view) ────────
 const PRIORITY_SIGNALS = [
-  { type: "critical" as const, text: "2 critical attack paths active — finance-db-01 reachable from internet" },
+  { type: "critical" as const, text: "2 critical attack paths active — finance-db-01 reachable" },
   { type: "warning" as const, text: "3 crown jewel assets have unacknowledged exposure" },
   { type: "warning" as const, text: "Cert expiry < 72h on prod load balancers" },
-  { type: "info" as const, text: "Slack integration disconnected — 2 workflow steps blocked" },
-  { type: "good" as const, text: "12 alerts resolved in the last 24 hours" },
 ];
 
 const SIGNAL_COLORS: Record<string, string> = {
@@ -45,8 +43,6 @@ interface MetricDef {
 
 const METRICS: MetricDef[] = [
   { label: "Alerts Processed Today", value: 14728, accent: "#0781C2", trend: { value: "12%", up: true } },
-  { label: "Assets Discovered", value: 3842, accent: "#0781C2" },
-  { label: "Vulnerabilities Analyzed", value: 1259, accent: "#F05B06", trend: { value: "8.2%", up: false } },
   { label: "Attack Paths Identified", value: 47, accent: "#FF5757" },
   { label: "Cases Generated", value: 186, accent: "#00A46E", trend: { value: "15%", up: true } },
   { label: "Analyst Hours Saved", value: 312, suffix: "hrs", accent: "#00A46E" },
@@ -70,7 +66,7 @@ function MetricRow({ metric, index }: { metric: MetricDef; index: number }) {
 
   return (
     <div
-      className="flex items-center justify-between py-[5px] group"
+      className="flex items-center justify-between py-[2px] group"
       style={{ animationDelay: `${index * 60}ms` }}
     >
       <div className="flex items-center gap-[6px] min-w-0">
@@ -147,11 +143,11 @@ function HeroStat() {
 
 function WhatMattersNow() {
   return (
-    <div className="flex flex-col gap-[5px] w-full">
+    <div className="flex flex-col gap-[4px] w-full">
       <span className="text-[9px] text-[#4a5f72] font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.6px] leading-[1]">
         What matters now
       </span>
-      <div className="flex flex-col gap-[4px] w-full">
+      <div className="flex flex-col gap-[3px] w-full">
         {PRIORITY_SIGNALS.map((sig, i) => (
           <div key={i} className="flex items-start gap-[6px]">
             <span
@@ -176,7 +172,7 @@ export default function KpiWidget() {
 
   return (
     <div
-      className="bg-[rgba(3,6,9,0.16)] content-stretch flex flex-col gap-[8px] items-start p-[14px] relative rounded-[12px] w-full shrink-0"
+      className="bg-[rgba(8,18,30,0.60)] content-stretch flex flex-col gap-[6px] items-start p-[12px] relative rounded-[12px] w-full shrink-0"
       data-name="KPIWidget"
     >
       <div
