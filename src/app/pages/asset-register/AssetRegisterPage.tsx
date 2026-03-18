@@ -10,6 +10,7 @@ import {
   Info, Share2, MoreVertical, Pencil, Trash2, Clock, Plus, X, Check,
 } from "lucide-react";
 import { colors } from "../../shared/design-system/tokens";
+import { PageHeader } from "../../shared/components/ui";
 import { DeferredChart } from "../../shared/components/DeferredChart";
 import { EntityLink } from "../../shared/components/EntityLink";
 import {
@@ -230,10 +231,11 @@ export default function AssetRegisterPage() {
     <div className="flex flex-col h-full min-h-screen" style={{ backgroundColor: colors.bgApp, maxWidth: "100%", overflowX: "hidden" }}>
       {/* ── Page Header ── */}
       <div className="shrink-0 px-6 pt-5 pb-0">
-        {/* Title */}
-        <h1 className="text-[20px] tracking-tight mb-5" style={{ color: colors.textPrimary, fontWeight: 700 }}>
-          Asset Register
-        </h1>
+        <PageHeader
+          icon={<Network size={18} color={colors.accent} />}
+          title="Asset Register"
+          subtitle="All monitored infrastructure endpoints and their security posture"
+        />
 
         {/* ── Advanced Filter Bar ── */}
         <AdvancedFilterBar

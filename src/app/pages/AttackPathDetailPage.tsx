@@ -4,6 +4,7 @@ import { ArrowLeft, ZoomIn, ZoomOut, Shield, Globe, Cloud, Server, Database, Ale
 import { colors } from "../shared/design-system/tokens";
 import { Badge } from "../shared/components/ui/Badge";
 import { useAiBox } from "../features/ai-box";
+import { getControlsForPath } from "../shared/entity-graph";
 
 /* ================================================================
    TYPES
@@ -2602,7 +2603,7 @@ function InsightsPanel({ asset, onClose, sourcePathId, sourcePathName }: { asset
                         state: {
                           fromAI: true,
                           fromAttackPath: true,
-                          attackPathReturnPath: `/attack-path/${sourcePathId}`,
+                          attackPathReturnPath: `/attack-paths/${sourcePathId}`,
                           initialTab: "investigation",
                           caseData,
                           initialObservation,
@@ -2628,7 +2629,13 @@ function InsightsPanel({ asset, onClose, sourcePathId, sourcePathName }: { asset
               </button>
             </div>
 
-            {/* ══════════════  SECTION 3: Exposed Via Network  ══════════════ */}
+            {/* ══════════════  SECTION 3: Contributing Compliance Gaps  ══════════════ */}
+
+            <div style={{ height: 1, backgroundColor: colors.border, marginBottom: 16 }} />
+
+            <ComplianceGapsSection pathId={sourcePathId} navigate={navigate} />
+
+            {/* ══════════════  SECTION 4: Exposed Via Network  ══════════════ */}
 
             <div style={{ height: 1, backgroundColor: colors.border, marginBottom: 16 }} />
 
@@ -2683,6 +2690,76 @@ function InsightsPanel({ asset, onClose, sourcePathId, sourcePathName }: { asset
 
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Contributing compliance gaps section (shown inside InsightsPanel) ── */
+function ComplianceGapsSection({ pathId, navigate }: { pathId: string; navigate: ReturnType<typeof useNavigate> }) {
+  const gaps = getControlsForPath(pathId);
+  if (gaps.length === 0) return null;
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <InsightSectionLabel text="Contributing Compliance Gaps" />
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {gaps.map(gap => {
+          const sevColor =
+            gap.severity === "critical" ? "#ef4444"
+            : gap.severity === "high" ? "#f97316"
+            : gap.severity === "medium" ? "#f59e0b"
+            : "#22c55e";
+          return (
+            <div
+              key={gap.gapId}
+              style={{
+                padding: "10px 12px",
+                borderRadius: 8,
+                background: `${sevColor}0d`,
+                border: `1px solid ${sevColor}28`,
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{
+                  fontSize: 9, fontWeight: 700, color: sevColor,
+                  textTransform: "uppercase", letterSpacing: "0.05em",
+                  padding: "1px 6px", borderRadius: 4,
+                  background: `${sevColor}18`, border: `1px solid ${sevColor}30`,
+                  flexShrink: 0,
+                }}>
+                  {gap.severity}
+                </span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: colors.textPrimary }}>
+                  {gap.control}
+                </span>
+                <span style={{ fontSize: 10, color: colors.textDim }}>· {gap.framework}</span>
+              </div>
+              <p style={{ margin: 0, fontSize: 10.5, color: colors.textSecondary, lineHeight: "1.45" }}>
+                {gap.title}
+              </p>
+              <p style={{ margin: 0, fontSize: 9.5, color: colors.textDim, lineHeight: "1.4" }}>
+                {gap.contribution}
+              </p>
+              <button
+                onClick={() => navigate("/compliance")}
+                style={{
+                  marginTop: 4, padding: "4px 10px", borderRadius: 6, cursor: "pointer",
+                  fontSize: 10, fontWeight: 600, color: sevColor,
+                  background: `${sevColor}10`, border: `1px solid ${sevColor}28`,
+                  alignSelf: "flex-start", transition: "background 120ms ease",
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = `${sevColor}1e`; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = `${sevColor}10`; }}
+              >
+                View in Compliance →
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -2769,21 +2846,41 @@ export default function AttackPathDetailPage() {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   useEffect(() => {
+    const contributingGaps = getControlsForPath(resolvedPathId);
+    const gapSummary = contributingGaps.length > 0
+      ? contributingGaps.map(g => `${g.control} (${g.framework}): ${g.title}`).join("; ")
+      : "No mapped compliance gaps for this path.";
+
     setPageContext({
       type: "general" as const,
       label: pathData.name,
       sublabel: "Attack Path Graph",
       contextKey: `attack-path-detail:${resolvedPathId}`,
-      greeting: `I have the **${pathData.name}** attack path loaded. I can walk through the attack chain, explain each hop, or help you build a remediation case.`,
+      greeting: `I have the **${pathData.name}** attack path loaded. ${contributingGaps.length > 0 ? `${contributingGaps.length} compliance gap${contributingGaps.length > 1 ? "s" : ""} contribute to this path's reachability.` : ""} I can walk through the attack chain, explain each hop, or help you build a remediation case.`,
       suggestions: [
         { label: "Explain this attack chain", prompt: `Explain the full attack chain for "${pathData.name}"` },
         { label: "What's the blast radius?", prompt: `What assets are in the blast radius for "${pathData.name}"?` },
+        { label: "Which controls break this path?", prompt: `Which compliance controls, if remediated, would break or reduce the "${pathData.name}" attack path?` },
         { label: "Recommend fixes", prompt: `What are the top mitigations for "${pathData.name}"?` },
         { label: "Create remediation case", prompt: `Create a remediation case for the "${pathData.name}" attack path` },
         { label: "Simulate impact", prompt: `Simulate the impact if "${pathData.name}" is exploited` },
       ],
+      // Graph context — compliance gaps that enable this path
+      graphContext: {
+        pathId: resolvedPathId,
+        priority: pathData.priority,
+        contributingGaps: contributingGaps.map(g => ({
+          control: g.control,
+          framework: g.framework,
+          title: g.title,
+          severity: g.severity,
+          contribution: g.contribution,
+        })),
+        gapSummary,
+        blastRadiusAssets: pathData.blastRadius.totalAssets,
+      },
     });
-  }, [setPageContext, pathData.name, resolvedPathId]);
+  }, [setPageContext, pathData.name, pathData.priority, pathData.blastRadius.totalAssets, resolvedPathId]);
 
   const handleSelectNode = useCallback((nodeId: string | null, _node?: PathNode) => {
     setSelectedNodeId(nodeId);
@@ -2793,13 +2890,24 @@ export default function AttackPathDetailPage() {
     <div className="flex flex-col h-full min-h-screen" style={{ backgroundColor: colors.bgApp }}>
       {/* Header — sticky context bar */}
       <div className="shrink-0 sticky top-0 z-[50] flex items-center gap-3 px-5 py-2 border-b" style={{ borderColor: colors.border, backgroundColor: colors.bgApp }}>
-        <button onClick={() => navigate(-1)} className="flex items-center justify-center w-7 h-7 rounded-lg border transition-colors hover:bg-[rgba(87,177,255,0.08)]" style={{ borderColor: colors.border }}>
+        <button
+          onClick={() => navigate('/attack-paths')}
+          className="flex items-center justify-center w-7 h-7 rounded-lg border transition-colors hover:bg-[rgba(87,177,255,0.08)]"
+          style={{ borderColor: colors.border }}
+          aria-label="Back to Attack Paths"
+        >
           <ArrowLeft size={14} color={colors.textMuted} />
         </button>
         <div className="flex items-center gap-2">
-          <h1 className="text-[14px] font-semibold" style={{ color: colors.textPrimary }}>Attack Path</h1>
+          <button
+            onClick={() => navigate('/attack-paths')}
+            className="text-[13px] transition-colors hover:text-white"
+            style={{ color: colors.textDim, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
+          >
+            Attack Paths
+          </button>
           <span className="text-[12px]" style={{ color: colors.textDim }}>/</span>
-          <span className="text-[12px]" style={{ color: colors.textSecondary }}>{pathData.name}</span>
+          <span className="text-[13px] font-semibold" style={{ color: colors.textPrimary }}>{pathData.name}</span>
         </div>
         <Badge tone={pathData.priority} size="sm">{pathData.priority}</Badge>
         <div className="ml-auto flex items-center gap-5">
@@ -2827,7 +2935,7 @@ export default function AttackPathDetailPage() {
                 addObservation(caseData.id, initialObservation);
                 addPlaybooks(caseData.id, recommendedPlaybooks);
                 navigate(`/case-management/${caseData.id}`, {
-                  state: { fromAI: true, fromAttackPath: true, attackPathReturnPath: `/attack-path/${resolvedPathId}`, initialTab: "investigation", caseData, initialObservation, recommendedPlaybooks },
+                  state: { fromAI: true, fromAttackPath: true, attackPathReturnPath: `/attack-paths/${resolvedPathId}`, initialTab: "investigation", caseData, initialObservation, recommendedPlaybooks },
                 });
               });
             });

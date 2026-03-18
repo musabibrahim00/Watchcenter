@@ -73,3 +73,16 @@ export {
   getWorkflowEvents,
   getWorkflowGraphSummary,
 } from "./workflows";
+
+/* ── Compliance ── */
+export {
+  getComplianceNodes,
+  getPolicyNodes,
+  getComplianceNodeById,
+  getComplianceRelationships,
+  getControlViolatingAssets,
+  getControlIncreasedRisks,
+  getControlMitigations,
+  getComplianceEvents,
+  getComplianceGraphSummary,
+} from "./compliance";

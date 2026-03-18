@@ -26,6 +26,12 @@ export interface AiBoxPageContext {
   contextKey?: string;
   /** When true, AI-triggered executable actions are blocked */
   isReadOnly?: boolean;
+  /**
+   * Optional cross-entity graph context for AI reasoning.
+   * Carries structured data about related assets, attack paths, compliance gaps, etc.
+   * Not rendered directly — used by AIBox to produce more precise answers.
+   */
+  graphContext?: Record<string, unknown>;
 }
 
 /* ================================================================

@@ -31,7 +31,17 @@ interface InsightItem {
   title: string;
   description: string;
   status: "active" | "confirmed" | "resolved" | "monitoring";
-  statusColor: string;
+  statusColor?: string;
+}
+
+function getInsightStatusColor(status: InsightItem["status"]): string {
+  switch (status) {
+    case "active":     return colors.accent;
+    case "confirmed":  return colors.warning;
+    case "monitoring": return colors.accent;
+    case "resolved":   return colors.success;
+    default:           return colors.textDim;
+  }
 }
 
 const AGENT_INSIGHTS: Record<AgentId, InsightItem[]> = {
@@ -217,14 +227,14 @@ function PulsingDot({ color = "#1eb2c2" }: { color?: string }) {
 function SeverityBadge({ severity }: { severity: string }) {
   const c =
     severity === "Critical"
-      ? { bg: "rgba(255,87,87,0.08)", text: "#ff6060", border: "rgba(255,87,87,0.12)" }
+      ? { bg: `${colors.critical}14`, text: colors.critical, border: `${colors.critical}1f` }
       : severity === "Warning"
-        ? { bg: "rgba(217,117,6,0.08)", text: "#d97506", border: "rgba(217,117,6,0.12)" }
+        ? { bg: `${colors.warning}14`, text: colors.warning, border: `${colors.warning}1f` }
         : severity === "In Progress"
-          ? { bg: "rgba(59,130,246,0.08)", text: "#3b82f6", border: "rgba(59,130,246,0.12)" }
+          ? { bg: `${colors.accent}14`, text: colors.accent, border: `${colors.accent}1f` }
           : severity === "Completed"
-            ? { bg: "rgba(47,216,151,0.08)", text: "#2fd897", border: "rgba(47,216,151,0.12)" }
-            : { bg: "rgba(128,128,128,0.08)", text: "#89949e", border: "rgba(128,128,128,0.12)" };
+            ? { bg: `${colors.success}14`, text: colors.success, border: `${colors.success}1f` }
+            : { bg: "rgba(128,128,128,0.08)", text: colors.textDim, border: "rgba(128,128,128,0.12)" };
 
   return (
     <div
@@ -1127,7 +1137,7 @@ function InsightRow({ insight, agentRole, showUpdatedTag }: { insight: InsightIt
       {/* Status dot */}
       <div
         className="size-[6px] rounded-full shrink-0"
-        style={{ backgroundColor: insight.statusColor }}
+        style={{ backgroundColor: getInsightStatusColor(insight.status) }}
       />
 
       {/* Content */}
@@ -1148,7 +1158,7 @@ function InsightRow({ insight, agentRole, showUpdatedTag }: { insight: InsightIt
       {/* Status badge */}
       <span
         className="font-['Inter',sans-serif] text-[10px] leading-[12px] whitespace-nowrap capitalize shrink-0"
-        style={{ color: insight.statusColor }}
+        style={{ color: getInsightStatusColor(insight.status) }}
       >
         {insight.status}
       </span>

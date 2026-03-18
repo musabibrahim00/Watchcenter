@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from "react"
 import { useParams, useNavigate, useLocation } from "react-router";
 import {
   ArrowLeft, Shield, Search, ChevronLeft, ChevronRight,
-  ArrowUpDown, Download, RefreshCw, ChevronDown,
+  ArrowUpDown, Download, RefreshCw, ChevronDown, GitBranch, AlertTriangle,
 } from "lucide-react";
 import { colors } from "../shared/design-system/tokens";
 import { EntityLink } from "../shared/components/EntityLink";
@@ -10,6 +10,7 @@ import {
   ASSETS, getVulnerabilities, getRisks, getMisconfigurations, getSoftware,
   type Asset, type Severity,
 } from "./asset-register/asset-data";
+import { getEntityContextForAsset } from "../shared/entity-graph";
 
 /* ================================================================
    TYPES
@@ -104,7 +105,7 @@ export default function AssetDetailPage() {
             {hasAttackPathContext ? (
               <div className="contents">
                 {/* Attack Path link */}
-                <button onClick={() => navigate(`/attack-path/${sourcePathId}`)}
+                <button onClick={() => navigate(`/attack-paths/${sourcePathId}`)}
                   className="hover:opacity-80 transition-opacity"
                   style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                   <span style={{ fontSize: 12, color: "#ff7a1a" }}>Attack Path</span>
@@ -211,8 +212,11 @@ export default function AssetDetailPage() {
    ================================================================ */
 
 function TabDetails({ asset }: { asset: Asset | null }) {
+  const navigate = useNavigate();
+  const entityCtx = asset ? getEntityContextForAsset(asset.id) : null;
+
   return (
-    <div className="p-6">
+    <div className="p-6 flex flex-col gap-0">
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 0 }}>
         {/* Column 1: Asset Identification */}
         <div style={{ padding: "20px 24px", borderRight: `1px solid ${colors.border}` }}>
@@ -250,6 +254,143 @@ function TabDetails({ asset }: { asset: Asset | null }) {
           </div>
         </div>
       </div>
+
+      {/* ── Security Context — cross-entity relationships ── */}
+      {entityCtx && (
+        <div style={{
+          margin: "0 0 0 0",
+          borderTop: `1px solid ${colors.border}`,
+          padding: "20px 24px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 20,
+        }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: colors.textPrimary }}>Security Context</span>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+
+            {/* Attack Path Memberships */}
+            <div style={{
+              background: colors.bgCard,
+              border: `1px solid ${colors.border}`,
+              borderRadius: 10,
+              padding: "14px 16px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                <GitBranch size={13} color="#ff7a1a" />
+                <span style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary }}>Attack Path Memberships</span>
+                <span style={{
+                  marginLeft: "auto", fontSize: 10, fontWeight: 600,
+                  color: "#ff7a1a", background: "rgba(255,122,26,0.12)",
+                  border: "1px solid rgba(255,122,26,0.25)", borderRadius: 999,
+                  padding: "1px 8px",
+                }}>
+                  {entityCtx.attackPaths.length}
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: 11, color: colors.textDim, lineHeight: "1.45" }}>
+                {entityCtx.riskGraphRole}
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {entityCtx.attackPaths.map(p => {
+                  const col = p.priority === "critical" ? "#ef4444"
+                    : p.priority === "high" ? "#f97316"
+                    : p.priority === "medium" ? "#f59e0b" : "#22c55e";
+                  return (
+                    <button
+                      key={p.pathId}
+                      onClick={() => navigate(`/attack-paths/${p.pathId}`)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
+                        borderRadius: 7, background: `${col}0d`, border: `1px solid ${col}28`,
+                        cursor: "pointer", textAlign: "left", transition: "background 120ms ease",
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = `${col}1e`; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = `${col}0d`; }}
+                    >
+                      <span style={{
+                        fontSize: 9, fontWeight: 700, color: col, textTransform: "uppercase",
+                        padding: "1px 6px", borderRadius: 4, background: `${col}18`,
+                        border: `1px solid ${col}30`, flexShrink: 0,
+                      }}>
+                        {p.priority}
+                      </span>
+                      <span style={{ fontSize: 11, color: colors.textSecondary, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {p.name}
+                      </span>
+                      <span style={{ fontSize: 10, color: col, flexShrink: 0 }}>→</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Failing Controls */}
+            <div style={{
+              background: colors.bgCard,
+              border: `1px solid ${colors.border}`,
+              borderRadius: 10,
+              padding: "14px 16px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                <AlertTriangle size={13} color="#f59e0b" />
+                <span style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary }}>Failing Controls</span>
+                <span style={{
+                  marginLeft: "auto", fontSize: 10, fontWeight: 600,
+                  color: "#f59e0b", background: "rgba(245,158,11,0.12)",
+                  border: "1px solid rgba(245,158,11,0.25)", borderRadius: 999,
+                  padding: "1px 8px",
+                }}>
+                  {entityCtx.complianceGaps.length}
+                </span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {entityCtx.complianceGaps.map(g => {
+                  const col = g.severity === "critical" ? "#ef4444"
+                    : g.severity === "high" ? "#f97316"
+                    : g.severity === "medium" ? "#f59e0b" : "#22c55e";
+                  return (
+                    <button
+                      key={g.gapId}
+                      onClick={() => navigate("/compliance")}
+                      style={{
+                        display: "flex", flexDirection: "column", gap: 3, padding: "8px 10px",
+                        borderRadius: 7, background: `${col}0d`, border: `1px solid ${col}28`,
+                        cursor: "pointer", textAlign: "left", transition: "background 120ms ease",
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = `${col}1e`; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = `${col}0d`; }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{
+                          fontSize: 9, fontWeight: 700, color: col, textTransform: "uppercase",
+                          padding: "1px 6px", borderRadius: 4, background: `${col}18`,
+                          border: `1px solid ${col}30`, flexShrink: 0,
+                        }}>
+                          {g.severity}
+                        </span>
+                        <span style={{ fontSize: 10.5, fontWeight: 600, color: colors.textPrimary }}>
+                          {g.control}
+                        </span>
+                        <span style={{ fontSize: 10, color: colors.textDim }}>· {g.framework}</span>
+                      </div>
+                      <span style={{ fontSize: 10.5, color: colors.textSecondary, lineHeight: "1.4" }}>
+                        {g.title}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
