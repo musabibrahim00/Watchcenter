@@ -1161,7 +1161,7 @@ function InsightRow({ insight, agentRole, showUpdatedTag, onAskAI }: {
             <span className="ai-updated-tag shrink-0">Updated by AI</span>
           )}
         </div>
-        <p className="font-['Inter',sans-serif] text-[10px] text-[#62707D] leading-[13px] truncate">
+        <p className="font-['Inter',sans-serif] text-[10px] text-[#7e8e9e] leading-[13px] truncate">
           {agentRole} — {insight.description}
         </p>
       </div>

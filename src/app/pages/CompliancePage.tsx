@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router";
-import { AlertTriangle, Clock, TrendingUp, Shield, FileText, GitBranch, Server } from "lucide-react";
+import { AlertTriangle, Clock, TrendingUp, Shield, FileText, GitBranch, Server, Sparkles } from "lucide-react";
 import { colors } from "../shared/design-system/tokens";
 import { PageHeader, SectionLabel } from "../shared/components/ui";
 import { useAiBox } from "../features/ai-box";
@@ -200,9 +200,28 @@ function EntityChip({
 
 function GapRow({ gap }: { gap: typeof GAPS[number] }) {
   const navigate = useNavigate();
+  const { openWithContext } = useAiBox();
   const relatedPaths = getPathsForGap(gap.id);
   const affectedAssets = getAssetsForGap(gap.id);
   const blastImpact = getBlastRadiusImpactForGap(gap.id);
+
+  function handleAskAI(e: React.MouseEvent) {
+    e.stopPropagation();
+    const pathNames = relatedPaths.map(p => p.name).join(", ");
+    openWithContext({
+      type: "general",
+      label: gap.control,
+      sublabel: `${gap.framework} Gap`,
+      contextKey: `compliance-gap:${gap.id}`,
+      greeting: `I have the **${gap.control}** compliance gap loaded (${gap.framework}). This is a **${gap.severity}** severity issue: "${gap.title}"${relatedPaths.length > 0 ? ` — it worsens ${relatedPaths.length} attack path${relatedPaths.length > 1 ? "s" : ""} (${pathNames})` : ""}. How can I help?`,
+      suggestions: [
+        { label: "Explain the impact of this gap", prompt: `Explain the impact of the ${gap.control} compliance gap: "${gap.title}"` },
+        { label: "What attack paths does this worsen?", prompt: `Which attack paths are worsened by the ${gap.control} gap (${gap.framework})?` },
+        { label: "Suggest remediation steps", prompt: `Suggest remediation steps for fixing the ${gap.control} gap: "${gap.title}"` },
+        { label: "Estimate remediation effort", prompt: `Estimate the effort to fix the ${gap.control} gap and reduce its blast radius` },
+      ],
+    });
+  }
 
   // Only show registered assets for navigation; blast-radius ones are display-only
   const registeredAssets = affectedAssets.filter(a => a.type === "registered");
@@ -231,9 +250,32 @@ function GapRow({ gap }: { gap: typeof GAPS[number] }) {
             <span style={{ fontSize: 10, color: colors.textDim }}>Owner: {gap.owner}</span>
           </div>
         </div>
-        <div className="shrink-0 flex items-center gap-[4px]" style={{ color: colors.textDim }}>
-          <Clock size={11} />
-          <span style={{ fontSize: 10 }}>{gap.daysOpen}d</span>
+        <div className="shrink-0 flex items-center gap-[8px]">
+          <div className="flex items-center gap-[4px]" style={{ color: colors.textDim }}>
+            <Clock size={11} />
+            <span style={{ fontSize: 10 }}>{gap.daysOpen}d</span>
+          </div>
+          <button
+            onClick={handleAskAI}
+            title={`Ask AI about ${gap.control}`}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              padding: "2px 7px",
+              borderRadius: 99,
+              fontSize: 10,
+              fontWeight: 600,
+              background: `${SEVERITY_COLOR[gap.severity]}10`,
+              color: SEVERITY_COLOR[gap.severity],
+              border: `1px solid ${SEVERITY_COLOR[gap.severity]}2a`,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <Sparkles size={9} />
+            Ask AI
+          </button>
         </div>
       </div>
 
