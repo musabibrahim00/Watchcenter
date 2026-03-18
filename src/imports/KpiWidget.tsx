@@ -1,5 +1,21 @@
 import React from "react";
 
+// ── Priority signals (mirrors WatchDst SITUATION_SIGNALS) ─────────────────
+const PRIORITY_SIGNALS = [
+  { type: "critical" as const, text: "2 critical attack paths active — finance-db-01 reachable from internet" },
+  { type: "warning" as const, text: "3 crown jewel assets have unacknowledged exposure" },
+  { type: "warning" as const, text: "Cert expiry < 72h on prod load balancers" },
+  { type: "info" as const, text: "Slack integration disconnected — 2 workflow steps blocked" },
+  { type: "good" as const, text: "12 alerts resolved in the last 24 hours" },
+];
+
+const SIGNAL_COLORS: Record<string, string> = {
+  critical: "#FF5757",
+  warning: "#F05B06",
+  info: "#57b1ff",
+  good: "#00A46E",
+};
+
 // Animated counter hook for number values
 function useAnimatedValue(target: number, duration = 1200) {
   const [value, setValue] = React.useState(0);
@@ -129,6 +145,32 @@ function HeroStat() {
   );
 }
 
+function WhatMattersNow() {
+  return (
+    <div className="flex flex-col gap-[5px] w-full">
+      <span className="text-[9px] text-[#4a5f72] font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.6px] leading-[1]">
+        What matters now
+      </span>
+      <div className="flex flex-col gap-[4px] w-full">
+        {PRIORITY_SIGNALS.map((sig, i) => (
+          <div key={i} className="flex items-start gap-[6px]">
+            <span
+              className="block size-[5px] rounded-full shrink-0 mt-[3px]"
+              style={{
+                backgroundColor: SIGNAL_COLORS[sig.type],
+                boxShadow: `0 0 5px ${SIGNAL_COLORS[sig.type]}66`,
+              }}
+            />
+            <span className="text-[10px] font-['Inter:Regular',sans-serif] leading-[1.35]" style={{ color: sig.type === "critical" ? "#e8a0a0" : sig.type === "warning" ? "#d4906a" : sig.type === "good" ? "#7ecfae" : "#7ea9cc" }}>
+              {sig.text}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function KpiWidget() {
   const standardMetrics = METRICS.filter(m => m.label !== "Automation Rate");
 
@@ -151,6 +193,11 @@ export default function KpiWidget() {
           LAST 24H
         </span>
       </div>
+
+      <Separator />
+
+      {/* What Matters Now */}
+      <WhatMattersNow />
 
       <Separator />
 

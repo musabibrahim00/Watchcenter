@@ -110,7 +110,11 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
       <div className="relative shrink-0 w-full" data-name="Container">
         <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-start justify-between relative w-full">
           <div className="flex-[1_0_0] min-h-px min-w-px relative" data-name="Container">
-            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col gap-[4px] items-start leading-[normal] not-italic relative w-full tracking-[0.4px] whitespace-pre-wrap">
+            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col gap-[5px] items-start leading-[normal] not-italic relative w-full tracking-[0.4px] whitespace-pre-wrap">
+              <span className="inline-flex items-center gap-[4px] px-[5px] py-[1px] rounded-[3px] text-[9px] font-['Inter:Semi_Bold',sans-serif] tracking-[0.4px] uppercase" style={{ background: "rgba(255,87,87,0.10)", border: "1px solid rgba(255,87,87,0.22)", color: "#ff8a8a" }}>
+                <span className="block size-[4px] rounded-full bg-[#FF5757]" />
+                Critical
+              </span>
               <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[12px] w-full">{task.title}</p>
             </div>
           </div>
@@ -186,10 +190,14 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
               <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">View details</p>
             </div>
             <div
-              className="content-stretch flex h-[24px] items-center justify-center px-[8px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer hover:bg-[rgba(87,177,255,0.08)] transition-colors"
+              className="content-stretch flex h-[24px] items-center justify-center gap-[4px] px-[8px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer transition-colors"
+              style={{ background: "rgba(87,177,255,0.07)", border: "1px solid rgba(87,177,255,0.16)" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.13)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.07)")}
               onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query: `Why does "${task.title}" matter? Explain the risk.` } })); }}
             >
-              <p className="font-['Inter:Medium',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center">Ask why</p>
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff"/></svg>
+              <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center tracking-[0.2px]">Ask why</p>
             </div>
           </div>
         </div>
@@ -223,7 +231,11 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
       <div className="relative shrink-0 w-full" data-name="Container">
         <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-start justify-between relative w-full">
           <div className="flex-[1_0_0] min-h-px min-w-px relative" data-name="Container">
-            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col gap-[0px] items-start leading-[normal] not-italic relative w-full tracking-[0.4px]">
+            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col gap-[5px] items-start leading-[normal] not-italic relative w-full tracking-[0.4px]">
+              <span className="inline-flex items-center gap-[4px] px-[5px] py-[1px] rounded-[3px] text-[9px] font-['Inter:Semi_Bold',sans-serif] tracking-[0.4px] uppercase" style={{ background: "rgba(255,87,87,0.10)", border: "1px solid rgba(255,87,87,0.22)", color: "#ff8a8a" }}>
+                <span className="block size-[4px] rounded-full bg-[#FF5757]" />
+                Critical
+              </span>
               <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[12px] w-full">{task.title}</p>
             </div>
           </div>
@@ -346,10 +358,14 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
               <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">View details</p>
             </div>
             <div
-              className="content-stretch flex h-[24px] items-center justify-center px-[8px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer hover:bg-[rgba(87,177,255,0.08)] transition-colors"
+              className="content-stretch flex h-[24px] items-center justify-center gap-[4px] px-[8px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer transition-colors"
+              style={{ background: "rgba(87,177,255,0.07)", border: "1px solid rgba(87,177,255,0.16)" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.13)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.07)")}
               onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query: `Why does "${task.title}" matter? Explain the risk.` } })); }}
             >
-              <p className="font-['Inter:Medium',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center">Ask why</p>
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff"/></svg>
+              <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center tracking-[0.2px]">Ask why</p>
             </div>
           </div>
         </div>

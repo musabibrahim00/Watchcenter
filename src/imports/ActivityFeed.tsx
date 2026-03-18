@@ -116,7 +116,7 @@ function EventRow({ event, isNew }: { event: ActivityEvent; isNew: boolean }) {
       >
         {event.timestamp}
       </span>
-      <div className="flex-1 min-w-0 leading-[0.75]">
+      <div className="flex-1 min-w-0 leading-[1.4]">
         <span
           className="font-['IBM_Plex_Mono:Medium',sans-serif] font-medium text-[10px]"
           style={{ color: event.color }}
