@@ -566,7 +566,7 @@ function PathRow({ path, last }: { path: PathSummary; last: boolean }) {
           background: PRIORITY_COLORS[path.priority] ?? colors.neutral,
           flexShrink: 0,
         }} />
-        <span style={{
+        <span title={path.name} style={{
           fontSize: fontSize.lg,
           color: hovered ? colors.accent : colors.textPrimary,
           fontWeight: fontWeight.medium,

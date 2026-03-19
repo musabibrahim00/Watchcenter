@@ -534,7 +534,7 @@ export const AttackPathSystemRecommendation = React.memo(function AttackPathSyst
 
   return (
     // Flat layout — no nested card. ProactiveCard provides the visual boundary.
-    <div className="flex flex-col gap-[10px] px-[2px]">
+    <div className="flex flex-col gap-[12px] px-[2px]">
       {/* Section 1 — Attack Surface */}
       <div className="flex flex-col gap-[6px]">
         <span className="text-[8px] font-normal uppercase tracking-[0.5px]" style={{ color: "rgba(89,120,141,0.7)" }}>
@@ -573,14 +573,14 @@ export const AttackPathSystemRecommendation = React.memo(function AttackPathSyst
         {/* Inline stat row below chart */}
         <div className="flex items-start gap-[20px]">
           <div>
-            <span className="text-[8px] font-normal uppercase tracking-[0.4px]" style={{ color: "rgba(200,77,79,0.65)" }}>Vulnerabilities</span>
+            <span className="text-[8px] font-normal uppercase tracking-[0.4px]" style={{ color: "rgba(200,77,79,0.65)" }}>Vulns</span>
             <div className="mt-[3px] flex items-center gap-[8px]">
               <StatRow label="Critical" value={v.critical.toString()} />
               <StatRow label="High" value={v.high.toString()} />
             </div>
           </div>
           <div>
-            <span className="text-[8px] font-normal uppercase tracking-[0.4px]" style={{ color: "rgba(200,120,26,0.65)" }}>Misconfiguration</span>
+            <span className="text-[8px] font-normal uppercase tracking-[0.4px]" style={{ color: "rgba(200,120,26,0.65)" }}>Misconfig</span>
             <div className="mt-[3px] flex items-center gap-[8px]">
               <StatRow label="Critical" value={m.critical.toString()} />
               <StatRow label="High" value={m.high.toString()} />
@@ -607,7 +607,7 @@ export const AttackPathSystemRecommendation = React.memo(function AttackPathSyst
             {insight.supportingStats.map((stat) => (
               <div key={stat.label}>
                 <div className="text-[8px] uppercase tracking-[0.08em]" style={{ color: colors.textDim }}>{stat.label}</div>
-                <div className="mt-[2px] text-[12px] font-semibold" style={{ color: colors.textPrimary }}>{stat.value}</div>
+                <div className="mt-[2px] text-[11px] font-semibold" style={{ color: colors.textPrimary }}>{stat.value}</div>
               </div>
             ))}
           </div>

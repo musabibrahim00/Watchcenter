@@ -149,7 +149,7 @@ export const MessageBubble = React.memo(function MessageBubble({
       <div className="shrink-0 size-[22px] rounded-full overflow-hidden mt-[2px]">
         <img alt="" className="size-full object-cover" src={imgAvatar} />
       </div>
-      <div className="flex flex-col max-w-[85%]">
+      <div className="flex flex-col max-w-[80%]">
         <div className="bg-[#0e1c2c] rounded-[10px] rounded-tl-[4px] px-[10px] py-[8px] border border-[#172840]">
           <p className="font-['Inter:Regular',sans-serif] font-normal leading-[17px] text-[#9fadb9] text-[11px] whitespace-pre-wrap break-words">{formatText(message.text)}</p>
         </div>

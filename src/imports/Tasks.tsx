@@ -289,7 +289,7 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
                       color: task.confidence === "high" ? "#2fd897" : task.confidence === "moderate" ? "#f59e0b" : "#7e8e9e",
                     }}
                   >
-                    {task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate" : "Needs review"}
+                    {task.confidence === "high" ? "High conf." : task.confidence === "moderate" ? "Moderate" : "Needs review"}
                   </span>
                 )}
                 <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#3d6070" }}>Identification</span>
@@ -341,7 +341,7 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
           <div className="flex-[1_0_0] min-h-px min-w-px relative" data-name="Container">
             <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col font-['Inter:Regular',sans-serif] font-normal gap-[4px] items-start leading-[normal] not-italic relative text-[10px] w-full">
               <div className="flex items-center justify-between w-full">
-                <p className="h-[11px] relative shrink-0 text-[#b0bec8] text-[10px] whitespace-pre-wrap">Why this matters</p>
+                <p className="h-[11px] relative shrink-0 text-[#b0bec8] text-[10px] whitespace-pre-wrap">Impact</p>
                 <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#3d6070" }}>Assessment</span>
               </div>
               <p className="relative shrink-0 text-[#89949e]">{task.reason}</p>
@@ -365,7 +365,7 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
         )}
         <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-center justify-between relative w-full">
           <div className="content-stretch flex gap-[8px] items-center relative shrink-0" data-name="buttons">
-            <div className={`h-[24px] min-w-[84px] relative rounded-[6px] shrink-0 transition-colors ${loading ? 'bg-transparent cursor-default' : 'bg-[#076498] cursor-pointer hover:bg-[#0a7ab8]'}`} data-name="ButtonPrimary" onClick={!loading ? handleAction : undefined}>
+            <div className={`h-[24px] min-w-[84px] relative rounded-[6px] shrink-0 transition-colors ${loading ? 'bg-transparent cursor-default pointer-events-none' : 'bg-[#076498] cursor-pointer hover:bg-[#0a7ab8]'}`} data-name="ButtonPrimary" onClick={!loading ? handleAction : undefined}>
               <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[12px] h-full items-center justify-center min-w-[inherit] p-[8px] relative">
                 {loading ? (
                   <div className="content-stretch flex gap-[8px] items-center relative size-full">
@@ -487,7 +487,7 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
                       color: task.confidence === "high" ? "#2fd897" : task.confidence === "moderate" ? "#f59e0b" : "#7e8e9e",
                     }}
                   >
-                    {task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate" : "Needs review"}
+                    {task.confidence === "high" ? "High conf." : task.confidence === "moderate" ? "Moderate" : "Needs review"}
                   </span>
                 )}
                 <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#3d6070" }}>Identification</span>
@@ -541,7 +541,7 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
             <div className="flex-[1_0_0] min-h-px min-w-px relative" data-name="Container">
               <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col font-['Inter:Regular',sans-serif] font-normal gap-[4px] items-start leading-[normal] not-italic relative text-[10px] w-full">
                 <div className="flex items-center justify-between w-full">
-                  <p className="h-[11px] relative shrink-0 text-[#b0bec8] text-[10px]">Why this matters</p>
+                  <p className="h-[11px] relative shrink-0 text-[#b0bec8] text-[10px]">Impact</p>
                   <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#3d6070" }}>Assessment</span>
                 </div>
                 <p className="relative shrink-0 text-[#89949e] w-full">{task.reason}</p>
@@ -605,7 +605,7 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
         )}
         <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-center justify-between relative w-full">
           <div className="content-stretch flex gap-[8px] items-center relative shrink-0" data-name="buttons">
-            <div className={`h-[24px] min-w-[84px] relative rounded-[6px] shrink-0 transition-colors ${loading ? 'bg-transparent cursor-default' : 'bg-[#076498] cursor-pointer hover:bg-[#0a7ab8]'}`} data-name="ButtonPrimary" onClick={!loading ? handleAction : undefined}>
+            <div className={`h-[24px] min-w-[84px] relative rounded-[6px] shrink-0 transition-colors ${loading ? 'bg-transparent cursor-default pointer-events-none' : 'bg-[#076498] cursor-pointer hover:bg-[#0a7ab8]'}`} data-name="ButtonPrimary" onClick={!loading ? handleAction : undefined}>
               <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[12px] h-full items-center justify-center min-w-[inherit] p-[8px] relative">
                 {loading ? (
                   <div className="content-stretch flex gap-[8px] items-center relative size-full">
