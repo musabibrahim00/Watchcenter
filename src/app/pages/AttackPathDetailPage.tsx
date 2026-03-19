@@ -2863,7 +2863,7 @@ export default function AttackPathDetailPage() {
       label: pathData.name,
       sublabel: "Attack Path Graph",
       contextKey: `attack-path-detail:${resolvedPathId}`,
-      greeting: `**${pathData.name}** — ${pathData.priority.toUpperCase()} priority path with a blast radius of **${pathData.blastRadius.totalAssets} assets**. ${pathData.blastRadius.totalVulnerabilities} vulnerabilities and ${pathData.blastRadius.totalMisconfigurations} misconfigurations are in scope.${contributingGaps.length > 0 ? ` ${contributingGaps.length} compliance gap${contributingGaps.length > 1 ? "s" : ""} contribute to reachability.` : ""} I can walk through each hop, explain the blast radius, or help you build a remediation case.`,
+      greeting: `This is a **${pathData.priority.toUpperCase()} priority** path. Blast radius: **${pathData.blastRadius.totalAssets} assets** exposed — ${pathData.blastRadius.totalVulnerabilities} vulnerabilities and ${pathData.blastRadius.totalMisconfigurations} misconfigurations in scope.${contributingGaps.length > 0 ? ` **${contributingGaps.length} compliance gap${contributingGaps.length > 1 ? "s"  : ""}** contribute to reachability.` : ""} Ask me to walk each hop, explain the blast radius, or build a remediation case.`,
       suggestions: getPersonaAiBoxSuggestions("attack-path", persona, pathData.name, undefined, resolvedPathId),
       // Graph context — compliance gaps that enable this path
       graphContext: {

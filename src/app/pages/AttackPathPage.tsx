@@ -173,12 +173,12 @@ export default function AttackPathPage() {
       label: "Attack Paths",
       sublabel: "Overview",
       contextKey: "attack-paths-overview",
-      greeting: `There are ${KPI.total} active attack paths: ${KPI.critical} critical, ${KPI.high} high, ${KPI.medium} medium. How can I help you prioritize?`,
+      greeting: `**${KPI.critical} critical attack paths** are active. ${KPI.total} total paths discovered across your infrastructure — ${KPI.high} high, ${KPI.medium} medium, ${KPI.low} low. Where do you want to start?`,
       suggestions: [
-        { label: "Which paths pose the highest blast radius?", prompt: "Which attack paths pose the highest blast radius risk?" },
-        { label: "Summarize critical paths",                   prompt: "Summarize the critical attack paths and their entry points." },
-        { label: "Top mitigations across all paths",           prompt: "What mitigations would eliminate the most risk across all paths?" },
-        { label: "Paths sharing misconfigurations",            prompt: "Show me paths that share common misconfigurations." },
+        { label: "Which path has the highest blast radius?",   prompt: "Which attack path has the highest blast radius and what assets are at risk?" },
+        { label: "Walk me through the critical paths",         prompt: "Walk me through each critical attack path and its entry point." },
+        { label: "What single fix reduces the most risk?",     prompt: "What single remediation would eliminate the most risk across all attack paths?" },
+        { label: "Paths sharing a root misconfiguration",      prompt: "Which attack paths share the same root misconfiguration?" },
       ],
       graphContext: {
         totalPaths: KPI.total,

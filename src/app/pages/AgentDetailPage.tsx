@@ -1532,7 +1532,7 @@ function AgentDetailInner({
       label: agentRole,
       sublabel: "Analyst Context",
       contextKey: `agent:${id}`,
-      greeting: `**${agentRole}** is now in focus.${countLine}${insightLine} I have findings, risk posture, and active tasks loaded. Ask me to **explain the top finding**, **assess current risk**, or **show what's pending authorization**.`,
+      greeting: `**${agentRole}** is running.${countLine}${insightLine} Ask me to **explain the top finding**, **show what's pending action**, or **walk through the evidence chain**.`,
       suggestions: getPersonaAiBoxSuggestions("agent", persona, agentRole, id as AgentId),
     });
     return () => { closeAiBox(); };
@@ -1645,7 +1645,7 @@ function AgentDetailInner({
                   label: agentRole,
                   sublabel: "Analyst Context",
                   contextKey: `agent:${id}`,
-                  greeting: `**${agentRole}** is active. Findings, active tasks, and risk posture are loaded. Ask me to **explain the top finding**, **assess current risk**, or **show what's pending authorization**.`,
+                  greeting: `**${agentRole}** is running. Ask me to **explain the top finding**, **show what's pending action**, or **walk through the evidence chain**.`,
                   suggestions: getPersonaAiBoxSuggestions("agent", persona, agentRole, id as AgentId),
                 })}
                 style={{
@@ -1681,10 +1681,10 @@ function AgentDetailInner({
             {/* Section header with intent label */}
             <div className="flex flex-col gap-[2px]">
               <div className="flex items-center justify-between">
-                <span className="font-['Inter',sans-serif] text-[10px] text-[#7e97b0] leading-[14px] uppercase tracking-[0.5px]">Start investigation</span>
+                <span className="font-['Inter',sans-serif] text-[10px] text-[#7e97b0] leading-[14px] uppercase tracking-[0.5px]">Investigate</span>
                 <span className="font-['Inter',sans-serif] text-[9px] text-[#3a5060] leading-[12px]">Opens in AIBox →</span>
               </div>
-              <p className="font-['Inter',sans-serif] text-[9px] text-[#3a5060] leading-[13px]">Select an action to continue your analysis with agent context loaded.</p>
+              <p className="font-['Inter',sans-serif] text-[9px] text-[#3a5060] leading-[13px]">Pick a starting point — analyst context loads automatically.</p>
             </div>
 
             {/* Primary actions — 2 prominent call-to-action buttons */}
