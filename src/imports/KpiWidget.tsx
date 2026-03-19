@@ -93,7 +93,7 @@ function Separator() {
     <div className="h-0 relative shrink-0 w-full">
       <div className="absolute inset-[-0.5px_0]">
         <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 326 1">
-          <path d="M0 0.5H326" stroke="#172a3c" />
+          <path d="M0 0.5H326" stroke="rgba(87,177,255,0.09)" />
         </svg>
       </div>
     </div>
@@ -109,13 +109,13 @@ function HeroStat() {
         <span className="text-[11px] text-white font-['Inter:Semi_Bold',sans-serif] tracking-[-0.3px] leading-[1] ml-[2px]">{(mttd / 10).toFixed(1)}</span>
         <span className="text-[9px] text-[#89949e] font-['Inter:Regular',sans-serif] leading-[1]">h</span>
       </div>
-      <span className="text-[#172a3c] leading-[1] text-[10px]">·</span>
+      <span className="text-[#2e4a63] leading-[1] text-[10px]">·</span>
       <div className="flex items-baseline gap-[3px]">
         <span className="text-[8px] text-[#4a5f72] font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.4px] leading-[1]">MTTR</span>
         <span className="text-[11px] text-white font-['Inter:Semi_Bold',sans-serif] tracking-[-0.3px] leading-[1] ml-[2px]">1.2</span>
         <span className="text-[9px] text-[#89949e] font-['Inter:Regular',sans-serif] leading-[1]">h</span>
       </div>
-      <span className="text-[#172a3c] leading-[1] text-[10px]">·</span>
+      <span className="text-[#2e4a63] leading-[1] text-[10px]">·</span>
       <div className="flex items-baseline gap-[3px]">
         <span className="text-[8px] text-[#4a5f72] font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.4px] leading-[1]">SLA</span>
         <span className="text-[11px] text-[#00A46E] font-['Inter:Semi_Bold',sans-serif] tracking-[-0.3px] leading-[1] ml-[2px]">98.7</span>
@@ -129,11 +129,11 @@ function WhatMattersNow() {
   return (
     <div className="flex flex-col gap-[5px] w-full">
       <div className="flex items-center justify-between w-full">
-        <span className="text-[9px] text-[#4a5f72] font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.6px] leading-[1]">
+        <span className="text-[9px] text-[#5a7280] font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.6px] leading-[1]">
           Situation now
         </span>
-        <span className="text-[8px] text-[#4a5f72] font-['Inter:Regular',sans-serif] leading-[1] opacity-70">
-          click to ask
+        <span className="text-[8px] text-[#5a7088] font-['Inter:Regular',sans-serif] leading-[1]">
+          click any signal to ask
         </span>
       </div>
       <div className="flex flex-col gap-[4px] w-full">
@@ -159,7 +159,7 @@ function WhatMattersNow() {
             <span className="text-[10px] font-['Inter:Regular',sans-serif] leading-[1.35] flex-1" style={{ color: sig.type === "critical" ? "#e8a0a0" : sig.type === "warning" ? "#d4906a" : sig.type === "good" ? "#7ecfae" : "#7ea9cc" }}>
               {sig.text}
             </span>
-            <span className="text-[8px] font-['Inter:Medium',sans-serif] text-[#57b1ff] opacity-[0.28] group-hover:opacity-100 transition-opacity shrink-0 self-center leading-[1]">
+            <span className="text-[8px] font-['Inter:Medium',sans-serif] text-[#57b1ff] opacity-[0.40] group-hover:opacity-100 transition-opacity shrink-0 self-center leading-[1]">
               →
             </span>
           </div>
@@ -209,7 +209,7 @@ export default function KpiWidget() {
 
       {/* Metric rows */}
       <div className="flex flex-col w-full gap-[3px]">
-        <span className="text-[8px] text-[#4a5f72] font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.6px] leading-[1] mb-[1px]">
+        <span className="text-[8px] text-[#5a7280] font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.6px] leading-[1] mb-[1px]">
           Performance
         </span>
         {standardMetrics.map((m, i) => (

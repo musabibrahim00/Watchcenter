@@ -167,7 +167,7 @@ export default function ActivityFeed() {
             <div className="h-0 relative shrink-0 w-full">
               <div className="absolute inset-[-0.5px_0]">
                 <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 272 1">
-                  <path d="M0 0.5H272" stroke="#172a3c" />
+                  <path d="M0 0.5H272" stroke="rgba(87,177,255,0.09)" />
                 </svg>
               </div>
             </div>

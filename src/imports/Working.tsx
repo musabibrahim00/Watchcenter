@@ -277,10 +277,10 @@ function AgentTooltip({ agentId }: { agentId: AgentId }) {
         {/* "Click to interact" hint — always visible */}
         <div className="h-px w-full" style={{ background: "rgba(87,177,255,0.06)" }} />
         <span
-          className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic text-[#3E4E5A]"
+          className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic text-[#506070]"
           style={{ fontSize: 8 }}
         >
-          Click to view details or interact
+          Click to open agent details and interact
         </span>
       </div>
     </div>
