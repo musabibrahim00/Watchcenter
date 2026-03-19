@@ -372,13 +372,24 @@ export default function AttackPathPage() {
             alignItems: "center",
             justifyContent: "space-between",
           }}>
-            <span style={{
-              fontSize: fontSize.lg,
-              fontWeight: fontWeight.semibold,
-              color: colors.textPrimary,
-            }}>
-              Attack Paths Overview
-            </span>
+            <div>
+              <span style={{
+                fontSize: fontSize.lg,
+                fontWeight: fontWeight.semibold,
+                color: colors.textPrimary,
+                display: "block",
+              }}>
+                Attack Paths Overview
+              </span>
+              <span style={{
+                fontSize: "10px",
+                color: colors.textDim,
+                display: "block",
+                marginTop: 2,
+              }}>
+                Click any row to explore the attack chain and blast radius
+              </span>
+            </div>
             <span style={{
               fontSize: "10px",
               fontWeight: fontWeight.semibold,
@@ -388,6 +399,7 @@ export default function AttackPathPage() {
               borderRadius: radius.full,
               padding: "2px 9px",
               letterSpacing: "0.03em",
+              flexShrink: 0,
             }}>
               {PATHS.length} paths
             </span>

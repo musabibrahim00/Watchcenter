@@ -1465,12 +1465,22 @@ function AgentDetailInner({
   /* ── Push agent context to global AIBox and auto-open ── */
   useEffect(() => {
     const agentRole = AGENT_ROLE[id];
+    const insights = AGENT_INSIGHTS[id as AgentId] ?? [];
+    const activeInsights = insights.filter(i => i.status === "active" || i.status === "confirmed");
+    const topInsight = activeInsights[0];
+    const insightLine = topInsight
+      ? ` Most recent: **${topInsight.title}**.`
+      : "";
+    const insightCount = activeInsights.length;
+    const countLine = insightCount > 0
+      ? ` ${insightCount} active finding${insightCount > 1 ? "s" : ""} in the current cycle.`
+      : "";
     openWithContext({
       type: "agent",
       label: agentRole,
       sublabel: "Analyst Context",
       contextKey: `agent:${id}`,
-      greeting: `I have **${agentRole}** context loaded. I can help you understand this analyst's discoveries, tasks, and impact.`,
+      greeting: `I have **${agentRole}** context loaded.${countLine}${insightLine} Ask me about findings, tasks, risk posture, or to take an action.`,
       suggestions: getPersonaAiBoxSuggestions("agent", persona, agentRole, id as AgentId),
     });
     return () => { closeAiBox(); };
@@ -1583,7 +1593,7 @@ function AgentDetailInner({
                   label: agentRole,
                   sublabel: "Analyst Context",
                   contextKey: `agent:${id}`,
-                  greeting: `I have **${agentRole}** context loaded. Ask me anything about findings, tasks, or risk.`,
+                  greeting: `I have **${agentRole}** context loaded. What would you like to explore — findings, active tasks, risk posture, or a specific action?`,
                   suggestions: getPersonaAiBoxSuggestions("agent", persona, agentRole, id as AgentId),
                 })}
                 style={{

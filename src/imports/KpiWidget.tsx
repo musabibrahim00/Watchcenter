@@ -151,7 +151,7 @@ function WhatMattersNow() {
             <span className="text-[10px] font-['Inter:Regular',sans-serif] leading-[1.35] flex-1" style={{ color: sig.type === "critical" ? "#e8a0a0" : sig.type === "warning" ? "#d4906a" : sig.type === "good" ? "#7ecfae" : "#7ea9cc" }}>
               {sig.text}
             </span>
-            <span className="text-[8px] font-['Inter:Medium',sans-serif] text-[#57b1ff] opacity-0 group-hover:opacity-100 transition-opacity shrink-0 self-center leading-[1]">
+            <span className="text-[8px] font-['Inter:Medium',sans-serif] text-[#57b1ff] opacity-[0.28] group-hover:opacity-100 transition-opacity shrink-0 self-center leading-[1]">
               Ask →
             </span>
           </div>

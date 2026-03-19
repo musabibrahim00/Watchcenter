@@ -1596,6 +1596,110 @@ function processGeneralQuery(query: string, ctx: AiBoxPageContext | null, onModi
     };
   }
 
+  /* ── Attack Path context handlers ── */
+  const isAttackPathCtx = ctx?.contextKey?.includes("attack-path") || ctx?.contextKey?.includes("attack-paths-overview");
+  if (isAttackPathCtx) {
+    /* Blast radius / highest risk queries */
+    if (/blast.?radius|highest.?risk|highest.?blast|most.?impact|most.?danger|worst/i.test(q)) {
+      return {
+        content: `**Blast radius analysis across active attack paths:**\n\nThe highest blast-radius path is **Internet-Facing Service → Database** (ap-001), with **49 vulnerabilities** across **12 assets** including the finance-db-01 crown jewel. A successful exploit gives an attacker direct access to production PII and financial records.\n\nThe **Container Escape → Host Takeover** path (ap-005) reaches **18 assets** including the Kubernetes control plane — the widest lateral blast radius.\n\nRecommended priority order: ap-001 → ap-005 → ap-002 (credential takeover).`,
+        uiModule: (
+          <InsightCard
+            module="Exposure / Threat Modelling"
+            severity="critical"
+            title="Highest Blast Radius — Internet-Facing Service → Database"
+            description="12 assets exposed including finance-db-01 crown jewel. 49 vulnerabilities with confirmed KEV match on the entry EC2 instance."
+            supportingStats={[
+              { label: "Total Assets at Risk", value: "12" },
+              { label: "Vulnerabilities", value: "49" },
+              { label: "Crown Jewels", value: "1 (finance-db-01)" },
+              { label: "Priority", value: "Critical" },
+            ]}
+            actions={["View attack chain", "Simulate remediation", "Create case"]}
+          />
+        ),
+      };
+    }
+
+    /* Prioritize / triage queries */
+    if (/priorit|triage|where.?start|start.?with|which.?first|most.?urgent|focus/i.test(q)) {
+      return {
+        content: `**Prioritization across ${7} active attack paths:**\n\n**Immediate** — ap-001 and ap-002 are both critical and have confirmed KEV matches. ap-001 reaches finance-db-01 directly.\n\n**Next** — ap-005 (Container Escape) has the widest blast radius (18 assets) and sits inside the production Kubernetes cluster.\n\n**Watch** — ap-003 (SMB lateral movement) involves 24 assets and active misconfiguration exposure.\n\nStart with **ap-001** — it's the highest-risk, most direct path to a crown jewel.`,
+        uiModule: (
+          <InsightCard
+            module="Exposure / Threat Modelling"
+            severity="critical"
+            title="Attack Path Triage — Recommended Priority Order"
+            description="3 critical paths require immediate attention. Start with ap-001 (finance-db-01 reachability) before moving to container and credential paths."
+            supportingStats={[
+              { label: "Critical Paths", value: "3" },
+              { label: "High Paths", value: "3" },
+              { label: "Shared Misconfigs", value: "14 across top 3" },
+              { label: "Quick Win", value: "Patch KEV on ap-001 entry node" },
+            ]}
+            actions={["Open ap-001", "View shared misconfigurations", "Create triage case"]}
+          />
+        ),
+      };
+    }
+
+    /* Mitigation / remediation queries */
+    if (/mitigat|remediat|fix|close|harden|reduce|eliminate/i.test(q)) {
+      return {
+        content: `**Top mitigations across all attack paths:**\n\n1. **Patch CVE-2018-15133 on ec2 i-0a3f7c9d** — closes the entry point for ap-001 (finance-db-01 path)\n2. **Enforce MFA on IAM user dev-user-01** — eliminates the credential path for ap-002\n3. **Isolate EKS pod from host network** — blocks container escape vector for ap-005\n4. **Restrict SMB lateral movement via firewall rules** — reduces blast radius for ap-003\n\nFixing items 1 and 2 alone eliminates both critical paths from the internet to crown jewel assets.`,
+        uiModule: (
+          <InsightCard
+            module="Exposure / Threat Modelling"
+            severity="high"
+            title="Cross-Path Remediation Plan"
+            description="4 targeted fixes eliminate all 3 critical attack paths. Items 1 and 2 have the highest leverage — each closes a direct internet-to-crown-jewel vector."
+            supportingStats={[
+              { label: "Fixes Required", value: "4" },
+              { label: "Critical Paths Closed", value: "3 of 3" },
+              { label: "Est. Effort", value: "2–4 hours" },
+              { label: "Risk Reduction", value: "~65%" },
+            ]}
+            actions={["Create remediation workflow", "Assign to team", "Export action plan"]}
+          />
+        ),
+      };
+    }
+
+    /* Attack chain / walk-through queries */
+    if (/walk.?through|explain.?path|how.?does.*work|attack.?chain|show.?me.?path|step.?by.?step/i.test(q)) {
+      return {
+        content: `**Attack chain walkthrough — Internet-Facing Service → Database (ap-001):**\n\n1. **Internet** — External attacker probes the perimeter\n2. **Cloud (AWS)** — Entry via exposed cloud surface\n3. **AWS Account prod-0384** — Lateral into the account\n4. **Region us-east-1** — Regional boundary traversed\n5. **EC2 i-0a3f7c9d** *(vulnerable — CVE-2018-15133)* — Remote code execution achieved\n6. → **finance-db-01** reachable via internal subnet with no segmentation\n\nThe exploit pulse on the graph shows live traversal. Click any node to see its details and what controls would block it.`,
+      };
+    }
+
+    /* Common misconfiguration queries */
+    if (/misconfigur|shared.*misconfigur|common.*flaw|what.*wrong|same.*misconfigur/i.test(q)) {
+      return {
+        content: `**Shared misconfigurations across attack paths:**\n\nThe most common misconfigurations enabling multiple paths:\n\n• **Overly permissive security groups** — Allows cross-subnet traffic; affects ap-001, ap-003, ap-005\n• **IAM role with wildcard permissions** — Enables privilege escalation; affects ap-002, ap-004\n• **No network segmentation between prod tiers** — Allows lateral movement; affects ap-001, ap-003, ap-007\n\nFixing the security group and IAM misconfigurations alone would reduce 5 of 7 active paths.`,
+        uiModule: (
+          <InsightCard
+            module="Exposure / Threat Modelling"
+            severity="high"
+            title="Shared Misconfigurations — 5 Paths Affected"
+            description="Permissive security groups and over-privileged IAM roles appear across the majority of active attack paths. Fixing these two categories has the highest cross-path impact."
+            supportingStats={[
+              { label: "Paths with SG issues", value: "5 of 7" },
+              { label: "Paths with IAM issues", value: "3 of 7" },
+              { label: "Unique misconfigs", value: "38" },
+              { label: "Shared misconfigs", value: "14" },
+            ]}
+            actions={["View misconfigs list", "Create remediation workflow", "Export findings"]}
+          />
+        ),
+      };
+    }
+
+    /* Generic attack-path fallback */
+    return {
+      content: `I have the **${label}** attack path data loaded. Here's what I can help you with:\n\n• **Blast radius** — Which paths expose the most assets\n• **Prioritize** — Where to start and in what order\n• **Mitigations** — What fixes eliminate the most risk\n• **Attack chain** — Walk through any path step by step\n• **Shared misconfigurations** — Common flaws across multiple paths\n\nJust ask in your own words.`,
+    };
+  }
+
   /* ── Context-aware fallback ── */
   const contextMenu = isCompliance
     ? `• **Explain** — What this gap means and why it's required\n• **Impact** — Business, regulatory, and security consequences\n• **Remediation** — Specific steps to close this gap\n• **Attack paths** — Which paths this gap worsens\n• **Effort estimate** — How long remediation typically takes`
