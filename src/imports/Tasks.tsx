@@ -6,15 +6,28 @@ import MoveRight from "./MoveRight";
 import svgKdPaths from "./svg-g917fa6ogx";
 import { useTaskInvestigation, buildTaskRequest } from "./TaskInvestigationBridge";
 
+// ── Risk lifecycle stages ──────────────────────────────────────────────────
+export type RiskPipelineStage =
+  | "detected"
+  | "analyzed"
+  | "prepared"
+  | "awaiting_authorization"
+  | "executing"
+  | "completed";
+
 export interface TaskData {
   id: string;
   title: string;
-  subtitle: string;
-  reason: string;
+  subtitle: string;   // Identification — issue description
+  reason: string;     // Assessment — why it matters / business impact
   actionLabel: string;
   type?: "standard" | "kd";
   mttdValue?: string;
   mttdChange?: string;
+  // Risk Tracker lifecycle fields
+  source?: string;           // Identification — which agent/module detected it
+  affectedAsset?: string;    // Identification — asset or system at risk
+  pipelineStage?: RiskPipelineStage;  // Mitigation/Monitoring — current stage
 }
 
 const TASK_POOL: TaskData[] = [
@@ -24,6 +37,9 @@ const TASK_POOL: TaskData[] = [
     subtitle: "CVE-2024-5821 actively exploited in the wild. Finance database directly exposed.",
     reason: "KEV match + internet exposed + asset classified as crown jewel",
     actionLabel: "Authorize",
+    source: "Vulnerability Analyst",
+    affectedAsset: "finance-db-01",
+    pipelineStage: "awaiting_authorization",
   },
   {
     id: "task-2",
@@ -34,6 +50,9 @@ const TASK_POOL: TaskData[] = [
     type: "kd",
     mttdValue: "3.6 hrs",
     mttdChange: "23.5%",
+    source: "Exposure Analyst",
+    affectedAsset: "corp-dc-01",
+    pipelineStage: "awaiting_authorization",
   },
   {
     id: "task-3",
@@ -41,6 +60,9 @@ const TASK_POOL: TaskData[] = [
     subtitle: "Production TLS certificates expire in < 72 hours. External services at risk.",
     reason: "Production TLS expiry < 72h — external-facing services affected",
     actionLabel: "Authorize",
+    source: "Configuration Security",
+    affectedAsset: "prod-lb-01/02",
+    pipelineStage: "awaiting_authorization",
   },
   {
     id: "task-4",
@@ -48,6 +70,9 @@ const TASK_POOL: TaskData[] = [
     subtitle: "23 API tokens with admin scope haven't been rotated in 180+ days.",
     reason: "Over-privileged tokens with no rotation — lateral movement risk via billing API",
     actionLabel: "Authorize",
+    source: "Identity Security",
+    affectedAsset: "billing-api",
+    pipelineStage: "awaiting_authorization",
   },
   {
     id: "task-5",
@@ -58,6 +83,9 @@ const TASK_POOL: TaskData[] = [
     type: "kd",
     mttdValue: "1.2 hrs",
     mttdChange: "41.8%",
+    source: "Risk Intelligence",
+    affectedAsset: "WKS-0447",
+    pipelineStage: "awaiting_authorization",
   },
   {
     id: "task-6",
@@ -65,6 +93,9 @@ const TASK_POOL: TaskData[] = [
     subtitle: "CVE-2025-1103 allows unauthenticated remote code execution on CI/CD pipeline.",
     reason: "Unauthenticated RCE on build server — supply chain compromise risk",
     actionLabel: "Authorize",
+    source: "Application Security",
+    affectedAsset: "jenkins-prod-01",
+    pipelineStage: "awaiting_authorization",
   },
   {
     id: "task-7",
@@ -75,6 +106,9 @@ const TASK_POOL: TaskData[] = [
     type: "kd",
     mttdValue: "5.1 hrs",
     mttdChange: "12.3%",
+    source: "Identity Security",
+    affectedAsset: "admin-group-02",
+    pipelineStage: "awaiting_authorization",
   },
   {
     id: "task-8",
@@ -82,8 +116,70 @@ const TASK_POOL: TaskData[] = [
     subtitle: "Customer PII dataset accessible via misconfigured bucket policy since last deploy.",
     reason: "Public read access on PII bucket — regulatory and breach notification risk",
     actionLabel: "Authorize",
+    source: "Governance & Compliance",
+    affectedAsset: "s3://pii-prod-data",
+    pipelineStage: "awaiting_authorization",
   },
 ];
+
+// ── Risk lifecycle pipeline strip ─────────────────────────────────────────
+const PIPELINE_STAGES: { key: RiskPipelineStage; label: string; abbr: string }[] = [
+  { key: "detected",                label: "Detected",      abbr: "Detected" },
+  { key: "analyzed",                label: "Analyzed",      abbr: "Analyzed" },
+  { key: "prepared",                label: "Prepared",      abbr: "Prepared" },
+  { key: "awaiting_authorization",  label: "Awaiting auth", abbr: "Awaiting auth" },
+  { key: "executing",               label: "Executing",     abbr: "Executing" },
+  { key: "completed",               label: "Completed",     abbr: "Done" },
+];
+
+function RiskPipeline({ stage }: { stage?: RiskPipelineStage }) {
+  const currentStage = stage ?? "awaiting_authorization";
+  const currentIdx = PIPELINE_STAGES.findIndex(s => s.key === currentStage);
+  const nextStage = PIPELINE_STAGES[currentIdx + 1];
+  return (
+    <div className="flex flex-col gap-[5px] w-full">
+      {/* Dot track */}
+      <div className="flex items-center gap-[5px]">
+        {PIPELINE_STAGES.map((s, i) => {
+          const done = i < currentIdx;
+          const current = i === currentIdx;
+          return (
+            <React.Fragment key={s.key}>
+              {i > 0 && (
+                <div style={{ flex: 1, height: 1, background: done ? "rgba(7,129,194,0.35)" : "rgba(255,255,255,0.06)", borderRadius: 1 }} />
+              )}
+              <div
+                style={{
+                  width: current ? 6 : 4,
+                  height: current ? 6 : 4,
+                  borderRadius: "50%",
+                  flexShrink: 0,
+                  backgroundColor: current ? "#57b1ff" : done ? "#2a5a7a" : "#1e2e3a",
+                  boxShadow: current ? "0 0 5px #57b1ff88" : "none",
+                  transition: "all 0.3s ease",
+                }}
+              />
+            </React.Fragment>
+          );
+        })}
+      </div>
+      {/* Stage label */}
+      <div className="flex items-center gap-[5px]">
+        <span className="font-['Inter:Semi_Bold',sans-serif] text-[8px] text-[#57b1ff] tracking-[0.3px] leading-[1]">
+          {PIPELINE_STAGES[currentIdx]?.label ?? "—"}
+        </span>
+        {nextStage && (
+          <>
+            <span style={{ fontSize: 7, color: "#2a3a4a" }}>›</span>
+            <span className="font-['Inter:Regular',sans-serif] text-[8px] tracking-[0.3px] leading-[1]" style={{ color: "#2a3a4a" }}>
+              {nextStage.abbr}
+            </span>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDetails?: () => void; onAction?: () => void }) {
   const [loading, setLoading] = React.useState(false);
@@ -116,22 +212,31 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
       <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[10px] overflow-hidden" style={{ WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude", padding: "1px" }}>
         <div className="absolute inset-[-50%] animate-[border-spin_4s_linear_infinite]" style={{ background: "conic-gradient(from 0deg, #030609 0%, #FF575752 25%, #030609 50%, #FF575752 75%, #030609 100%)" }} />
       </div>
-      {/* Header */}
+      {/* Stage: Identification */}
       <div className="relative shrink-0 w-full" data-name="Container">
         <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-start justify-between relative w-full">
           <div className="flex-[1_0_0] min-h-px min-w-px relative" data-name="Container">
             <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col gap-[5px] items-start leading-[normal] not-italic relative w-full tracking-[0.4px] whitespace-pre-wrap">
-              <span className="inline-flex items-center gap-[4px] px-[5px] py-[1px] rounded-[3px] text-[9px] font-['Inter:Semi_Bold',sans-serif] tracking-[0.4px] uppercase" style={{ background: "rgba(255,87,87,0.10)", border: "1px solid rgba(255,87,87,0.22)", color: "#ff8a8a" }}>
-                <span className="block size-[4px] rounded-full bg-[#FF5757]" />
-                Critical
-              </span>
+              <div className="flex items-center justify-between w-full">
+                <span className="inline-flex items-center gap-[4px] px-[5px] py-[1px] rounded-[3px] text-[9px] font-['Inter:Semi_Bold',sans-serif] tracking-[0.4px] uppercase" style={{ background: "rgba(255,87,87,0.10)", border: "1px solid rgba(255,87,87,0.22)", color: "#ff8a8a" }}>
+                  <span className="block size-[4px] rounded-full bg-[#FF5757]" />
+                  Critical
+                </span>
+                <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#2a4a5a" }}>Identification</span>
+              </div>
               <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[12px] w-full">{task.title}</p>
               <p className="font-['Inter:Regular',sans-serif] text-[10px] text-[#6b7c8a] leading-[14px] w-full whitespace-normal mt-[1px]">{task.subtitle}</p>
+              {task.affectedAsset && (
+                <div className="flex items-center gap-[4px] mt-[1px]">
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a4050" }}>Asset:</span>
+                  <span className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[8px]" style={{ color: "#3a6070" }}>{task.affectedAsset}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
-      {/* Reason */}
+      {/* Stage: Assessment */}
       <div className="relative shrink-0 w-full" data-name="Container">
         <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[12px] items-start relative w-full">
           <div className="flex h-0 items-center justify-center relative self-center shrink-0 w-0" style={{ "--transform-inner-width": "1200", "--transform-inner-height": "19" } as React.CSSProperties}>
@@ -147,11 +252,18 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
           </div>
           <div className="flex-[1_0_0] min-h-px min-w-px relative" data-name="Container">
             <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col font-['Inter:Regular',sans-serif] font-normal gap-[4px] items-start leading-[normal] not-italic relative text-[10px] w-full">
-              <p className="h-[11px] relative shrink-0 text-[#dadfe3] w-full whitespace-pre-wrap">Why this matters</p>
+              <div className="flex items-center justify-between w-full">
+                <p className="h-[11px] relative shrink-0 text-[#dadfe3] whitespace-pre-wrap">Why this matters</p>
+                <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#2a4a5a" }}>Assessment</span>
+              </div>
               <p className="relative shrink-0 text-[#89949e]">{task.reason}</p>
             </div>
           </div>
         </div>
+      </div>
+      {/* Stage: Mitigation / Monitoring — lifecycle pipeline */}
+      <div className="relative shrink-0 w-full px-[2px]">
+        <RiskPipeline stage={task.pipelineStage} />
       </div>
       {/* Buttons / Loader */}
       <div className="relative shrink-0 w-full mt-auto" data-name="Buttons">
@@ -205,7 +317,7 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
               style={{ background: "rgba(87,177,255,0.07)", border: "1px solid rgba(87,177,255,0.16)" }}
               onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.13)")}
               onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.07)")}
-              onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query: `Why does "${task.title}" matter? Explain the risk.` } })); }}
+              onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query: `Intervention: "${task.title}" — currently at Mitigation stage (awaiting authorization). Why is this intervention required, what is the blast radius if we don't act, and what should happen after authorization?` } })); }}
             >
               <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff"/></svg>
               <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center tracking-[0.2px]">Ask why</p>
@@ -248,25 +360,34 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
       <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[10px] overflow-hidden" style={{ WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude", padding: "1px" }}>
         <div className="absolute inset-[-50%] animate-[border-spin_4s_linear_infinite]" style={{ background: "conic-gradient(from 0deg, #030609 0%, #FF575752 25%, #030609 50%, #FF575752 75%, #030609 100%)" }} />
       </div>
-      {/* Header */}
+      {/* Stage: Identification */}
       <div className="relative shrink-0 w-full" data-name="Container">
         <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-start justify-between relative w-full">
           <div className="flex-[1_0_0] min-h-px min-w-px relative" data-name="Container">
             <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col gap-[5px] items-start leading-[normal] not-italic relative w-full tracking-[0.4px]">
-              <span className="inline-flex items-center gap-[4px] px-[5px] py-[1px] rounded-[3px] text-[9px] font-['Inter:Semi_Bold',sans-serif] tracking-[0.4px] uppercase" style={{ background: "rgba(255,87,87,0.10)", border: "1px solid rgba(255,87,87,0.22)", color: "#ff8a8a" }}>
-                <span className="block size-[4px] rounded-full bg-[#FF5757]" />
-                Critical
-              </span>
+              <div className="flex items-center justify-between w-full">
+                <span className="inline-flex items-center gap-[4px] px-[5px] py-[1px] rounded-[3px] text-[9px] font-['Inter:Semi_Bold',sans-serif] tracking-[0.4px] uppercase" style={{ background: "rgba(255,87,87,0.10)", border: "1px solid rgba(255,87,87,0.22)", color: "#ff8a8a" }}>
+                  <span className="block size-[4px] rounded-full bg-[#FF5757]" />
+                  Critical
+                </span>
+                <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#2a4a5a" }}>Identification</span>
+              </div>
               <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[12px] w-full">{task.title}</p>
               <p className="font-['Inter:Regular',sans-serif] text-[10px] text-[#6b7c8a] leading-[14px] w-full whitespace-normal mt-[1px]">{task.subtitle}</p>
+              {task.affectedAsset && (
+                <div className="flex items-center gap-[4px] mt-[1px]">
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a4050" }}>Asset:</span>
+                  <span className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[8px]" style={{ color: "#3a6070" }}>{task.affectedAsset}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
-      {/* Why this matters + MTTD row */}
+      {/* Stage: Assessment + MTTD row */}
       <div className="relative shrink-0 w-full" data-name="Frame">
         <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[16px] items-center relative w-full">
-          {/* Why this matters */}
+          {/* Assessment */}
           <div className="content-stretch flex flex-[1_0_0] gap-[12px] items-start min-h-px min-w-px relative" data-name="Container">
             <div className="flex h-0 items-center justify-center relative self-center shrink-0 w-0" style={{ "--transform-inner-width": "1200", "--transform-inner-height": "19" } as React.CSSProperties}>
               <div className="flex-none h-full rotate-90">
@@ -281,7 +402,10 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
             </div>
             <div className="flex-[1_0_0] min-h-px min-w-px relative" data-name="Container">
               <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col font-['Inter:Regular',sans-serif] font-normal gap-[4px] items-start leading-[normal] not-italic relative text-[10px] w-full">
-                <p className="h-[11px] relative shrink-0 text-[#dadfe3] w-full">Why this matters</p>
+                <div className="flex items-center justify-between w-full">
+                  <p className="h-[11px] relative shrink-0 text-[#dadfe3]">Why this matters</p>
+                  <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#2a4a5a" }}>Assessment</span>
+                </div>
                 <p className="relative shrink-0 text-[#89949e] w-full">{task.reason}</p>
               </div>
             </div>
@@ -332,6 +456,10 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
           </div>
         </div>
       </div>
+      {/* Stage: Mitigation / Monitoring — lifecycle pipeline */}
+      <div className="relative shrink-0 w-full px-[2px]">
+        <RiskPipeline stage={task.pipelineStage} />
+      </div>
       {/* Buttons / Loader */}
       <div className="relative shrink-0 w-full mt-auto" data-name="Buttons">
         <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-center justify-between relative w-full">
@@ -384,7 +512,7 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
               style={{ background: "rgba(87,177,255,0.07)", border: "1px solid rgba(87,177,255,0.16)" }}
               onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.13)")}
               onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.07)")}
-              onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query: `Why does "${task.title}" matter? Explain the risk.` } })); }}
+              onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query: `Intervention: "${task.title}" — currently at Mitigation stage (awaiting authorization). Why is this intervention required, what is the blast radius if we don't act, and what should happen after authorization?` } })); }}
             >
               <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff"/></svg>
               <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center tracking-[0.2px]">Ask why</p>

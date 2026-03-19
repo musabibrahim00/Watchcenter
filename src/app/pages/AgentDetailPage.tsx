@@ -1480,7 +1480,7 @@ function AgentDetailInner({
       label: agentRole,
       sublabel: "Analyst Context",
       contextKey: `agent:${id}`,
-      greeting: `**Agent ${meta.label} — ${agentRole}** is loaded.${countLine}${insightLine} I can surface findings, explain risk impact, recommend remediations, or trigger an action — just ask.`,
+      greeting: `Switched context to **${agentRole}**.${countLine}${insightLine} Findings, recent activity, and risk posture are loaded — conversation continues here. What would you like to explore?`,
       suggestions: getPersonaAiBoxSuggestions("agent", persona, agentRole, id as AgentId),
     });
     return () => { closeAiBox(); };
