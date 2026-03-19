@@ -149,7 +149,14 @@ function WhatMattersNow() {
       </span>
       <div className="flex flex-col gap-[3px] w-full">
         {PRIORITY_SIGNALS.map((sig, i) => (
-          <div key={i} className="flex items-start gap-[6px]">
+          <div
+            key={i}
+            className="flex items-start gap-[6px] group cursor-pointer rounded-[4px] px-[2px] py-[2px] -mx-[2px] transition-colors"
+            style={{ background: "transparent" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.05)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+            onClick={() => window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query: sig.text } }))}
+          >
             <span
               className="block size-[5px] rounded-full shrink-0 mt-[3px]"
               style={{
@@ -157,8 +164,11 @@ function WhatMattersNow() {
                 boxShadow: `0 0 5px ${SIGNAL_COLORS[sig.type]}66`,
               }}
             />
-            <span className="text-[10px] font-['Inter:Regular',sans-serif] leading-[1.35]" style={{ color: sig.type === "critical" ? "#e8a0a0" : sig.type === "warning" ? "#d4906a" : sig.type === "good" ? "#7ecfae" : "#7ea9cc" }}>
+            <span className="text-[10px] font-['Inter:Regular',sans-serif] leading-[1.35] flex-1" style={{ color: sig.type === "critical" ? "#e8a0a0" : sig.type === "warning" ? "#d4906a" : sig.type === "good" ? "#7ecfae" : "#7ea9cc" }}>
               {sig.text}
+            </span>
+            <span className="text-[8px] font-['Inter:Medium',sans-serif] text-[#57b1ff] opacity-0 group-hover:opacity-100 transition-opacity shrink-0 self-center leading-[1]">
+              Ask →
             </span>
           </div>
         ))}

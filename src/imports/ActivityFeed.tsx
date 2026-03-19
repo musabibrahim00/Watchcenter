@@ -11,14 +11,14 @@ interface ActivityEvent {
 }
 
 const ANALYST_COLORS: Record<string, string> = {
-  "Asset Intelligence": "#DADFE3",
-  "Configuration Security": "#DADFE3",
-  "Application Security": "#DADFE3",
-  "Exposure": "#DADFE3",
-  "Risk Intelligence": "#DADFE3",
-  "Governance & Compliance": "#FF5757",
-  "Identity Security": "#DADFE3",
-  "Vulnerability": "#DADFE3",
+  "Asset Intelligence": "#57b1ff",        // blue  — inventory / discovery
+  "Configuration Security": "#7ecfae",    // teal  — policy / hardening
+  "Application Security": "#a78bfa",      // violet — code / supply chain
+  "Exposure": "#f87171",                  // soft red — attack surface
+  "Risk Intelligence": "#f0a040",         // amber — scoring / correlation
+  "Governance & Compliance": "#FF5757",   // red   — compliance / remediation
+  "Identity Security": "#e8914a",         // orange — IAM / privilege
+  "Vulnerability": "#fb923c",             // orange-red — CVE / patch
 };
 
 const ACTIVITY_POOL: { analyst: string; action: string }[] = [

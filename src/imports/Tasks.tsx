@@ -116,6 +116,7 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
                 Critical
               </span>
               <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[12px] w-full">{task.title}</p>
+              <p className="font-['Inter:Regular',sans-serif] text-[10px] text-[#6b7c8a] leading-[14px] w-full whitespace-normal mt-[1px]">{task.subtitle}</p>
             </div>
           </div>
         </div>
@@ -237,6 +238,7 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
                 Critical
               </span>
               <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[12px] w-full">{task.title}</p>
+              <p className="font-['Inter:Regular',sans-serif] text-[10px] text-[#6b7c8a] leading-[14px] w-full whitespace-normal mt-[1px]">{task.subtitle}</p>
             </div>
           </div>
         </div>

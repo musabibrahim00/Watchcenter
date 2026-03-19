@@ -111,18 +111,21 @@ function TimelineStepRow({
         >
           {action}
         </span>
-        {/* "Ask about this step" — Section 4 */}
+        {/* "Ask about this step" */}
         {isRevealed && (
           <button
             onClick={() => window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query: `Explain what the ${analystName} did: ${action}` } }))}
-            className="mt-[2px] cursor-pointer border-none bg-transparent p-0 self-start"
+            className="mt-[2px] cursor-pointer border-none bg-transparent p-0 self-start group/askbtn"
           >
             <span
-              className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic"
-              style={{ fontSize: 8, color: "#57b1ff", letterSpacing: "0.02em", transition: "opacity 0.2s" }}
-              onMouseEnter={e => { e.currentTarget.style.opacity = "0.7"; }}
+              className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic flex items-center gap-[3px]"
+              style={{ fontSize: 9, color: "#57b1ff", letterSpacing: "0.02em", transition: "opacity 0.2s" }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = "0.75"; }}
               onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
             >
+              <svg width="7" height="7" viewBox="0 0 8 8" fill="none" style={{ flexShrink: 0 }}>
+                <path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff"/>
+              </svg>
               Ask about this step
             </span>
           </button>
