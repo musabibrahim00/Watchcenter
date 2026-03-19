@@ -152,11 +152,16 @@ export default function ActivityFeed() {
         <div className="flex-1 min-h-0 relative w-full">
           <div className="absolute inset-0 flex flex-col gap-[8px] items-start pt-[12px] px-[14px] pb-[6px]">
             {/* Header */}
-            <div className="flex gap-[8px] items-center shrink-0">
-              <div className="bg-[#00a46e] rounded-full shrink-0 size-[4px] animate-[blink_2s_ease-in-out_infinite]" />
-              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic shrink-0 text-[#dadfe3] text-[12px] tracking-[0.4px] uppercase whitespace-nowrap">
-                Activity Feed
-              </p>
+            <div className="flex gap-[8px] items-center justify-between shrink-0 w-full">
+              <div className="flex gap-[8px] items-center">
+                <div className="bg-[#00a46e] rounded-full shrink-0 size-[4px] animate-[blink_2s_ease-in-out_infinite]" />
+                <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic shrink-0 text-[#dadfe3] text-[12px] tracking-[0.4px] uppercase whitespace-nowrap">
+                  Activity Feed
+                </p>
+              </div>
+              <span className="text-[10px] text-[#4a5f72] font-['Inter:Regular',sans-serif] tabular-nums shrink-0">
+                {events.length} events
+              </span>
             </div>
             {/* Separator */}
             <div className="h-0 relative shrink-0 w-full">

@@ -176,9 +176,12 @@ export default function KpiWidget() {
 
       {/* Header */}
       <div className="flex items-center justify-between w-full">
-        <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] text-[#dadfe3] text-[12px] tracking-[0.4px] uppercase">
-          Insights
-        </p>
+        <div className="flex items-center gap-[6px]">
+          <div className="bg-[#00a46e] rounded-full shrink-0 size-[4px] animate-[blink_2s_ease-in-out_infinite]" />
+          <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] text-[#dadfe3] text-[12px] tracking-[0.4px] uppercase">
+            Insights
+          </p>
+        </div>
         <span className="text-[10px] text-[#6b7c8a] font-['Inter:Regular',sans-serif] tracking-[0.3px]">
           LAST 24H
         </span>
