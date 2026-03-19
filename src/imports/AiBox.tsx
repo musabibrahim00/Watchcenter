@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import svgPaths from "./svg-sx6d9u7tbs";
 import imgOld from "../assets/TeammateAvatar.png";
 import { buildAndRenderAiResponse, buildActionResponse, buildTaskInvestigation, extractContext, renderAiResponse, EMPTY_CONTEXT, ACTION_NAVIGATION, type InteractionContext } from "./AiBoxRenderer";
-import { AiBoxActionProvider, FallbackSuggestion, SuccessConfirmation, ResponseContext, InsightCard } from "./AiBoxModules";
+import { AiBoxActionProvider, FallbackSuggestion, SuccessConfirmation, ResponseContext, InsightCard, AttackPathSystemRecommendation, type AttackPathGraphProps, type InsightCardProps } from "./AiBoxModules";
 import { getRankedProactiveScenarios, type ProactiveScenario } from "./AiBoxLiveData";
 import { useTaskInvestigation } from "./TaskInvestigationBridge";
 import {
@@ -307,7 +307,7 @@ const ProactiveCard = React.memo(function ProactiveCard({ scenario, onDismiss }:
     <div className="w-full shrink-0 z-[2]" style={{ animation: "proactiveSlideIn 0.4s ease-out" }}>
       <div className="mx-[8px] mt-[4px] mb-[2px] rounded-[10px] overflow-hidden" style={{ background: colors.bg, border: `1px solid ${colors.border}` }}>
         {/* Header bar — lean: pulse dot + label + score + dismiss only */}
-        <div className="flex items-center justify-between px-[10px] py-[5px]" style={{ borderBottom: `1px solid ${colors.border}` }}>
+        <div className="flex items-center justify-between px-[10px] py-[6px]" style={{ borderBottom: `1px solid ${colors.border}` }}>
           <div className="flex items-center gap-[6px]">
             <span className="relative size-[5px] shrink-0">
               <span className="absolute inset-0 rounded-full" style={{ background: colors.dot, animation: "proactivePulse 2s ease-in-out infinite" }}/>
@@ -329,14 +329,25 @@ const ProactiveCard = React.memo(function ProactiveCard({ scenario, onDismiss }:
           </div>
         </div>
         {/* Event label */}
-        <div className="px-[10px] pt-[6px] pb-[2px]">
-          <p className="font-['Inter:Medium',sans-serif] text-[11px] leading-[14px] text-[#c8d4de]">{scenario.label}</p>
+        <div className="px-[10px] pt-[7px] pb-[3px]">
+          <p className="font-['Inter:Medium',sans-serif] text-[11px] leading-[14px] text-[#c8d4de] break-words">{scenario.label}</p>
         </div>
-        {/* Narrative content — flat, no inner card borders */}
-        <div className="px-[10px] pb-[10px] flex flex-col gap-[4px]">
-          {scenario.modules.map((mod, i) => (
-            <div key={i}>{renderAiResponse(mod)}</div>
-          ))}
+        {/* Narrative content — unified block, no inner cards */}
+        <div className="px-[10px] pb-[10px]">
+          {scenario.modules.length === 2 &&
+           scenario.modules[0].type === "attack_path" &&
+           scenario.modules[1].type === "insight" ? (
+            <AttackPathSystemRecommendation
+              graph={scenario.modules[0] as AttackPathGraphProps}
+              insight={scenario.modules[1] as InsightCardProps}
+            />
+          ) : (
+            <div className="flex flex-col gap-[4px]">
+              {scenario.modules.map((mod, i) => (
+                <div key={i}>{renderAiResponse(mod)}</div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
