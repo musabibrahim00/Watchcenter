@@ -35,11 +35,13 @@ const PATHS: PathSummary[] = [
 ];
 
 const KPI = {
-  total:    PATHS.length,
-  critical: PATHS.filter(p => p.priority === "critical").length,
-  high:     PATHS.filter(p => p.priority === "high").length,
-  medium:   PATHS.filter(p => p.priority === "medium").length,
-  low:      PATHS.filter(p => p.priority === "low").length,
+  total:       PATHS.length,
+  critical:    PATHS.filter(p => p.priority === "critical").length,
+  high:        PATHS.filter(p => p.priority === "high").length,
+  medium:      PATHS.filter(p => p.priority === "medium").length,
+  low:         PATHS.filter(p => p.priority === "low").length,
+  assetsAtRisk: PATHS.reduce((sum, p) => sum + p.assets, 0),
+  blastRadius:  PATHS.filter(p => p.priority === "critical").reduce((sum, p) => sum + p.assets, 0),
 };
 
 /* Threat Anatomy time-series */
@@ -350,11 +352,11 @@ export default function AttackPathPage() {
 
         {/* ── KPI Row ── */}
         <div style={{ display: "flex", gap: 12 }}>
-          <KpiCard label="Total Attack Paths" value={KPI.total}    color={colors.accent}   />
-          <KpiCard label="Critical"            value={KPI.critical} color={colors.critical} />
-          <KpiCard label="High"                value={KPI.high}     color={colors.high}     />
-          <KpiCard label="Medium"              value={KPI.medium}   color={colors.medium}   />
-          <KpiCard label="Low"                 value={KPI.low}      color={colors.low}      />
+          <KpiCard label="Paths Discovered"   value={KPI.total}         color={colors.accent}   />
+          <KpiCard label="Critical Paths"     value={KPI.critical}      color={colors.critical} />
+          <KpiCard label="High Risk"          value={KPI.high}          color={colors.high}     />
+          <KpiCard label="Assets Exposed"     value={KPI.assetsAtRisk}  color={colors.warning}  />
+          <KpiCard label="Blast Radius (Crit)" value={KPI.blastRadius}  color={colors.critical} />
         </div>
 
         {/* ── Attack Paths Table ── */}

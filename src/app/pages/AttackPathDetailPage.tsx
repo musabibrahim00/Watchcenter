@@ -2863,7 +2863,7 @@ export default function AttackPathDetailPage() {
       label: pathData.name,
       sublabel: "Attack Path Graph",
       contextKey: `attack-path-detail:${resolvedPathId}`,
-      greeting: `I have the **${pathData.name}** attack path loaded. ${contributingGaps.length > 0 ? `${contributingGaps.length} compliance gap${contributingGaps.length > 1 ? "s" : ""} contribute to this path's reachability.` : ""} I can walk through the attack chain, explain each hop, or help you build a remediation case.`,
+      greeting: `**${pathData.name}** — ${pathData.priority.toUpperCase()} priority path with a blast radius of **${pathData.blastRadius.totalAssets} assets**. ${pathData.blastRadius.totalVulnerabilities} vulnerabilities and ${pathData.blastRadius.totalMisconfigurations} misconfigurations are in scope.${contributingGaps.length > 0 ? ` ${contributingGaps.length} compliance gap${contributingGaps.length > 1 ? "s" : ""} contribute to reachability.` : ""} I can walk through each hop, explain the blast radius, or help you build a remediation case.`,
       suggestions: getPersonaAiBoxSuggestions("attack-path", persona, pathData.name, undefined, resolvedPathId),
       // Graph context — compliance gaps that enable this path
       graphContext: {
@@ -2976,9 +2976,13 @@ export default function AttackPathDetailPage() {
       <div className="flex-1 flex flex-col p-2 overflow-hidden" style={{ minHeight: 0 }}>
         <GraphCanvas pathData={pathData} pathId={resolvedPathId} selectedNodeId={selectedNodeId} onSelectNode={handleSelectNode} />
         {/* Graph exploration hint */}
-        <div className="shrink-0 flex items-center justify-center gap-[20px] py-[6px] px-4">
-          <span className="text-[10px] font-['Inter',sans-serif]" style={{ color: colors.textDim }}>
-            Click a node to inspect · Hover the blast radius pill to see exposed assets · Ask AI to walk through each hop
+        <div className="shrink-0 flex items-center justify-center gap-[20px] py-[8px] px-4">
+          <span className="text-[10px] font-['Inter',sans-serif] tracking-[0.01em]" style={{ color: colors.textMuted }}>
+            <span style={{ color: colors.accent, fontWeight: 600 }}>Click any node</span> to inspect its CVE and exposure details
+            <span style={{ color: colors.textDim, margin: "0 8px" }}>·</span>
+            <span style={{ color: colors.accent, fontWeight: 600 }}>Hover the blast radius pill</span> to see all exposed assets
+            <span style={{ color: colors.textDim, margin: "0 8px" }}>·</span>
+            <span style={{ color: colors.accent, fontWeight: 600 }}>Ask AI</span> to walk through each hop in plain language
           </span>
         </div>
       </div>
