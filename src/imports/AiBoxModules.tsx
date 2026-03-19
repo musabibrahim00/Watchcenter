@@ -537,24 +537,24 @@ export const AttackPathSystemRecommendation = React.memo(function AttackPathSyst
     <div className="flex flex-col gap-[10px] px-[2px]">
       {/* Section 1 — Attack Surface */}
       <div className="flex flex-col gap-[6px]">
-        <span className="text-[8px] font-semibold uppercase tracking-[0.7px]" style={{ color: colors.textDim }}>
+        <span className="text-[8px] font-normal uppercase tracking-[0.5px]" style={{ color: "rgba(89,120,141,0.7)" }}>
           Attack Surface
         </span>
-        <p className="text-[11px] font-semibold leading-[1.3]" style={{ color: colors.textPrimary }}>{graph.title}</p>
-        <div style={{ width: "100%", height: 110 }}>
+        <p className="text-[10px] font-medium leading-[1.35]" style={{ color: colors.textSecondary }}>{graph.title}</p>
+        <div style={{ width: "100%", height: 100 }}>
           <DeferredChart>
             <AreaChart data={graph.chartData}>
               <defs>
                 <linearGradient id={vulnGradId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ff4d4f" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="#ff4d4f" stopOpacity={0.04} />
+                  <stop offset="0%" stopColor="#ff4d4f" stopOpacity={0.28} />
+                  <stop offset="100%" stopColor="#ff4d4f" stopOpacity={0.03} />
                 </linearGradient>
                 <linearGradient id={misconfigGradId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ff7a1a" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="#ff7a1a" stopOpacity={0.04} />
+                  <stop offset="0%" stopColor="#ff7a1a" stopOpacity={0.28} />
+                  <stop offset="100%" stopColor="#ff7a1a" stopOpacity={0.03} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
               <XAxis dataKey="week" stroke={colors.textMuted} tick={{ fill: colors.textMuted, fontSize: 9 }} />
               <YAxis stroke={colors.textMuted} tick={{ fill: colors.textMuted, fontSize: 9 }} />
               <Tooltip
@@ -573,14 +573,14 @@ export const AttackPathSystemRecommendation = React.memo(function AttackPathSyst
         {/* Inline stat row below chart */}
         <div className="flex items-start gap-[20px]">
           <div>
-            <span className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: "#ff4d4f" }}>Vulnerabilities</span>
+            <span className="text-[8px] font-normal uppercase tracking-[0.4px]" style={{ color: "rgba(200,77,79,0.65)" }}>Vulnerabilities</span>
             <div className="mt-[3px] flex items-center gap-[8px]">
               <StatRow label="Critical" value={v.critical.toString()} />
               <StatRow label="High" value={v.high.toString()} />
             </div>
           </div>
           <div>
-            <span className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: "#ff7a1a" }}>Misconfiguration</span>
+            <span className="text-[8px] font-normal uppercase tracking-[0.4px]" style={{ color: "rgba(200,120,26,0.65)" }}>Misconfiguration</span>
             <div className="mt-[3px] flex items-center gap-[8px]">
               <StatRow label="Critical" value={m.critical.toString()} />
               <StatRow label="High" value={m.high.toString()} />
@@ -590,17 +590,17 @@ export const AttackPathSystemRecommendation = React.memo(function AttackPathSyst
       </div>
 
       {/* Thin rule — visual break between the two narrative sections */}
-      <div style={{ height: 1, background: "rgba(87,177,255,0.08)", margin: "2px 0" }} />
+      <div style={{ height: 1, background: "rgba(87,177,255,0.07)", margin: "1px 0" }} />
 
       {/* Section 2 — Threat Exposure */}
-      <div className="flex flex-col gap-[6px]">
+      <div className="flex flex-col gap-[5px]">
         <div className="flex items-center justify-between">
-          <span className="text-[8px] font-semibold uppercase tracking-[0.7px]" style={{ color: colors.textDim }}>
+          <span className="text-[8px] font-normal uppercase tracking-[0.5px]" style={{ color: "rgba(89,120,141,0.7)" }}>
             {insight.module}
           </span>
           <Badge tone={insight.severity}>{insight.severity}</Badge>
         </div>
-        <p className="text-[11px] font-semibold leading-[1.3]" style={{ color: colors.textPrimary }}>{insight.title}</p>
+        <p className="text-[10.5px] font-semibold leading-[1.35]" style={{ color: colors.textPrimary }}>{insight.title}</p>
         <p className="text-[10px] leading-[1.5]" style={{ color: colors.textMuted }}>{insight.description}</p>
         {insight.supportingStats && insight.supportingStats.length > 0 && (
           <div className="flex items-start gap-[16px] pt-[2px]">

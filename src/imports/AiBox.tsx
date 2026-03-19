@@ -305,19 +305,17 @@ const ProactiveCard = React.memo(function ProactiveCard({ scenario, onDismiss }:
   return (
     <div className="w-full shrink-0 z-[2]" style={{ animation: "proactiveSlideIn 0.4s ease-out" }}>
       <div className="mx-[8px] mt-[4px] mb-[2px] rounded-[10px] overflow-hidden" style={{ background: colors.bg, border: `1px solid ${colors.border}` }}>
-        {/* Header bar */}
+        {/* Header bar — lean: pulse dot + label + score + dismiss only */}
         <div className="flex items-center justify-between px-[10px] py-[5px]" style={{ borderBottom: `1px solid ${colors.border}` }}>
-          <div className="flex items-center gap-[5px] min-w-0 flex-1 mr-[8px]">
+          <div className="flex items-center gap-[6px]">
             <span className="relative size-[5px] shrink-0">
               <span className="absolute inset-0 rounded-full" style={{ background: colors.dot, animation: "proactivePulse 2s ease-in-out infinite" }}/>
             </span>
-            <span className="font-['Inter:Medium',sans-serif] text-[8px] leading-[11px] uppercase tracking-wider shrink-0" style={{ color: colors.text }}>
+            <span className="font-['Inter:Medium',sans-serif] text-[8px] leading-[11px] uppercase tracking-wider" style={{ color: colors.text }}>
               Recommendation
             </span>
-            <span className="font-['Inter:Regular',sans-serif] text-[10px] leading-[11px] text-[#3a4a58] shrink-0 mx-[1px]">·</span>
-            <span className="font-['Inter:Regular',sans-serif] text-[10px] leading-[11px] text-[#4a5f72] truncate min-w-0">{scenario.source}</span>
           </div>
-          <div className="flex items-center gap-[5px] shrink-0">
+          <div className="flex items-center gap-[5px]">
             {scenario.score > 0 && (
               <span className="font-['Inter:Medium',sans-serif] text-[9px] leading-[10px] px-[5px] py-[2px] rounded-[3px]"
                 style={{ color: colors.text, background: `${colors.dot}18` }}>
@@ -459,17 +457,17 @@ export default function AiBox() {
   // Returning users see change-oriented chips; managers see approval-first chips.
   const entryChips: string[] = React.useMemo(() => {
     if (returning) return [
-      "What changed since my last visit?",
+      "What changed since my last session?",
       "What escalated since last session?",
-      "Show me what needs authorization",
+      "Show what needs authorization",
     ];
     if (persona === "manager") return [
       "What needs my approval right now?",
       "Show pending interventions",
-      "What are the top risks I should know about?",
+      "Top risks this week",
     ];
     return [
-      "What needs my attention right now?",
+      "What's the top priority right now?",
       "Investigate the top active risk",
       "Show pending interventions",
     ];
@@ -485,8 +483,8 @@ export default function AiBox() {
 
   // Build the initial greeting message with embedded action chips.
   const greetingText = returning
-    ? "Welcome back. One intervention is awaiting your authorization and risk posture has shifted since your last session. Where would you like to start?"
-    : "Here's what needs your attention — high-confidence risks are active and one intervention is ready for authorization. Pick a task below or ask me anything.";
+    ? "Welcome back — risk posture shifted since your last session and one intervention is ready for sign-off. Where do you want to start?"
+    : "One intervention needs sign-off. Risks have been ranked and prioritized. Pick a task below or ask me anything.";
 
   const [messages, setMessages] = React.useState<ChatMessage[]>(() => [{
     id: crypto.randomUUID(),
@@ -1038,7 +1036,7 @@ export default function AiBox() {
           <AiBoxHeader hasProactive={hasProactive}/>
           <ChatArea messages={messages} isTyping={isTyping} onSuggestionClick={send} onAction={handleAction} messagesEndRef={endRef}
             proactiveScenario={proactiveScenario} onDismissProactive={dismissProactive} welcomeSuggestions={welcomeSuggestions}/>
-          <SharedChatInput inputValue={inputValue} onInputChange={setInputValue} onSend={onSend} placeholder="Ask Alex or pick a task — e.g. investigate this alert, re-check risk, explain an attack path" sendIcon={AiBoxSendIcon} sendButtonSize={48} sendButtonRadius={12}/>
+          <SharedChatInput inputValue={inputValue} onInputChange={setInputValue} onSend={onSend} placeholder="Ask about a risk, agent, or intervention" sendIcon={AiBoxSendIcon} sendButtonSize={48} sendButtonRadius={12}/>
         </div>
       </div>
     </AiBoxActionProvider>
