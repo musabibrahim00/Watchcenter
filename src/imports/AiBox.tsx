@@ -455,31 +455,60 @@ export default function AiBox() {
   const { persona } = usePersona();
   const returning = React.useMemo(() => isReturningUser(), []);
 
-  // Returning-user suggestion chips appear at top; standard chips follow.
-  // The returning chips are excluded from the list when not a returning session.
-  const RETURNING_CHIPS = [
-    "What changed since my last visit?",
-    "What got worse?",
-    "What got resolved?",
-    "What should I review first?",
-    "What requires action now?",
-  ];
-  const MANAGER_CHIPS = [
-    "What needs my approval?",
-    "Show blocked items",
-    "What should I delegate?",
-  ];
-  const standardChips = getPersonaDefaultSkills("watch-center", persona)
-    .filter(s => !RETURNING_CHIPS.includes(s.label) && !MANAGER_CHIPS.includes(s.label))
-    .map(s => s.label);
-  const baseChips = persona === "manager"
-    ? [...MANAGER_CHIPS, ...standardChips]
-    : standardChips;
-  const welcomeSuggestions = returning
-    ? [...RETURNING_CHIPS, ...baseChips].slice(0, 8)
-    : baseChips.slice(0, 6);
+  // Entry chips — focused 3-4 actions shown inline with the greeting message.
+  // Returning users see change-oriented chips; managers see approval-first chips.
+  const entryChips: string[] = React.useMemo(() => {
+    if (returning) return [
+      "What changed since my last visit?",
+      "What escalated?",
+      "Review pending interventions",
+    ];
+    if (persona === "manager") return [
+      "What needs my approval?",
+      "What needs attention right now?",
+      "Review pending interventions",
+    ];
+    return [
+      "What needs attention right now?",
+      "Investigate the top risk",
+      "Review pending interventions",
+    ];
+  }, [returning, persona]);
 
-  const [messages, setMessages] = React.useState<ChatMessage[]>([]);
+  // Fallback welcome chips (shown if messages are cleared — not normally visible).
+  const welcomeSuggestions = React.useMemo(() => {
+    const base = getPersonaDefaultSkills("watch-center", persona).map(s => s.label);
+    return returning
+      ? ["What changed since my last visit?", "What got worse?", ...base].slice(0, 5)
+      : base.slice(0, 4);
+  }, [returning, persona]);
+
+  // Build the initial greeting message with embedded action chips.
+  const greetingText = returning
+    ? "Welcome back — here's the current status. Risks have shifted since your last session, and one intervention is awaiting your authorization."
+    : "Here's what needs your attention right now — high-confidence risks are active and one intervention requires authorization.";
+
+  const [messages, setMessages] = React.useState<ChatMessage[]>(() => [{
+    id: crypto.randomUUID(),
+    role: "agent" as const,
+    text: greetingText,
+    timestamp: new Date(),
+    renderedUI: (
+      <div className="flex flex-col gap-[8px] bg-[#0e1c2c] rounded-[10px] rounded-tl-[4px] px-[10px] py-[8px] border border-[#172840]">
+        <p className="font-['Inter:Regular',sans-serif] font-normal leading-[17px] text-[#9fadb9] text-[11px]">{greetingText}</p>
+        <div className="flex flex-col gap-[4px] mt-[2px]">
+          {entryChips.map(chip => (
+            <div key={chip} className="bg-[#0a1828] border border-[#172a3c] rounded-[6px] px-[9px] py-[6px] cursor-pointer hover:border-[#1e3a5f] transition-colors group" data-suggestion={chip}>
+              <div className="flex items-center gap-[5px]">
+                <svg className="size-[8px] shrink-0 opacity-30 group-hover:opacity-60 transition-opacity" viewBox="0 0 10 10" fill="none"><path d="M3.5 2L6.5 5L3.5 8" stroke="#57b1ff" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <p className="font-['Inter:Regular',sans-serif] font-normal leading-[13px] text-[#7e8e9e] group-hover:text-[#9fadb9] transition-colors text-[11px]">{chip}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ),
+  }]);
   const [inputValue, setInputValue] = React.useState("");
   const [isTyping, setIsTyping] = React.useState(false);
   const ctxRef = React.useRef<InteractionContext>(EMPTY_CONTEXT);
@@ -1005,7 +1034,7 @@ export default function AiBox() {
           <AiBoxHeader hasProactive={hasProactive}/>
           <ChatArea messages={messages} isTyping={isTyping} onSuggestionClick={send} onAction={handleAction} messagesEndRef={endRef}
             proactiveScenario={proactiveScenario} onDismissProactive={dismissProactive} welcomeSuggestions={welcomeSuggestions}/>
-          <SharedChatInput inputValue={inputValue} onInputChange={setInputValue} onSend={onSend} placeholder="Ask about any alert, agent, or attack path — or pick a task below" sendIcon={AiBoxSendIcon} sendButtonSize={48} sendButtonRadius={12}/>
+          <SharedChatInput inputValue={inputValue} onInputChange={setInputValue} onSend={onSend} placeholder="Ask Alex or pick a task — e.g. investigate this alert, re-check risk, explain an attack path" sendIcon={AiBoxSendIcon} sendButtonSize={48} sendButtonRadius={12}/>
         </div>
       </div>
     </AiBoxActionProvider>

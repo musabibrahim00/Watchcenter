@@ -1532,7 +1532,7 @@ function AgentDetailInner({
       label: agentRole,
       sublabel: "Analyst Context",
       contextKey: `agent:${id}`,
-      greeting: `Switched context to **${agentRole}**.${countLine}${insightLine} Findings, recent activity, and risk posture are loaded — conversation continues here. What would you like to explore?`,
+      greeting: `**${agentRole}** is now in focus.${countLine}${insightLine} I have findings, risk posture, and active tasks loaded. Ask me to **explain the top finding**, **assess current risk**, or **show what's pending authorization**.`,
       suggestions: getPersonaAiBoxSuggestions("agent", persona, agentRole, id as AgentId),
     });
     return () => { closeAiBox(); };
@@ -1645,7 +1645,7 @@ function AgentDetailInner({
                   label: agentRole,
                   sublabel: "Analyst Context",
                   contextKey: `agent:${id}`,
-                  greeting: `**Agent ${meta.label} — ${agentRole}** is active. I have your current findings, active tasks, and risk posture loaded. What would you like to explore?`,
+                  greeting: `**${agentRole}** is active. Findings, active tasks, and risk posture are loaded. Ask me to **explain the top finding**, **assess current risk**, or **show what's pending authorization**.`,
                   suggestions: getPersonaAiBoxSuggestions("agent", persona, agentRole, id as AgentId),
                 })}
                 style={{

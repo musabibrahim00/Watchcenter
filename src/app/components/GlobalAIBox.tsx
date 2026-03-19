@@ -2210,7 +2210,7 @@ function GlobalAIBoxInner() {
         {
           id: crypto.randomUUID(),
           role: "divider" as const,
-          text: switchLabel,
+          text: `Now focusing on ${switchLabel}`,
           timestamp: new Date(),
         },
         ...(pageContext?.greeting ? [{
@@ -2416,7 +2416,7 @@ function GlobalAIBoxInner() {
     if (wfState && pageContext) return getWorkflowPlaceholder(wfState, pageContext.label);
     if (pageContext?.type === "agent") return `Ask ${pageContext.label} about findings, risks, or tasks...`;
     if (pageContext) return `Ask about ${pageContext.label}...`;
-    return "Ask Alex anything...";
+    return "Ask Alex — e.g. investigate this alert, explain a risk, or review what's pending";
   })();
 
   /* ── Custom send icon — matches Watch Center AiBox ── */
