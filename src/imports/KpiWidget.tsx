@@ -2,9 +2,9 @@ import React from "react";
 
 // ── Priority signals (top 3 highest-value signals for compact view) ────────
 const PRIORITY_SIGNALS = [
-  { type: "critical" as const, text: "2 critical attack paths active — finance-db-01 reachable" },
-  { type: "warning" as const, text: "3 crown jewel assets have unacknowledged exposure" },
-  { type: "warning" as const, text: "Cert expiry < 72h on prod load balancers" },
+  { type: "critical" as const, badge: "CRIT", text: "Lateral movement confirmed to finance-db-01 — domain credentials at risk" },
+  { type: "warning" as const, badge: "HIGH", text: "3 crown jewel assets exposed to internet with no active mitigation" },
+  { type: "warning" as const, badge: "HIGH", text: "TLS cert expiry <72h on prod-lb-01/02 — service disruption risk" },
 ];
 
 const SIGNAL_COLORS: Record<string, string> = {
@@ -127,32 +127,40 @@ function HeroStat() {
 
 function WhatMattersNow() {
   return (
-    <div className="flex flex-col gap-[4px] w-full">
-      <span className="text-[9px] text-[#4a5f72] font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.6px] leading-[1]">
-        What matters now
-      </span>
-      <div className="flex flex-col gap-[3px] w-full">
+    <div className="flex flex-col gap-[5px] w-full">
+      <div className="flex items-center justify-between w-full">
+        <span className="text-[9px] text-[#4a5f72] font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.6px] leading-[1]">
+          Situation now
+        </span>
+        <span className="text-[8px] text-[#4a5f72] font-['Inter:Regular',sans-serif] leading-[1] opacity-70">
+          click to ask
+        </span>
+      </div>
+      <div className="flex flex-col gap-[4px] w-full">
         {PRIORITY_SIGNALS.map((sig, i) => (
           <div
             key={i}
-            className="flex items-start gap-[6px] group cursor-pointer rounded-[4px] px-[2px] py-[2px] -mx-[2px] transition-colors"
+            className="flex items-start gap-[5px] group cursor-pointer rounded-[4px] px-[4px] py-[3px] -mx-[4px] transition-colors"
             style={{ background: "transparent" }}
-            onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.05)")}
+            onMouseEnter={e => (e.currentTarget.style.background = sig.type === "critical" ? "rgba(255,87,87,0.06)" : "rgba(240,91,6,0.06)")}
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             onClick={() => window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query: sig.text } }))}
           >
             <span
-              className="block size-[5px] rounded-full shrink-0 mt-[3px]"
+              className="text-[8px] font-['Inter:Semi_Bold',sans-serif] leading-[1] shrink-0 mt-[1.5px] rounded-[2px] px-[3px] py-[1px]"
               style={{
-                backgroundColor: SIGNAL_COLORS[sig.type],
-                boxShadow: `0 0 5px ${SIGNAL_COLORS[sig.type]}66`,
+                color: SIGNAL_COLORS[sig.type],
+                backgroundColor: `${SIGNAL_COLORS[sig.type]}18`,
+                letterSpacing: "0.3px",
               }}
-            />
+            >
+              {sig.badge}
+            </span>
             <span className="text-[10px] font-['Inter:Regular',sans-serif] leading-[1.35] flex-1" style={{ color: sig.type === "critical" ? "#e8a0a0" : sig.type === "warning" ? "#d4906a" : sig.type === "good" ? "#7ecfae" : "#7ea9cc" }}>
               {sig.text}
             </span>
             <span className="text-[8px] font-['Inter:Medium',sans-serif] text-[#57b1ff] opacity-[0.28] group-hover:opacity-100 transition-opacity shrink-0 self-center leading-[1]">
-              Ask →
+              →
             </span>
           </div>
         ))}
