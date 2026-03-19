@@ -15,6 +15,9 @@ export interface InterventionData {
   confidence: number;
   status: "awaiting" | "executing" | "completed";
   executingStep?: number;
+  owner?: string;            // Responsible team / role
+  expectedOutcome?: string;  // What happens after authorization
+  deferRisk?: string;        // Risk if deferred or not acted on
 }
 
 export interface CompletedAction {
@@ -80,6 +83,9 @@ export const MODULE_DATA: Record<string, ModuleConfig> = {
         activeStep: 1,
         confidence: 91,
         status: "awaiting",
+        owner: "Infrastructure",
+        expectedOutcome: "TLS certificates renewed across all production load balancers. Zero external service disruption.",
+        deferRisk: "Certificates expire in < 72h — external services will fail and client trust is at risk.",
       },
       {
         id: "rr-2",
@@ -91,6 +97,9 @@ export const MODULE_DATA: Record<string, ModuleConfig> = {
         activeStep: 3,
         confidence: 91,
         status: "awaiting",
+        owner: "Identity Security",
+        expectedOutcome: "Exposed credentials rotated and access revoked. Compromise window closed.",
+        deferRisk: "Credential reuse window remains open — active threat actors may exploit before rotation.",
       },
     ],
   },
@@ -130,6 +139,9 @@ export const MODULE_DATA: Record<string, ModuleConfig> = {
         activeStep: 2,
         confidence: 94,
         status: "awaiting",
+        owner: "Security Operations",
+        expectedOutcome: "Domain admin lateral movement path blocked — domain-wide compromise risk eliminated.",
+        deferRisk: "Domain-wide administrative compromise window stays open.",
       },
       {
         id: "ap-2",
@@ -141,6 +153,9 @@ export const MODULE_DATA: Record<string, ModuleConfig> = {
         activeStep: 2,
         confidence: 87,
         status: "awaiting",
+        owner: "Infrastructure",
+        expectedOutcome: "Jump server isolated — unauthorized access path removed from network topology.",
+        deferRisk: "Unauthorized network access path remains active.",
       },
     ],
   },
@@ -180,6 +195,9 @@ export const MODULE_DATA: Record<string, ModuleConfig> = {
         activeStep: 3,
         confidence: 96,
         status: "awaiting",
+        owner: "Infrastructure",
+        expectedOutcome: "CVE-2024-5821 patched on finance-db-01. Financial data exposure risk eliminated.",
+        deferRisk: "Active exploitation window grows — KEV-listed CVE with confirmed in-the-wild exploitation.",
       },
       {
         id: "vl-2",
@@ -191,6 +209,9 @@ export const MODULE_DATA: Record<string, ModuleConfig> = {
         activeStep: 1,
         confidence: 82,
         status: "awaiting",
+        owner: "Application Security",
+        expectedOutcome: "CVE-2024-5821 remediated on web server fleet. Web service exploitation risk closed.",
+        deferRisk: "Web service exploitation exposure remains active.",
       },
     ],
   },
@@ -230,6 +251,9 @@ export const MODULE_DATA: Record<string, ModuleConfig> = {
         activeStep: 2,
         confidence: 98,
         status: "awaiting",
+        owner: "Governance & Compliance",
+        expectedOutcome: "S3 bucket public access revoked — PII dataset secured and breach risk eliminated.",
+        deferRisk: "Customer PII remains publicly accessible — breach notification obligation active.",
       },
       {
         id: "mc-2",
@@ -241,6 +265,9 @@ export const MODULE_DATA: Record<string, ModuleConfig> = {
         activeStep: 1,
         confidence: 89,
         status: "awaiting",
+        owner: "Infrastructure",
+        expectedOutcome: "TLS 1.3 enforced across API endpoints. Data-in-transit interception risk closed.",
+        deferRisk: "Data-in-transit interception risk persists on downgraded TLS sessions.",
       },
     ],
   },
@@ -280,6 +307,9 @@ export const MODULE_DATA: Record<string, ModuleConfig> = {
         activeStep: 2,
         confidence: 94,
         status: "awaiting",
+        owner: "Security Operations",
+        expectedOutcome: "Compromised build server isolated — lateral spread to production clusters prevented.",
+        deferRisk: "Lateral spread to production clusters remains possible while server is active.",
       },
       {
         id: "cs-2",
@@ -291,6 +321,9 @@ export const MODULE_DATA: Record<string, ModuleConfig> = {
         activeStep: 1,
         confidence: 87,
         status: "awaiting",
+        owner: "Security Operations",
+        expectedOutcome: "Compromised service tokens revoked — supply chain reuse window closed.",
+        deferRisk: "Token reuse window is closing in 4h — deferring beyond this point leaves tokens exploitable.",
       },
     ],
   },
@@ -330,6 +363,9 @@ export const MODULE_DATA: Record<string, ModuleConfig> = {
         activeStep: 2,
         confidence: 91,
         status: "awaiting",
+        owner: "Governance & Compliance",
+        expectedOutcome: "Data retention policy updated — regulatory audit risk resolved before 72h window.",
+        deferRisk: "Regulatory audit begins in 72h — unresolved non-compliance risks formal penalties.",
       },
       {
         id: "comp-2",
@@ -341,6 +377,9 @@ export const MODULE_DATA: Record<string, ModuleConfig> = {
         activeStep: 1,
         confidence: 86,
         status: "awaiting",
+        owner: "Governance & Compliance",
+        expectedOutcome: "Access review scheduled — privilege creep identified and SOC 2 control gap addressed.",
+        deferRisk: "SOC 2 control effectiveness at risk if review is delayed past audit window.",
       },
     ],
   },
@@ -380,6 +419,9 @@ export const MODULE_DATA: Record<string, ModuleConfig> = {
         activeStep: 2,
         confidence: 96,
         status: "awaiting",
+        owner: "Application Security",
+        expectedOutcome: "Emergency WAF rule deployed — zero-day RCE vector blocked on API gateway.",
+        deferRisk: "Unpatched RCE vector remains live — active scanning confirmed from threat actors.",
       },
       {
         id: "appsec-2",
@@ -391,6 +433,9 @@ export const MODULE_DATA: Record<string, ModuleConfig> = {
         activeStep: 2,
         confidence: 83,
         status: "awaiting",
+        owner: "Application Security",
+        expectedOutcome: "Dependency reviewed and upgrade plan approved — outdated TLS risk addressed across 12 microservices.",
+        deferRisk: "Outdated TLS implementation persists across 12 microservices — risk grows with each delayed cycle.",
       },
     ],
   },

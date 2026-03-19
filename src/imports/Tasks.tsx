@@ -28,6 +28,11 @@ export interface TaskData {
   source?: string;           // Identification — which agent/module detected it
   affectedAsset?: string;    // Identification — asset or system at risk
   pipelineStage?: RiskPipelineStage;  // Mitigation/Monitoring — current stage
+  // Action Confidence fields
+  confidence?: "high" | "moderate" | "needs-review";
+  expectedOutcome?: string;
+  riskIfDeferred?: string;
+  owner?: string;
 }
 
 const TASK_POOL: TaskData[] = [
@@ -40,6 +45,10 @@ const TASK_POOL: TaskData[] = [
     source: "Vulnerability Analyst",
     affectedAsset: "finance-db-01",
     pipelineStage: "awaiting_authorization",
+    confidence: "high",
+    expectedOutcome: "CVE-2024-5821 patched — finance-db-01 exposure closed.",
+    riskIfDeferred: "Active KEV exploitation window grows — crown jewel asset remains exposed.",
+    owner: "Infrastructure",
   },
   {
     id: "task-2",
@@ -53,6 +62,10 @@ const TASK_POOL: TaskData[] = [
     source: "Exposure Analyst",
     affectedAsset: "corp-dc-01",
     pipelineStage: "awaiting_authorization",
+    confidence: "high",
+    expectedOutcome: "Lateral movement path blocked — domain-wide compromise surface eliminated.",
+    riskIfDeferred: "Domain admin reachability window stays open via active attack path.",
+    owner: "Security Operations",
   },
   {
     id: "task-3",
@@ -63,6 +76,10 @@ const TASK_POOL: TaskData[] = [
     source: "Configuration Security",
     affectedAsset: "prod-lb-01/02",
     pipelineStage: "awaiting_authorization",
+    confidence: "high",
+    expectedOutcome: "TLS certificates renewed — zero external service disruption.",
+    riskIfDeferred: "Certificates expire in < 72h causing external service failures.",
+    owner: "Infrastructure",
   },
   {
     id: "task-4",
@@ -73,6 +90,10 @@ const TASK_POOL: TaskData[] = [
     source: "Identity Security",
     affectedAsset: "billing-api",
     pipelineStage: "awaiting_authorization",
+    confidence: "high",
+    expectedOutcome: "23 over-privileged tokens revoked — lateral movement via billing API eliminated.",
+    riskIfDeferred: "Active credential stuffing campaign could exploit these tokens during delay.",
+    owner: "Identity Security",
   },
   {
     id: "task-5",
@@ -86,6 +107,10 @@ const TASK_POOL: TaskData[] = [
     source: "Risk Intelligence",
     affectedAsset: "WKS-0447",
     pipelineStage: "awaiting_authorization",
+    confidence: "high",
+    expectedOutcome: "WKS-0447 isolated — C2 channel severed and source code repos protected.",
+    riskIfDeferred: "Active C2 communication continues — blast radius expands to source code repos.",
+    owner: "Security Operations",
   },
   {
     id: "task-6",
@@ -96,6 +121,10 @@ const TASK_POOL: TaskData[] = [
     source: "Application Security",
     affectedAsset: "jenkins-prod-01",
     pipelineStage: "awaiting_authorization",
+    confidence: "high",
+    expectedOutcome: "CVE-2025-1103 patched — unauthenticated RCE vector on CI/CD closed.",
+    riskIfDeferred: "Supply chain compromise risk persists — unauthenticated RCE remains exploitable.",
+    owner: "Application Security",
   },
   {
     id: "task-7",
@@ -109,6 +138,10 @@ const TASK_POOL: TaskData[] = [
     source: "Identity Security",
     affectedAsset: "admin-group-02",
     pipelineStage: "awaiting_authorization",
+    confidence: "moderate",
+    expectedOutcome: "MFA enforced on 12 admin accounts — credential stuffing risk significantly reduced.",
+    riskIfDeferred: "Active credential stuffing campaign — 12 unprotected admin accounts remain at risk.",
+    owner: "Identity Security",
   },
   {
     id: "task-8",
@@ -119,6 +152,10 @@ const TASK_POOL: TaskData[] = [
     source: "Governance & Compliance",
     affectedAsset: "s3://pii-prod-data",
     pipelineStage: "awaiting_authorization",
+    confidence: "high",
+    expectedOutcome: "Bucket policy corrected — PII secured and breach notification risk eliminated.",
+    riskIfDeferred: "Customer PII remains publicly accessible — breach notification obligation active.",
+    owner: "Governance & Compliance",
   },
 ];
 
@@ -222,6 +259,18 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
                   <span className="block size-[4px] rounded-full bg-[#FF5757]" />
                   Critical
                 </span>
+                {task.confidence && (
+                  <span
+                    className="inline-flex items-center px-[4px] py-[0.5px] rounded-[3px] text-[8px] font-['Inter:Medium',sans-serif] tracking-[0.3px] ml-[4px]"
+                    style={{
+                      background: task.confidence === "high" ? "rgba(47,216,151,0.08)" : task.confidence === "moderate" ? "rgba(245,158,11,0.07)" : "rgba(98,112,125,0.09)",
+                      border: `1px solid ${task.confidence === "high" ? "rgba(47,216,151,0.18)" : task.confidence === "moderate" ? "rgba(245,158,11,0.16)" : "rgba(98,112,125,0.16)"}`,
+                      color: task.confidence === "high" ? "#2fd897" : task.confidence === "moderate" ? "#f59e0b" : "#7e8e9e",
+                    }}
+                  >
+                    {task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate" : "Needs review"}
+                  </span>
+                )}
                 <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#2a4a5a" }}>Identification</span>
               </div>
               <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[12px] w-full">{task.title}</p>
@@ -230,6 +279,12 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
                 <div className="flex items-center gap-[4px] mt-[1px]">
                   <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a4050" }}>Asset:</span>
                   <span className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[8px]" style={{ color: "#3a6070" }}>{task.affectedAsset}</span>
+                </div>
+              )}
+              {task.owner && (
+                <div className="flex items-center gap-[4px] mt-[1px]">
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#1e3040" }}>Owner:</span>
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a4a5a" }}>{task.owner}</span>
                 </div>
               )}
             </div>
@@ -317,7 +372,12 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
               style={{ background: "rgba(87,177,255,0.07)", border: "1px solid rgba(87,177,255,0.16)" }}
               onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.13)")}
               onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.07)")}
-              onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query: `Intervention: "${task.title}" — currently at Mitigation stage (awaiting authorization). Why is this intervention required, what is the blast radius if we don't act, and what should happen after authorization?` } })); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                const confidenceLabel = task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate confidence" : "Needs review";
+                const query = `Priority insight: "${task.title}" (${confidenceLabel}).\n\nSource: ${task.source ?? "Security analysis"} | Asset: ${task.affectedAsset ?? "—"} | Owner: ${task.owner ?? "Security Operations"}\n\nPlease explain:\n1. Why this recommendation exists and what evidence supports it\n2. What happens if authorized — expected outcome: ${task.expectedOutcome ?? "remediation completes"}\n3. What risk remains or grows if deferred — ${task.riskIfDeferred ?? "risk persists"}\n4. How confident the system is and why`;
+                window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query } }));
+              }}
             >
               <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff"/></svg>
               <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center tracking-[0.2px]">Ask why</p>
@@ -370,6 +430,18 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
                   <span className="block size-[4px] rounded-full bg-[#FF5757]" />
                   Critical
                 </span>
+                {task.confidence && (
+                  <span
+                    className="inline-flex items-center px-[4px] py-[0.5px] rounded-[3px] text-[8px] font-['Inter:Medium',sans-serif] tracking-[0.3px] ml-[4px]"
+                    style={{
+                      background: task.confidence === "high" ? "rgba(47,216,151,0.08)" : task.confidence === "moderate" ? "rgba(245,158,11,0.07)" : "rgba(98,112,125,0.09)",
+                      border: `1px solid ${task.confidence === "high" ? "rgba(47,216,151,0.18)" : task.confidence === "moderate" ? "rgba(245,158,11,0.16)" : "rgba(98,112,125,0.16)"}`,
+                      color: task.confidence === "high" ? "#2fd897" : task.confidence === "moderate" ? "#f59e0b" : "#7e8e9e",
+                    }}
+                  >
+                    {task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate" : "Needs review"}
+                  </span>
+                )}
                 <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#2a4a5a" }}>Identification</span>
               </div>
               <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[12px] w-full">{task.title}</p>
@@ -378,6 +450,12 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
                 <div className="flex items-center gap-[4px] mt-[1px]">
                   <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a4050" }}>Asset:</span>
                   <span className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[8px]" style={{ color: "#3a6070" }}>{task.affectedAsset}</span>
+                </div>
+              )}
+              {task.owner && (
+                <div className="flex items-center gap-[4px] mt-[1px]">
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#1e3040" }}>Owner:</span>
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a4a5a" }}>{task.owner}</span>
                 </div>
               )}
             </div>
@@ -512,7 +590,12 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
               style={{ background: "rgba(87,177,255,0.07)", border: "1px solid rgba(87,177,255,0.16)" }}
               onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.13)")}
               onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.07)")}
-              onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query: `Intervention: "${task.title}" — currently at Mitigation stage (awaiting authorization). Why is this intervention required, what is the blast radius if we don't act, and what should happen after authorization?` } })); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                const confidenceLabel = task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate confidence" : "Needs review";
+                const query = `Priority insight: "${task.title}" (${confidenceLabel}).\n\nSource: ${task.source ?? "Security analysis"} | Asset: ${task.affectedAsset ?? "—"} | Owner: ${task.owner ?? "Security Operations"}\n\nPlease explain:\n1. Why this recommendation exists and what evidence supports it\n2. What happens if authorized — expected outcome: ${task.expectedOutcome ?? "remediation completes"}\n3. What risk remains or grows if deferred — ${task.riskIfDeferred ?? "risk persists"}\n4. How confident the system is and why`;
+                window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query } }));
+              }}
             >
               <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff"/></svg>
               <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center tracking-[0.2px]">Ask why</p>

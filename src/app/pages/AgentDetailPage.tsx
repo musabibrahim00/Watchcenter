@@ -426,17 +426,43 @@ function InterventionCard({
           <span className="font-['Inter',sans-serif] text-[10px] text-[#89949E] leading-[13px]">
             Confidence:
           </span>
-          <span className="font-['Inter',sans-serif] text-[10px] text-[#89949e] leading-[13px]">
+          <span
+            className="font-['Inter',sans-serif] text-[10px] leading-[13px]"
+            style={{ color: data.confidence >= 92 ? "#2fd897" : data.confidence >= 80 ? "#f59e0b" : "#7e8e9e" }}
+          >
             {data.confidence}%
           </span>
+          <span
+            className="font-['Inter',sans-serif] text-[8px] px-[4px] py-[0.5px] rounded-[3px] leading-[11px]"
+            style={{
+              background: data.confidence >= 92 ? "rgba(47,216,151,0.07)" : data.confidence >= 80 ? "rgba(245,158,11,0.07)" : "rgba(98,112,125,0.08)",
+              border: `1px solid ${data.confidence >= 92 ? "rgba(47,216,151,0.16)" : data.confidence >= 80 ? "rgba(245,158,11,0.14)" : "rgba(98,112,125,0.14)"}`,
+              color: data.confidence >= 92 ? "#2fd897" : data.confidence >= 80 ? "#f59e0b" : "#7e8e9e",
+            }}
+          >
+            {data.confidence >= 92 ? "High" : data.confidence >= 80 ? "Moderate" : "Review"}
+          </span>
         </div>
+        {data.owner && (
+          <span className="font-['Inter',sans-serif] text-[9px] leading-[12px]" style={{ color: "#2a4050" }}>
+            Owner: {data.owner}
+          </span>
+        )}
         <div className="flex items-center gap-[10px]">
           {data.status === "awaiting" && (
             <>
+              <div className="flex items-center gap-[5px] w-full mb-[2px]">
+                <div className="size-[5px] rounded-full shrink-0" style={{ backgroundColor: "#d97706", opacity: 0.85 }} />
+                <span className="font-['Inter',sans-serif] text-[10px] leading-[13px]" style={{ color: "#b87a20" }}>
+                  Awaiting your authorization
+                </span>
+              </div>
               {/* Ask why — injects intervention context into AIBox */}
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent("globalaibox-inject-query", {
-                  detail: { query: `Intervention: "${data.title}" — stage: ${data.pipelineSteps[data.activeStep] ?? "Awaiting authorization"}. Why is this intervention required, what risk does it mitigate, and what happens if we defer or don't act?` },
+                  detail: {
+                    query: `Required intervention: "${data.title}"\nStage: ${data.pipelineSteps[data.activeStep] ?? "Awaiting authorization"} | Confidence: ${data.confidence}%${data.owner ? ` | Owner: ${data.owner}` : ""}\n\nBusiness impact: ${data.businessImpact}\n\nPlease explain:\n1. Why this intervention is required and what evidence exists\n2. What the system is ${data.confidence >= 92 ? "highly confident" : data.confidence >= 80 ? "moderately confident" : "flagging for review"} about and why\n3. What happens if authorized — expected outcome\n4. What risk grows or persists if this is deferred${data.deferRisk ? `: ${data.deferRisk}` : ""}`,
+                  },
                 }))}
                 className="flex items-center gap-[3px] font-['Inter',sans-serif] text-[10px] leading-[13px] transition-colors cursor-pointer rounded-[5px] px-[7px] py-[3px]"
                 style={{ background: "rgba(87,177,255,0.07)", border: "1px solid rgba(87,177,255,0.16)", color: "#57b1ff" }}

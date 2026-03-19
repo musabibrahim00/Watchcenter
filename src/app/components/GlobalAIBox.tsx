@@ -199,8 +199,10 @@ function processMultiAgentQuery(
       const previewText = enriched.isReadOnly
         ? "This action is unavailable in read-only mode."
         : enriched.requiresApproval
-          ? `I've prepared a multi-analyst action. This is a **Level 3** action and requires approval before it can run.`
-          : `I've prepared a multi-analyst action. Review the participating analysts and parameters, then click **Run** to execute.`;
+          ? `I've prepared a multi-analyst action. **Level 3 — approval required** before this can run. Review the evidence and analyst contributions, then request approval.`
+          : enriched.confidence === "high"
+            ? `I've prepared a multi-analyst action with **high confidence**. Review the participating analysts and parameters, then click **Run** to execute.`
+            : `I've prepared a multi-analyst action. Review the participating analysts and parameters, then click **Run** to execute.`;
       return {
         content: previewText,
         uiModule: (
@@ -1296,8 +1298,12 @@ function processAgentQuery(query: string, ctx: AiBoxPageContext, onModifyAction?
       const previewText = enriched.isReadOnly
         ? "This action is unavailable in read-only mode."
         : enriched.requiresApproval
-          ? `I've prepared the following action. This is a **Level 3** action and requires approval before it can run.`
-          : `I've prepared the following action. Review the parameters and click **Run** to execute, or **Modify** to adjust.`;
+          ? `I've prepared the following action. **Level 3 — approval required** before execution. Review the evidence and parameters, then request approval when ready.`
+          : enriched.confidence === "high"
+            ? `I've prepared the following action — **high confidence** based on live signals. Review the parameters and click **Run** to execute.`
+            : enriched.confidence === "moderate"
+              ? `I've prepared the following action — **moderate confidence**. Review the evidence before authorizing.`
+              : `I've prepared the following action. Review the parameters and click **Run** to execute, or **Modify** to adjust.`;
       return {
         content: previewText,
         uiModule: (
@@ -1445,8 +1451,12 @@ function processGeneralQuery(query: string, ctx: AiBoxPageContext | null, onModi
       const previewText = enriched.isReadOnly
         ? "This action is unavailable in read-only mode."
         : enriched.requiresApproval
-          ? `I've prepared the following action. This is a **Level 3** action and requires approval before it can run.`
-          : `I've prepared the following action. Review the parameters and click **Run** to execute, or **Modify** to adjust.`;
+          ? `I've prepared the following action. **Level 3 — approval required** before execution. Review the evidence and parameters, then request approval when ready.`
+          : enriched.confidence === "high"
+            ? `I've prepared the following action — **high confidence** based on live signals. Review the parameters and click **Run** to execute.`
+            : enriched.confidence === "moderate"
+              ? `I've prepared the following action — **moderate confidence**. Review the evidence before authorizing.`
+              : `I've prepared the following action. Review the parameters and click **Run** to execute, or **Modify** to adjust.`;
       return {
         content: previewText,
         uiModule: (
