@@ -114,7 +114,7 @@ function TimelineStepRow({
         {/* "Ask about this step" */}
         {isRevealed && (
           <button
-            onClick={() => window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query: `Explain what the ${analystName} did: ${action}` } }))}
+            onClick={() => window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query: `Why did this step matter? The ${analystName} performed: "${action}" — explain what risk this revealed or mitigated and what should happen next.` } }))}
             className="mt-[2px] cursor-pointer border-none bg-transparent p-0 self-start group/askbtn"
           >
             <span
@@ -126,7 +126,7 @@ function TimelineStepRow({
               <svg width="7" height="7" viewBox="0 0 8 8" fill="none" style={{ flexShrink: 0 }}>
                 <path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff"/>
               </svg>
-              Ask about this step
+              Explain why this matters
             </span>
           </button>
         )}

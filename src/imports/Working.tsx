@@ -5,6 +5,7 @@ import Secure from "./Secure";
 import { useStatus } from "./StatusContext";
 import { useInvestigation } from "./InvestigationContext";
 import type { InvestigationScenario } from "./InvestigationContext";
+import { getPersonaDefaultSkills } from "../app/shared/skills";
 
 /* AgentId canonical definition is in /src/app/shared/types/agent-types.ts */
 export type { AgentId } from "../app/shared/types/agent-types";
@@ -274,6 +275,31 @@ function AgentTooltip({ agentId }: { agentId: AgentId }) {
           </div>
         )}
 
+        {/* Top-2 skill hints — what this agent can do */}
+        {(() => {
+          const topSkills = getPersonaDefaultSkills("agent", "analyst", agentId).slice(0, 2);
+          if (topSkills.length === 0) return null;
+          return (
+            <>
+              <div className="h-px w-full" style={{ background: "rgba(87,177,255,0.06)" }} />
+              <div className="flex flex-col gap-[3px]">
+                {topSkills.map(skill => (
+                  <div key={skill.id} className="flex items-center gap-[3px]">
+                    <svg width="6" height="6" viewBox="0 0 6 6" fill="none" style={{ flexShrink: 0 }}>
+                      <path d="M1 3H5M5 3L3.5 1.5M5 3L3.5 4.5" stroke="#3a5a72" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span
+                      className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic"
+                      style={{ fontSize: 9, color: "#4a6880" }}
+                    >
+                      {skill.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          );
+        })()}
         {/* "Click to interact" hint — always visible */}
         <div className="h-px w-full" style={{ background: "rgba(87,177,255,0.06)" }} />
         <span

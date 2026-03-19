@@ -1627,8 +1627,8 @@ function AgentDetailInner({
           <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[12px]" style={{ background: "rgba(6,14,26,0.6)", border: "1px solid rgba(40,65,90,0.5)" }} />
           <div className="flex flex-col gap-[12px] relative">
             <div className="flex items-center justify-between">
-              <span className="font-['Inter',sans-serif] text-[10px] text-[#7e97b0] leading-[14px] uppercase tracking-[0.5px]">Skills</span>
-              <span className="font-['Inter',sans-serif] text-[9px] text-[#4a5f72] leading-[12px]">Click any skill to open a conversation</span>
+              <span className="font-['Inter',sans-serif] text-[10px] text-[#7e97b0] leading-[14px] uppercase tracking-[0.5px]">What this agent can do</span>
+              <span className="font-['Inter',sans-serif] text-[9px] text-[#4a5f72] leading-[12px]">Click to send to AIBox</span>
             </div>
 
             {/* Primary actions — 2 prominent buttons */}

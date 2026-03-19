@@ -1005,7 +1005,7 @@ export default function AiBox() {
           <AiBoxHeader hasProactive={hasProactive}/>
           <ChatArea messages={messages} isTyping={isTyping} onSuggestionClick={send} onAction={handleAction} messagesEndRef={endRef}
             proactiveScenario={proactiveScenario} onDismissProactive={dismissProactive} welcomeSuggestions={welcomeSuggestions}/>
-          <SharedChatInput inputValue={inputValue} onInputChange={setInputValue} onSend={onSend} placeholder="Ask about threats, agents, or investigations..." sendIcon={AiBoxSendIcon} sendButtonSize={48} sendButtonRadius={12}/>
+          <SharedChatInput inputValue={inputValue} onInputChange={setInputValue} onSend={onSend} placeholder="Ask about any alert, agent, or attack path — or pick a task below" sendIcon={AiBoxSendIcon} sendButtonSize={48} sendButtonRadius={12}/>
         </div>
       </div>
     </AiBoxActionProvider>
