@@ -271,20 +271,20 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
                     {task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate" : "Needs review"}
                   </span>
                 )}
-                <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#2a4a5a" }}>Identification</span>
+                <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#3d6070" }}>Identification</span>
               </div>
               <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[12px] w-full">{task.title}</p>
               <p className="font-['Inter:Regular',sans-serif] text-[10px] text-[#6b7c8a] leading-[14px] w-full whitespace-normal mt-[1px]">{task.subtitle}</p>
               {task.affectedAsset && (
                 <div className="flex items-center gap-[4px] mt-[1px]">
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a4050" }}>Asset:</span>
-                  <span className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[8px]" style={{ color: "#3a6070" }}>{task.affectedAsset}</span>
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3a5868" }}>Asset:</span>
+                  <span className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[8px]" style={{ color: "#4a7888" }}>{task.affectedAsset}</span>
                 </div>
               )}
               {task.owner && (
                 <div className="flex items-center gap-[4px] mt-[1px]">
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#1e3040" }}>Owner:</span>
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a4a5a" }}>{task.owner}</span>
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3a5868" }}>Owner:</span>
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3d6070" }}>{task.owner}</span>
                 </div>
               )}
             </div>
@@ -308,8 +308,8 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
           <div className="flex-[1_0_0] min-h-px min-w-px relative" data-name="Container">
             <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col font-['Inter:Regular',sans-serif] font-normal gap-[4px] items-start leading-[normal] not-italic relative text-[10px] w-full">
               <div className="flex items-center justify-between w-full">
-                <p className="h-[11px] relative shrink-0 text-[#dadfe3] whitespace-pre-wrap">Why this matters</p>
-                <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#2a4a5a" }}>Assessment</span>
+                <p className="h-[11px] relative shrink-0 text-[#b0bec8] text-[10px] whitespace-pre-wrap">Why this matters</p>
+                <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#3d6070" }}>Assessment</span>
               </div>
               <p className="relative shrink-0 text-[#89949e]">{task.reason}</p>
             </div>
@@ -322,6 +322,10 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
       </div>
       {/* Buttons / Loader */}
       <div className="relative shrink-0 w-full mt-auto" data-name="Buttons">
+        {/* Action label — makes the CTA intent explicit */}
+        {!loading && (
+          <p className="font-['Inter:Regular',sans-serif] text-[8px] text-[#3d5a6a] mb-[5px] uppercase tracking-[0.4px]">Recommended action</p>
+        )}
         <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-center justify-between relative w-full">
           <div className="content-stretch flex gap-[8px] items-center relative shrink-0" data-name="buttons">
             <div className={`h-[24px] min-w-[84px] relative rounded-[6px] shrink-0 transition-colors ${loading ? 'bg-transparent cursor-default' : 'bg-[#076498] cursor-pointer hover:bg-[#0a7ab8]'}`} data-name="ButtonPrimary" onClick={!loading ? handleAction : undefined}>
@@ -365,13 +369,13 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
               data-name="ButtonGray"
               onClick={onViewDetails}
             >
-              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">View details</p>
+              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Details</p>
             </div>
             <div
               className="content-stretch flex h-[24px] items-center justify-center gap-[4px] px-[8px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer transition-colors"
-              style={{ background: "rgba(87,177,255,0.07)", border: "1px solid rgba(87,177,255,0.16)" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.13)")}
-              onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.07)")}
+              style={{ background: "rgba(87,177,255,0.06)", border: "1px solid rgba(87,177,255,0.13)" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.11)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.06)")}
               onClick={(e) => {
                 e.stopPropagation();
                 const confidenceLabel = task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate confidence" : "Needs review";
@@ -379,8 +383,8 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
                 window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query } }));
               }}
             >
-              <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff"/></svg>
-              <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center tracking-[0.2px]">Ask why</p>
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff" opacity="0.8"/></svg>
+              <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center tracking-[0.2px]">Explain</p>
             </div>
           </div>
         </div>
@@ -442,20 +446,20 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
                     {task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate" : "Needs review"}
                   </span>
                 )}
-                <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#2a4a5a" }}>Identification</span>
+                <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#3d6070" }}>Identification</span>
               </div>
               <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[12px] w-full">{task.title}</p>
               <p className="font-['Inter:Regular',sans-serif] text-[10px] text-[#6b7c8a] leading-[14px] w-full whitespace-normal mt-[1px]">{task.subtitle}</p>
               {task.affectedAsset && (
                 <div className="flex items-center gap-[4px] mt-[1px]">
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a4050" }}>Asset:</span>
-                  <span className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[8px]" style={{ color: "#3a6070" }}>{task.affectedAsset}</span>
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3a5868" }}>Asset:</span>
+                  <span className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[8px]" style={{ color: "#4a7888" }}>{task.affectedAsset}</span>
                 </div>
               )}
               {task.owner && (
                 <div className="flex items-center gap-[4px] mt-[1px]">
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#1e3040" }}>Owner:</span>
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a4a5a" }}>{task.owner}</span>
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3a5868" }}>Owner:</span>
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3d6070" }}>{task.owner}</span>
                 </div>
               )}
             </div>
@@ -481,8 +485,8 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
             <div className="flex-[1_0_0] min-h-px min-w-px relative" data-name="Container">
               <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col font-['Inter:Regular',sans-serif] font-normal gap-[4px] items-start leading-[normal] not-italic relative text-[10px] w-full">
                 <div className="flex items-center justify-between w-full">
-                  <p className="h-[11px] relative shrink-0 text-[#dadfe3]">Why this matters</p>
-                  <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#2a4a5a" }}>Assessment</span>
+                  <p className="h-[11px] relative shrink-0 text-[#b0bec8] text-[10px]">Why this matters</p>
+                  <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#3d6070" }}>Assessment</span>
                 </div>
                 <p className="relative shrink-0 text-[#89949e] w-full">{task.reason}</p>
               </div>
@@ -540,6 +544,9 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
       </div>
       {/* Buttons / Loader */}
       <div className="relative shrink-0 w-full mt-auto" data-name="Buttons">
+        {!loading && (
+          <p className="font-['Inter:Regular',sans-serif] text-[8px] text-[#3d5a6a] mb-[5px] uppercase tracking-[0.4px]">Recommended action</p>
+        )}
         <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-center justify-between relative w-full">
           <div className="content-stretch flex gap-[8px] items-center relative shrink-0" data-name="buttons">
             <div className={`h-[24px] min-w-[84px] relative rounded-[6px] shrink-0 transition-colors ${loading ? 'bg-transparent cursor-default' : 'bg-[#076498] cursor-pointer hover:bg-[#0a7ab8]'}`} data-name="ButtonPrimary" onClick={!loading ? handleAction : undefined}>
@@ -583,13 +590,13 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
               data-name="ButtonGray"
               onClick={onViewDetails}
             >
-              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">View details</p>
+              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Details</p>
             </div>
             <div
               className="content-stretch flex h-[24px] items-center justify-center gap-[4px] px-[8px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer transition-colors"
-              style={{ background: "rgba(87,177,255,0.07)", border: "1px solid rgba(87,177,255,0.16)" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.13)")}
-              onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.07)")}
+              style={{ background: "rgba(87,177,255,0.06)", border: "1px solid rgba(87,177,255,0.13)" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.11)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.06)")}
               onClick={(e) => {
                 e.stopPropagation();
                 const confidenceLabel = task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate confidence" : "Needs review";
@@ -597,8 +604,8 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
                 window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query } }));
               }}
             >
-              <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff"/></svg>
-              <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center tracking-[0.2px]">Ask why</p>
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff" opacity="0.8"/></svg>
+              <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center tracking-[0.2px]">Explain</p>
             </div>
           </div>
         </div>

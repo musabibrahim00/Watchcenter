@@ -1678,16 +1678,30 @@ function AgentDetailInner({
         <div className="relative rounded-[12px] px-[20px] py-[16px]">
           <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[12px]" style={{ background: "rgba(6,14,26,0.6)", border: "1px solid rgba(40,65,90,0.5)" }} />
           <div className="flex flex-col gap-[12px] relative">
-            <div className="flex items-center justify-between">
-              <span className="font-['Inter',sans-serif] text-[10px] text-[#7e97b0] leading-[14px] uppercase tracking-[0.5px]">What this agent can do</span>
-              <span className="font-['Inter',sans-serif] text-[9px] text-[#4a5f72] leading-[12px]">Click to send to AIBox</span>
+            {/* Section header with intent label */}
+            <div className="flex flex-col gap-[2px]">
+              <div className="flex items-center justify-between">
+                <span className="font-['Inter',sans-serif] text-[10px] text-[#7e97b0] leading-[14px] uppercase tracking-[0.5px]">Start investigation</span>
+                <span className="font-['Inter',sans-serif] text-[9px] text-[#3a5060] leading-[12px]">Opens in AIBox →</span>
+              </div>
+              <p className="font-['Inter',sans-serif] text-[9px] text-[#3a5060] leading-[13px]">Select an action to continue your analysis with agent context loaded.</p>
             </div>
 
-            {/* Primary actions — 2 prominent buttons */}
+            {/* Primary actions — 2 prominent call-to-action buttons */}
             {(() => {
               const allSkills = getPersonaDefaultSkills("agent", persona, id as AgentId);
               const primarySkills = allSkills.slice(0, 2).map(s => renderSkillSuggestion(s, agentRole, id));
-              const secondarySkills = allSkills.slice(2, 6).map(s => renderSkillSuggestion(s, agentRole, id));
+              const secondarySkills = allSkills.slice(2, 5).map(s => renderSkillSuggestion(s, agentRole, id));
+
+              const handleSkillClick = (prompt: string) => {
+                if (isAiBoxOpen) {
+                  window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: prompt } }));
+                } else {
+                  setPendingEntryQuery(prompt);
+                  openAiBox();
+                }
+              };
+
               return (
                 <>
                   <div className="flex gap-[8px]">
@@ -1695,66 +1709,54 @@ function AgentDetailInner({
                       <button
                         key={cap.label}
                         title={cap.label}
-                        onClick={() => {
-                          if (isAiBoxOpen) {
-                            window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: cap.prompt } }));
-                          } else {
-                            setPendingEntryQuery(cap.prompt);
-                            openAiBox();
-                          }
-                        }}
-                        className="h-[34px] flex-1 relative rounded-[7px] cursor-pointer border-none transition-all"
-                        style={{ backgroundColor: "#076498", border: "1px solid rgba(87,177,255,0.18)" }}
+                        onClick={() => handleSkillClick(cap.prompt)}
+                        className="h-[36px] flex-1 relative rounded-[7px] cursor-pointer border-none transition-all flex items-center justify-center"
+                        style={{ backgroundColor: "#076498", border: "1px solid rgba(87,177,255,0.20)" }}
                         onMouseEnter={e => {
                           e.currentTarget.style.backgroundColor = "#0879b5";
-                          e.currentTarget.style.borderColor = "rgba(87,177,255,0.35)";
+                          e.currentTarget.style.borderColor = "rgba(87,177,255,0.38)";
                         }}
                         onMouseLeave={e => {
                           e.currentTarget.style.backgroundColor = "#076498";
-                          e.currentTarget.style.borderColor = "rgba(87,177,255,0.18)";
+                          e.currentTarget.style.borderColor = "rgba(87,177,255,0.20)";
                         }}
                       >
-                        <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[13px] text-[#f1f3ff] text-[11px]">{cap.label}</span>
+                        <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[13px] text-[#e8f0f8] text-[11px] px-[4px]">{cap.label}</span>
                       </button>
                     ))}
                   </div>
 
-                  {/* Secondary actions — 4 smaller outline buttons */}
-                  <div className="flex flex-wrap gap-[6px]">
-                    {secondarySkills.map(cap => (
-                      <button
-                        key={cap.label}
-                        title={cap.label}
-                        onClick={() => {
-                          if (isAiBoxOpen) {
-                            window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query: cap.prompt } }));
-                          } else {
-                            setPendingEntryQuery(cap.prompt);
-                            openAiBox();
-                          }
-                        }}
-                        className="h-[28px] px-[10px] relative rounded-[6px] cursor-pointer transition-all"
-                        style={{
-                          backgroundColor: "rgba(87,177,255,0.04)",
-                          border: "1px solid rgba(87,177,255,0.18)",
-                          color: "#89949e",
-                          whiteSpace: "nowrap",
-                        }}
-                        onMouseEnter={e => {
-                          e.currentTarget.style.backgroundColor = "rgba(87,177,255,0.09)";
-                          e.currentTarget.style.borderColor = "rgba(87,177,255,0.32)";
-                          e.currentTarget.style.color = "#b8c8d8";
-                        }}
-                        onMouseLeave={e => {
-                          e.currentTarget.style.backgroundColor = "rgba(87,177,255,0.04)";
-                          e.currentTarget.style.borderColor = "rgba(87,177,255,0.18)";
-                          e.currentTarget.style.color = "#89949e";
-                        }}
-                      >
-                        <span className="font-['Inter:Medium',sans-serif] font-medium leading-[12px] text-[10px]">{cap.label}</span>
-                      </button>
-                    ))}
-                  </div>
+                  {/* Secondary actions — smaller outline chips */}
+                  {secondarySkills.length > 0 && (
+                    <div className="flex flex-wrap gap-[5px]">
+                      {secondarySkills.map(cap => (
+                        <button
+                          key={cap.label}
+                          title={cap.label}
+                          onClick={() => handleSkillClick(cap.prompt)}
+                          className="h-[26px] px-[10px] relative rounded-[5px] cursor-pointer transition-all"
+                          style={{
+                            backgroundColor: "rgba(87,177,255,0.04)",
+                            border: "1px solid rgba(87,177,255,0.14)",
+                            color: "#7a8e9e",
+                            whiteSpace: "nowrap",
+                          }}
+                          onMouseEnter={e => {
+                            e.currentTarget.style.backgroundColor = "rgba(87,177,255,0.09)";
+                            e.currentTarget.style.borderColor = "rgba(87,177,255,0.28)";
+                            e.currentTarget.style.color = "#a8bcc8";
+                          }}
+                          onMouseLeave={e => {
+                            e.currentTarget.style.backgroundColor = "rgba(87,177,255,0.04)";
+                            e.currentTarget.style.borderColor = "rgba(87,177,255,0.14)";
+                            e.currentTarget.style.color = "#7a8e9e";
+                          }}
+                        >
+                          <span className="font-['Inter:Medium',sans-serif] font-medium leading-[12px] text-[10px]">{cap.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </>
               );
             })()}

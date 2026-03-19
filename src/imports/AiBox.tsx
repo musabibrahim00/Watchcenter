@@ -306,35 +306,35 @@ const ProactiveCard = React.memo(function ProactiveCard({ scenario, onDismiss }:
     <div className="w-full shrink-0 z-[2]" style={{ animation: "proactiveSlideIn 0.4s ease-out" }}>
       <div className="mx-[8px] mt-[4px] mb-[2px] rounded-[10px] overflow-hidden" style={{ background: colors.bg, border: `1px solid ${colors.border}` }}>
         {/* Header bar */}
-        <div className="flex items-center justify-between px-[10px] py-[6px]" style={{ borderBottom: `1px solid ${colors.border}` }}>
-          <div className="flex items-center gap-[6px] min-w-0">
-            <span className="relative size-[6px] shrink-0">
+        <div className="flex items-center justify-between px-[10px] py-[5px]" style={{ borderBottom: `1px solid ${colors.border}` }}>
+          <div className="flex items-center gap-[5px] min-w-0 flex-1 mr-[8px]">
+            <span className="relative size-[5px] shrink-0">
               <span className="absolute inset-0 rounded-full" style={{ background: colors.dot, animation: "proactivePulse 2s ease-in-out infinite" }}/>
             </span>
-            <span className="font-['Inter:Medium',sans-serif] text-[8px] leading-[11px] uppercase tracking-wider" style={{ color: colors.text }}>
-              System recommendation
+            <span className="font-['Inter:Medium',sans-serif] text-[8px] leading-[11px] uppercase tracking-wider shrink-0" style={{ color: colors.text }}>
+              Recommendation
             </span>
-            <span className="font-['Inter:Regular',sans-serif] text-[12px] leading-[11px] text-[#4a5568]">&mdash;</span>
-            <span className="font-['Inter:Regular',sans-serif] text-[12px] leading-[11px] text-[#4a5568] truncate">{scenario.source}</span>
+            <span className="font-['Inter:Regular',sans-serif] text-[10px] leading-[11px] text-[#3a4a58] shrink-0 mx-[1px]">·</span>
+            <span className="font-['Inter:Regular',sans-serif] text-[10px] leading-[11px] text-[#4a5f72] truncate min-w-0">{scenario.source}</span>
           </div>
-          <div className="flex items-center gap-[6px] shrink-0">
+          <div className="flex items-center gap-[5px] shrink-0">
             {scenario.score > 0 && (
-              <span className="font-['Inter:Medium',sans-serif] text-[12px] leading-[10px] px-[4px] py-[1px] rounded-[3px]"
-                style={{ color: colors.text, background: `${colors.dot}14` }}>
+              <span className="font-['Inter:Medium',sans-serif] text-[9px] leading-[10px] px-[5px] py-[2px] rounded-[3px]"
+                style={{ color: colors.text, background: `${colors.dot}18` }}>
                 P{scenario.score}
               </span>
             )}
-            <button className="shrink-0 size-[16px] flex items-center justify-center rounded-[4px] cursor-pointer border-none bg-transparent opacity-40 hover:opacity-80 transition-opacity" onClick={onDismiss} aria-label="Dismiss">
+            <button className="shrink-0 size-[18px] flex items-center justify-center rounded-[4px] cursor-pointer border-none bg-transparent opacity-35 hover:opacity-70 transition-opacity" onClick={onDismiss} aria-label="Dismiss">
               <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 1l6 6M7 1L1 7" stroke="#89949e" strokeWidth="1.2" strokeLinecap="round"/></svg>
             </button>
           </div>
         </div>
         {/* Event label */}
-        <div className="px-[10px] pt-[6px] pb-[4px]">
-          <p className="font-['Inter:Medium',sans-serif] text-[12px] leading-[14px] text-[#dadfe3]">{scenario.label}</p>
+        <div className="px-[10px] pt-[6px] pb-[2px]">
+          <p className="font-['Inter:Medium',sans-serif] text-[11px] leading-[14px] text-[#c8d4de]">{scenario.label}</p>
         </div>
-        {/* Module cards */}
-        <div className="px-[8px] pb-[8px] flex flex-col gap-[6px]">
+        {/* Narrative content — flat, no inner card borders */}
+        <div className="px-[10px] pb-[10px] flex flex-col gap-[4px]">
           {scenario.modules.map((mod, i) => (
             <div key={i}>{renderAiResponse(mod)}</div>
           ))}
@@ -455,23 +455,23 @@ export default function AiBox() {
   const { persona } = usePersona();
   const returning = React.useMemo(() => isReturningUser(), []);
 
-  // Entry chips — focused 3-4 actions shown inline with the greeting message.
+  // Entry chips — focused 3 actions shown inline with the greeting message.
   // Returning users see change-oriented chips; managers see approval-first chips.
   const entryChips: string[] = React.useMemo(() => {
     if (returning) return [
       "What changed since my last visit?",
-      "What escalated?",
-      "Review pending interventions",
+      "What escalated since last session?",
+      "Show me what needs authorization",
     ];
     if (persona === "manager") return [
-      "What needs my approval?",
-      "What needs attention right now?",
-      "Review pending interventions",
+      "What needs my approval right now?",
+      "Show pending interventions",
+      "What are the top risks I should know about?",
     ];
     return [
-      "What needs attention right now?",
-      "Investigate the top risk",
-      "Review pending interventions",
+      "What needs my attention right now?",
+      "Investigate the top active risk",
+      "Show pending interventions",
     ];
   }, [returning, persona]);
 
@@ -485,8 +485,8 @@ export default function AiBox() {
 
   // Build the initial greeting message with embedded action chips.
   const greetingText = returning
-    ? "Welcome back — here's the current status. Risks have shifted since your last session, and one intervention is awaiting your authorization."
-    : "Here's what needs your attention right now — high-confidence risks are active and one intervention requires authorization.";
+    ? "Welcome back. One intervention is awaiting your authorization and risk posture has shifted since your last session. Where would you like to start?"
+    : "Here's what needs your attention — high-confidence risks are active and one intervention is ready for authorization. Pick a task below or ask me anything.";
 
   const [messages, setMessages] = React.useState<ChatMessage[]>(() => [{
     id: crypto.randomUUID(),
@@ -495,13 +495,17 @@ export default function AiBox() {
     timestamp: new Date(),
     renderedUI: (
       <div className="flex flex-col gap-[8px] bg-[#0e1c2c] rounded-[10px] rounded-tl-[4px] px-[10px] py-[8px] border border-[#172840]">
-        <p className="font-['Inter:Regular',sans-serif] font-normal leading-[17px] text-[#9fadb9] text-[11px]">{greetingText}</p>
-        <div className="flex flex-col gap-[4px] mt-[2px]">
+        <p className="font-['Inter:Regular',sans-serif] font-normal leading-[16px] text-[#8fa8bc] text-[11px]">{greetingText}</p>
+        <div className="h-[1px] w-full" style={{ background: "rgba(87,177,255,0.07)" }} />
+        <div className="flex flex-col gap-[3px]">
           {entryChips.map(chip => (
-            <div key={chip} className="bg-[#0a1828] border border-[#172a3c] rounded-[6px] px-[9px] py-[6px] cursor-pointer hover:border-[#1e3a5f] transition-colors group" data-suggestion={chip}>
-              <div className="flex items-center gap-[5px]">
-                <svg className="size-[8px] shrink-0 opacity-30 group-hover:opacity-60 transition-opacity" viewBox="0 0 10 10" fill="none"><path d="M3.5 2L6.5 5L3.5 8" stroke="#57b1ff" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                <p className="font-['Inter:Regular',sans-serif] font-normal leading-[13px] text-[#7e8e9e] group-hover:text-[#9fadb9] transition-colors text-[11px]">{chip}</p>
+            <div key={chip} className="rounded-[5px] px-[8px] py-[5px] cursor-pointer transition-colors group" style={{ background: "rgba(87,177,255,0.04)", border: "1px solid rgba(87,177,255,0.10)" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(87,177,255,0.22)"; (e.currentTarget as HTMLElement).style.background = "rgba(87,177,255,0.07)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(87,177,255,0.10)"; (e.currentTarget as HTMLElement).style.background = "rgba(87,177,255,0.04)"; }}
+              data-suggestion={chip}>
+              <div className="flex items-center gap-[6px]">
+                <svg className="size-[7px] shrink-0 opacity-40" viewBox="0 0 10 10" fill="none"><path d="M3.5 2L6.5 5L3.5 8" stroke="#57b1ff" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <p className="font-['Inter:Regular',sans-serif] font-normal leading-[13px] text-[#7e95a8] group-hover:text-[#a0b8c8] transition-colors text-[11px]">{chip}</p>
               </div>
             </div>
           ))}

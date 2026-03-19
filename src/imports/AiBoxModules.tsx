@@ -533,31 +533,30 @@ export const AttackPathSystemRecommendation = React.memo(function AttackPathSyst
   const misconfigGradId = `misconfigGrad-${gradientId}`;
 
   return (
-    <PanelCard padding="lg">
+    // Flat layout — no nested card. ProactiveCard provides the visual boundary.
+    <div className="flex flex-col gap-[10px] px-[2px]">
       {/* Section 1 — Attack Surface */}
-      <div className="flex flex-col gap-[8px]">
-        <div className="flex items-center gap-[6px]">
-          <span className="text-[9px] font-semibold uppercase tracking-[0.6px]" style={{ color: colors.textDim }}>
-            Attack Surface
-          </span>
-        </div>
-        <p className="text-[11px] font-semibold leading-[1.2]" style={{ color: colors.textPrimary }}>{graph.title}</p>
-        <div style={{ width: "100%", height: 130 }}>
+      <div className="flex flex-col gap-[6px]">
+        <span className="text-[8px] font-semibold uppercase tracking-[0.7px]" style={{ color: colors.textDim }}>
+          Attack Surface
+        </span>
+        <p className="text-[11px] font-semibold leading-[1.3]" style={{ color: colors.textPrimary }}>{graph.title}</p>
+        <div style={{ width: "100%", height: 110 }}>
           <DeferredChart>
             <AreaChart data={graph.chartData}>
               <defs>
                 <linearGradient id={vulnGradId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ff4d4f" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#ff4d4f" stopOpacity={0.05} />
+                  <stop offset="0%" stopColor="#ff4d4f" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="#ff4d4f" stopOpacity={0.04} />
                 </linearGradient>
                 <linearGradient id={misconfigGradId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ff7a1a" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#ff7a1a" stopOpacity={0.05} />
+                  <stop offset="0%" stopColor="#ff7a1a" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="#ff7a1a" stopOpacity={0.04} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis dataKey="week" stroke={colors.textMuted} tick={{ fill: colors.textMuted, fontSize: 10 }} />
-              <YAxis stroke={colors.textMuted} tick={{ fill: colors.textMuted, fontSize: 10 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <XAxis dataKey="week" stroke={colors.textMuted} tick={{ fill: colors.textMuted, fontSize: 9 }} />
+              <YAxis stroke={colors.textMuted} tick={{ fill: colors.textMuted, fontSize: 9 }} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: colors.bgPanel,
@@ -571,18 +570,18 @@ export const AttackPathSystemRecommendation = React.memo(function AttackPathSyst
             </AreaChart>
           </DeferredChart>
         </div>
-        {/* Inline stat grid below chart */}
-        <div className="grid grid-cols-2 gap-x-[16px] gap-y-[4px] pt-[2px]">
+        {/* Inline stat row below chart */}
+        <div className="flex items-start gap-[20px]">
           <div>
-            <div className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: "#ff4d4f" }}>Vulnerabilities</div>
-            <div className="mt-[4px] flex flex-col gap-[2px]">
+            <span className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: "#ff4d4f" }}>Vulnerabilities</span>
+            <div className="mt-[3px] flex items-center gap-[8px]">
               <StatRow label="Critical" value={v.critical.toString()} />
               <StatRow label="High" value={v.high.toString()} />
             </div>
           </div>
           <div>
-            <div className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: "#ff7a1a" }}>Misconfiguration</div>
-            <div className="mt-[4px] flex flex-col gap-[2px]">
+            <span className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: "#ff7a1a" }}>Misconfiguration</span>
+            <div className="mt-[3px] flex items-center gap-[8px]">
               <StatRow label="Critical" value={m.critical.toString()} />
               <StatRow label="High" value={m.high.toString()} />
             </div>
@@ -590,28 +589,28 @@ export const AttackPathSystemRecommendation = React.memo(function AttackPathSyst
         </div>
       </div>
 
-      {/* Divider */}
-      <Divider />
+      {/* Thin rule — visual break between the two narrative sections */}
+      <div style={{ height: 1, background: "rgba(87,177,255,0.08)", margin: "2px 0" }} />
 
-      {/* Section 2 — Exposure / Threat Modelling */}
-      <div className="flex flex-col gap-[8px]">
+      {/* Section 2 — Threat Exposure */}
+      <div className="flex flex-col gap-[6px]">
         <div className="flex items-center justify-between">
-          <span className="text-[9px] font-semibold uppercase tracking-[0.6px]" style={{ color: colors.textDim }}>
+          <span className="text-[8px] font-semibold uppercase tracking-[0.7px]" style={{ color: colors.textDim }}>
             {insight.module}
           </span>
           <Badge tone={insight.severity}>{insight.severity}</Badge>
         </div>
-        <p className="text-[11px] font-semibold leading-[1.2]" style={{ color: colors.textPrimary }}>{insight.title}</p>
-        <p className="text-[10px] leading-[1.45]" style={{ color: colors.textMuted }}>{insight.description}</p>
+        <p className="text-[11px] font-semibold leading-[1.3]" style={{ color: colors.textPrimary }}>{insight.title}</p>
+        <p className="text-[10px] leading-[1.5]" style={{ color: colors.textMuted }}>{insight.description}</p>
         {insight.supportingStats && insight.supportingStats.length > 0 && (
-          <MetricGrid columns={2} gap="md">
+          <div className="flex items-start gap-[16px] pt-[2px]">
             {insight.supportingStats.map((stat) => (
               <div key={stat.label}>
-                <div className="text-[10px] uppercase tracking-[0.08em]" style={{ color: colors.textDim }}>{stat.label}</div>
-                <div className="mt-1 text-[12px] font-semibold" style={{ color: colors.textPrimary }}>{stat.value}</div>
+                <div className="text-[8px] uppercase tracking-[0.08em]" style={{ color: colors.textDim }}>{stat.label}</div>
+                <div className="mt-[2px] text-[12px] font-semibold" style={{ color: colors.textPrimary }}>{stat.value}</div>
               </div>
             ))}
-          </MetricGrid>
+          </div>
         )}
         {insight.actions && insight.actions.length > 0 && (
           <div className="flex items-center gap-[8px] pt-[2px]">
@@ -620,7 +619,7 @@ export const AttackPathSystemRecommendation = React.memo(function AttackPathSyst
           </div>
         )}
       </div>
-    </PanelCard>
+    </div>
   );
 });
 
