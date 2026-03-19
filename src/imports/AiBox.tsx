@@ -10,6 +10,7 @@ import {
   type ChatMessage,
   type TaskNode,
   type TaskGraph,
+  type ActionLifecycleState,
   isCasual,
   CASUAL_RESPS,
   getResponseContextLabel,
@@ -542,11 +543,21 @@ export default function AiBox() {
   React.useEffect(() => () => { timersRef.current.forEach(clearTimeout); }, []);
 
   /* ── External query injection bridge ── */
-  const sendRef = React.useRef<((text: string) => void) | null>(null);
+  const sendRef = React.useRef<((text: string, actionMeta?: { state: ActionLifecycleState; subject?: string; by?: string }) => void) | null>(null);
   React.useEffect(() => {
     const handler = (e: Event) => {
-      const query = (e as CustomEvent).detail?.query;
-      if (query && sendRef.current) sendRef.current(query);
+      const detail = (e as CustomEvent).detail;
+      const query = detail?.query;
+      if (!query || !sendRef.current) return;
+      const actionType = detail?.actionType as string | undefined;
+      if (actionType === "authorize") {
+        const ownerLabel = detail?.taskOwner ? `${detail.taskOwner} owner` : undefined;
+        sendRef.current(query, { state: "approved", by: ownerLabel });
+      } else if (actionType === "defer") {
+        sendRef.current(query, { state: "deferred" });
+      } else {
+        sendRef.current(query);
+      }
     };
     window.addEventListener("aibox-inject-query", handler);
     return () => window.removeEventListener("aibox-inject-query", handler);
@@ -740,7 +751,7 @@ export default function AiBox() {
 
   /* ── Send message ── */
 
-  const send = React.useCallback((text?: string) => {
+  const send = React.useCallback((text?: string, actionMeta?: { state: ActionLifecycleState; subject?: string; by?: string }) => {
     const msg = (text || inputValue).trim();
     if (!msg || isTyping) return;
     if (proactiveScenario) {
@@ -748,7 +759,7 @@ export default function AiBox() {
       setProactiveScenario(null);
       scheduleNextProactive();
     }
-    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", text: msg, timestamp: new Date() };
+    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", text: msg, timestamp: new Date(), actionMeta };
     setInputValue("");
     const ta = document.querySelector("[data-name='InputArea'] textarea") as HTMLTextAreaElement | null;
     if (ta) ta.style.height = "40px";

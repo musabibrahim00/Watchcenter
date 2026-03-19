@@ -13,7 +13,8 @@ export type RiskPipelineStage =
   | "prepared"
   | "awaiting_authorization"
   | "executing"
-  | "completed";
+  | "completed"
+  | "monitoring";
 
 export interface TaskData {
   id: string;
@@ -33,6 +34,10 @@ export interface TaskData {
   expectedOutcome?: string;
   riskIfDeferred?: string;
   owner?: string;
+  // Audit trail fields
+  detectedAt?: string;        // relative time — "47 min ago", "2h ago"
+  lastDecision?: string;      // "Authorized by Infrastructure · 2h ago"
+  monitoringStatus?: "active" | "resolved" | "reopened" | "validated";
 }
 
 const TASK_POOL: TaskData[] = [
@@ -49,6 +54,7 @@ const TASK_POOL: TaskData[] = [
     expectedOutcome: "CVE-2024-5821 patched — finance-db-01 exposure closed.",
     riskIfDeferred: "Active KEV exploitation window grows — crown jewel asset remains exposed.",
     owner: "Infrastructure",
+    detectedAt: "47 min ago",
   },
   {
     id: "task-2",
@@ -66,6 +72,7 @@ const TASK_POOL: TaskData[] = [
     expectedOutcome: "Lateral movement path blocked — domain-wide compromise surface eliminated.",
     riskIfDeferred: "Domain admin reachability window stays open via active attack path.",
     owner: "Security Operations",
+    detectedAt: "1.2 hrs ago",
   },
   {
     id: "task-3",
@@ -80,6 +87,7 @@ const TASK_POOL: TaskData[] = [
     expectedOutcome: "TLS certificates renewed — zero external service disruption.",
     riskIfDeferred: "Certificates expire in < 72h causing external service failures.",
     owner: "Infrastructure",
+    detectedAt: "3h ago",
   },
   {
     id: "task-4",
@@ -94,6 +102,7 @@ const TASK_POOL: TaskData[] = [
     expectedOutcome: "23 over-privileged tokens revoked — lateral movement via billing API eliminated.",
     riskIfDeferred: "Active credential stuffing campaign could exploit these tokens during delay.",
     owner: "Identity Security",
+    detectedAt: "6h ago",
   },
   {
     id: "task-5",
@@ -111,6 +120,7 @@ const TASK_POOL: TaskData[] = [
     expectedOutcome: "WKS-0447 isolated — C2 channel severed and source code repos protected.",
     riskIfDeferred: "Active C2 communication continues — blast radius expands to source code repos.",
     owner: "Security Operations",
+    detectedAt: "22 min ago",
   },
   {
     id: "task-6",
@@ -125,6 +135,7 @@ const TASK_POOL: TaskData[] = [
     expectedOutcome: "CVE-2025-1103 patched — unauthenticated RCE vector on CI/CD closed.",
     riskIfDeferred: "Supply chain compromise risk persists — unauthenticated RCE remains exploitable.",
     owner: "Application Security",
+    detectedAt: "2h ago",
   },
   {
     id: "task-7",
@@ -142,6 +153,7 @@ const TASK_POOL: TaskData[] = [
     expectedOutcome: "MFA enforced on 12 admin accounts — credential stuffing risk significantly reduced.",
     riskIfDeferred: "Active credential stuffing campaign — 12 unprotected admin accounts remain at risk.",
     owner: "Identity Security",
+    detectedAt: "5h ago",
   },
   {
     id: "task-8",
@@ -156,6 +168,7 @@ const TASK_POOL: TaskData[] = [
     expectedOutcome: "Bucket policy corrected — PII secured and breach notification risk eliminated.",
     riskIfDeferred: "Customer PII remains publicly accessible — breach notification obligation active.",
     owner: "Governance & Compliance",
+    detectedAt: "3.5h ago",
   },
 ];
 
@@ -167,6 +180,7 @@ const PIPELINE_STAGES: { key: RiskPipelineStage; label: string; abbr: string }[]
   { key: "awaiting_authorization",  label: "Awaiting auth", abbr: "Awaiting auth" },
   { key: "executing",               label: "Executing",     abbr: "Executing" },
   { key: "completed",               label: "Completed",     abbr: "Done" },
+  { key: "monitoring",              label: "Monitoring",    abbr: "Monitoring" },
 ];
 
 function RiskPipeline({ stage }: { stage?: RiskPipelineStage }) {
@@ -224,7 +238,11 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
   const handleAction = () => {
     setLoading(true);
     window.dispatchEvent(new CustomEvent("aibox-inject-query", {
-      detail: { query: `Authorization submitted for: "${task.title}". What will happen next and what risk does this remediate?` },
+      detail: {
+        query: `Authorization submitted for: "${task.title}". What will happen next and what risk does this remediate?`,
+        actionType: "authorize",
+        taskOwner: task.owner,
+      },
     }));
     setTimeout(() => {
       setLoading(false);
@@ -234,7 +252,10 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
 
   const handleDefer = () => {
     window.dispatchEvent(new CustomEvent("aibox-inject-query", {
-      detail: { query: `"${task.title}" has been deferred. What is the risk of deferring this and when should it be revisited?` },
+      detail: {
+        query: `"${task.title}" has been deferred. What is the risk of deferring this and when should it be revisited?`,
+        actionType: "defer",
+      },
     }));
     onAction?.();
   };
@@ -281,10 +302,22 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
                   <span className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[8px]" style={{ color: "#4a7888" }}>{task.affectedAsset}</span>
                 </div>
               )}
+              {task.source && (
+                <div className="flex items-center gap-[4px] mt-[1px]">
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3a5868" }}>Detected by:</span>
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#4a6878" }}>{task.source}</span>
+                </div>
+              )}
               {task.owner && (
                 <div className="flex items-center gap-[4px] mt-[1px]">
                   <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3a5868" }}>Owner:</span>
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3d6070" }}>{task.owner}</span>
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#4e7282" }}>{task.owner}</span>
+                </div>
+              )}
+              {task.detectedAt && (
+                <div className="flex items-center gap-[3px] mt-[2px]">
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a3e4e" }}>·</span>
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2e4452" }}>{task.detectedAt}</span>
                 </div>
               )}
             </div>
@@ -322,6 +355,10 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
       </div>
       {/* Buttons / Loader */}
       <div className="relative shrink-0 w-full mt-auto" data-name="Buttons">
+        {/* Audit trail — shows if there's a previous decision on record */}
+        {!loading && task.lastDecision && (
+          <p className="font-['Inter:Regular',sans-serif] text-[8px] mb-[4px] italic" style={{ color: "#2e4452" }}>{task.lastDecision}</p>
+        )}
         {/* Action label — makes the CTA intent explicit */}
         {!loading && (
           <p className="font-['Inter:Regular',sans-serif] text-[8px] text-[#3d5a6a] mb-[5px] uppercase tracking-[0.4px]">Recommended action</p>
@@ -399,7 +436,11 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
   const handleAction = () => {
     setLoading(true);
     window.dispatchEvent(new CustomEvent("aibox-inject-query", {
-      detail: { query: `Authorization submitted for: "${task.title}". What will happen next and what risk does this remediate?` },
+      detail: {
+        query: `Authorization submitted for: "${task.title}". What will happen next and what risk does this remediate?`,
+        actionType: "authorize",
+        taskOwner: task.owner,
+      },
     }));
     setTimeout(() => {
       setLoading(false);
@@ -409,7 +450,10 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
 
   const handleDefer = () => {
     window.dispatchEvent(new CustomEvent("aibox-inject-query", {
-      detail: { query: `"${task.title}" has been deferred. What is the risk of deferring this and when should it be revisited?` },
+      detail: {
+        query: `"${task.title}" has been deferred. What is the risk of deferring this and when should it be revisited?`,
+        actionType: "defer",
+      },
     }));
     onAction?.();
   };
@@ -456,10 +500,22 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
                   <span className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[8px]" style={{ color: "#4a7888" }}>{task.affectedAsset}</span>
                 </div>
               )}
+              {task.source && (
+                <div className="flex items-center gap-[4px] mt-[1px]">
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3a5868" }}>Detected by:</span>
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#4a6878" }}>{task.source}</span>
+                </div>
+              )}
               {task.owner && (
                 <div className="flex items-center gap-[4px] mt-[1px]">
                   <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3a5868" }}>Owner:</span>
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3d6070" }}>{task.owner}</span>
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#4e7282" }}>{task.owner}</span>
+                </div>
+              )}
+              {task.detectedAt && (
+                <div className="flex items-center gap-[3px] mt-[2px]">
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a3e4e" }}>·</span>
+                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2e4452" }}>{task.detectedAt}</span>
                 </div>
               )}
             </div>
