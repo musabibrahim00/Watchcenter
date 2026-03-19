@@ -101,41 +101,25 @@ function Separator() {
 }
 
 function HeroStat() {
-  const mttd = useAnimatedValue(36, 1200); // 3.6 hrs → animate to 36 then display as 3.6
+  const mttd = useAnimatedValue(36, 1200);
   return (
-    <div className="flex items-end justify-between w-full">
-      <div className="flex flex-col gap-[6px]">
-        <span className="text-[10px] text-[#89949e] font-['Inter:Regular',sans-serif] uppercase tracking-[0.5px] leading-[1]">
-          MTTD
-        </span>
-        <div className="flex items-baseline gap-[4px]">
-          <span className="text-[14px] text-white font-['Inter:Semi_Bold',sans-serif] tracking-[-0.5px] leading-[1]">
-            {(mttd / 10).toFixed(1)}
-          </span>
-          <span className="text-[10px] text-[#89949e] font-['Inter:Regular',sans-serif] leading-[1]">hrs</span>
-        </div>
+    <div className="flex items-center gap-[8px] w-full">
+      <div className="flex items-baseline gap-[3px]">
+        <span className="text-[8px] text-[#4a5f72] font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.4px] leading-[1]">MTTD</span>
+        <span className="text-[11px] text-white font-['Inter:Semi_Bold',sans-serif] tracking-[-0.3px] leading-[1] ml-[2px]">{(mttd / 10).toFixed(1)}</span>
+        <span className="text-[9px] text-[#89949e] font-['Inter:Regular',sans-serif] leading-[1]">h</span>
       </div>
-      <div className="flex flex-col items-start gap-[6px]">
-        <span className="text-[10px] text-[#89949e] font-['Inter:Regular',sans-serif] uppercase tracking-[0.5px] leading-[1]">
-          MTTR
-        </span>
-        <div className="flex items-baseline gap-[4px]">
-          <span className="text-[14px] text-white font-['Inter:Semi_Bold',sans-serif] tracking-[-0.5px] leading-[1]">
-            1.2
-          </span>
-          <span className="text-[10px] text-[#89949e] font-['Inter:Regular',sans-serif] leading-[1]">hrs</span>
-        </div>
+      <span className="text-[#172a3c] leading-[1] text-[10px]">·</span>
+      <div className="flex items-baseline gap-[3px]">
+        <span className="text-[8px] text-[#4a5f72] font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.4px] leading-[1]">MTTR</span>
+        <span className="text-[11px] text-white font-['Inter:Semi_Bold',sans-serif] tracking-[-0.3px] leading-[1] ml-[2px]">1.2</span>
+        <span className="text-[9px] text-[#89949e] font-['Inter:Regular',sans-serif] leading-[1]">h</span>
       </div>
-      <div className="flex flex-col items-center gap-[6px]">
-        <span className="text-[10px] text-[#89949e] font-['Inter:Regular',sans-serif] uppercase tracking-[0.5px] leading-[1]">
-          SLA MET
-        </span>
-        <div className="flex items-baseline gap-[4px]">
-          <span className="text-[14px] text-[#00A46E] font-['Inter:Semi_Bold',sans-serif] tracking-[-0.5px] leading-[1]">
-            98.7
-          </span>
-          <span className="text-[10px] text-[#89949e] font-['Inter:Regular',sans-serif] leading-[1]">%</span>
-        </div>
+      <span className="text-[#172a3c] leading-[1] text-[10px]">·</span>
+      <div className="flex items-baseline gap-[3px]">
+        <span className="text-[8px] text-[#4a5f72] font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.4px] leading-[1]">SLA</span>
+        <span className="text-[11px] text-[#00A46E] font-['Inter:Semi_Bold',sans-serif] tracking-[-0.3px] leading-[1] ml-[2px]">98.7</span>
+        <span className="text-[9px] text-[#89949e] font-['Inter:Regular',sans-serif] leading-[1]">%</span>
       </div>
     </div>
   );

@@ -146,7 +146,7 @@ export default function InvestigationTimeline({ hoveredAgent }: { hoveredAgent?:
   return (
     <div
       className="relative rounded-[12px] w-full shrink-0 overflow-hidden"
-      style={{ maxHeight: 185 }}
+      style={{ maxHeight: 165 }}
       data-name="InvestigationTimeline"
     >
       <div className="content-stretch flex flex-col gap-[6px] items-start overflow-hidden p-[10px] relative rounded-[inherit] size-full bg-[rgba(8,18,30,0.80)]">
