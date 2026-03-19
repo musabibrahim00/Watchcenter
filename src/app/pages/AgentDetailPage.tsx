@@ -377,6 +377,7 @@ function InterventionCard({
       <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[10px] overflow-hidden" style={{ WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude", padding: "1px" }}>
         <div className="absolute inset-[-50%] animate-[border-spin_6s_linear_infinite]" style={{ background: "conic-gradient(from 0deg, #030609 0%, #FF575752 25%, #030609 50%, #FF575752 75%, #030609 100%)" }} />
       </div>
+      {/* Identification — what is the issue, where does it exist */}
       <div className="flex items-start justify-between gap-[12px]">
         <div className="flex items-start gap-[10px] flex-1 min-w-0">
           <div
@@ -393,17 +394,29 @@ function InterventionCard({
             <p className="font-['Inter',sans-serif] text-[11px] text-[#89949E] leading-[14px]">
               {data.status === "completed" ? "Remediation completed successfully." : data.description}
             </p>
+            {/* Assessment — why it matters, business impact */}
             {data.status !== "completed" && data.businessImpact && (
-              <p className="font-['Inter',sans-serif] text-[10px] text-[#89949e] leading-[13px] mt-[1px]">
-                <span className="text-[#89949E]">Impact: </span>
-                {data.businessImpact}
-              </p>
+              <div className="flex items-start justify-between gap-[8px] mt-[3px]">
+                <p className="font-['Inter',sans-serif] text-[10px] text-[#89949e] leading-[13px] flex-1">
+                  <span className="text-[#89949E]">Impact: </span>
+                  {data.businessImpact}
+                </p>
+                <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px] shrink-0 mt-[1px]" style={{ color: "#2a4a5a" }}>
+                  Assessment
+                </span>
+              </div>
             )}
           </div>
         </div>
-        <SeverityBadge severity={displaySeverity} />
+        <div className="flex flex-col items-end gap-[4px] shrink-0">
+          <SeverityBadge severity={displaySeverity} />
+          <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#2a4a5a" }}>
+            Identification
+          </span>
+        </div>
       </div>
 
+      {/* Mitigation + Monitoring — pipeline progression */}
       <div className="ml-[18px]">
         <VerticalPipelineStatus steps={data.pipelineSteps} activeStep={displayStep} animating={data.status === "executing"} />
       </div>
@@ -417,9 +430,22 @@ function InterventionCard({
             {data.confidence}%
           </span>
         </div>
-        <div className="flex items-center gap-[12px]">
+        <div className="flex items-center gap-[10px]">
           {data.status === "awaiting" && (
             <>
+              {/* Ask why — injects intervention context into AIBox */}
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent("globalaibox-inject-query", {
+                  detail: { query: `Intervention: "${data.title}" — stage: ${data.pipelineSteps[data.activeStep] ?? "Awaiting authorization"}. Why is this intervention required, what risk does it mitigate, and what happens if we defer or don't act?` },
+                }))}
+                className="flex items-center gap-[3px] font-['Inter',sans-serif] text-[10px] leading-[13px] transition-colors cursor-pointer rounded-[5px] px-[7px] py-[3px]"
+                style={{ background: "rgba(87,177,255,0.07)", border: "1px solid rgba(87,177,255,0.16)", color: "#57b1ff" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.13)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.07)")}
+              >
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff"/></svg>
+                Ask why
+              </button>
               <button
                 onClick={() => onAuthorize(data.id)}
                 className="rounded-[6px] px-[12px] py-[5px] font-['Inter',sans-serif] text-[11px] text-white leading-[14px] transition-colors cursor-pointer"

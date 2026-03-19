@@ -2021,14 +2021,49 @@ function processChangeSummaryQuery(
    COMPONENT
    ================================================================ */
 
+// ── Session storage helpers ──────────────────────────────────────────────────
+const SESSION_MSGS_KEY = "globalaibox:messages";
+const SESSION_CTX_KEY  = "globalaibox:contextKey";
+
+function loadMessagesFromSession(): ChatMessage[] {
+  try {
+    const raw = sessionStorage.getItem(SESSION_MSGS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as Array<{ id: string; role: string; text: string; timestamp: string }>;
+    return parsed.map(m => ({
+      id: m.id,
+      role: m.role as ChatMessage["role"],
+      text: m.text,
+      timestamp: new Date(m.timestamp),
+    }));
+  } catch { return []; }
+}
+
+function saveMessagesToSession(msgs: ChatMessage[]) {
+  try {
+    // Skip messages that carry renderedUI (not serializable); keep last 60
+    const serializable = msgs
+      .filter(m => !m.renderedUI)
+      .slice(-60)
+      .map(m => ({ id: m.id, role: m.role, text: m.text, timestamp: m.timestamp.toISOString() }));
+    sessionStorage.setItem(SESSION_MSGS_KEY, JSON.stringify(serializable));
+  } catch { /* storage quota — silently skip */ }
+}
+
+function loadContextKeyFromSession(): string {
+  try { return sessionStorage.getItem(SESSION_CTX_KEY) ?? ""; } catch { return ""; }
+}
+
+// ── Component ────────────────────────────────────────────────────────────────
+
 function GlobalAIBoxInner() {
   const { isOpen, pageContext, pendingEntryQuery, setPendingEntryQuery } = useAiBox();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(loadMessagesFromSession);
   const [inputValue, setInputValue] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [runningAction, setRunningAction] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const prevContextKeyRef = useRef<string>("");
+  const prevContextKeyRef = useRef<string>(loadContextKeyFromSession());
   const prevInitialQueryRef = useRef<string>("");
   const returning = useMemo(() => isReturningUser(), []);
 
@@ -2043,6 +2078,9 @@ function GlobalAIBoxInner() {
     };
   }, [isOpen, pageContext?.label]);
   useEffect(() => () => { sealSession(); }, []);
+
+  /* ── Persist conversation to sessionStorage so history survives navigation ── */
+  useEffect(() => { saveMessagesToSession(messages); }, [messages]);
 
   /* ── Action status events from ActionCard ── */
   useEffect(() => {
@@ -2138,6 +2176,8 @@ function GlobalAIBoxInner() {
     const isFirstLoad = prevContextKeyRef.current === "";
     prevContextKeyRef.current = contextKey;
     prevInitialQueryRef.current = "";
+    // Persist new context key so restored sessions don't re-show greeting
+    try { sessionStorage.setItem(SESSION_CTX_KEY, contextKey); } catch { /* ignore */ }
 
     if (isFirstLoad) {
       // Initial page load — show greeting or start empty
