@@ -171,7 +171,7 @@ function Container() {
             </div>
           </div>
           <div
-            className="absolute top-[24px] left-[24px] z-[2] flex flex-col gap-[12px]"
+            className="absolute top-[24px] left-[24px] z-[2] flex flex-col gap-[12px] overflow-hidden"
             style={{ width: sideW, height: sideH }}
           >
             <ActivityFeed />

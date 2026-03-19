@@ -2,6 +2,7 @@ import React from "react";
 import {
   AnalystDetailPanel,
   AttackPathGraph,
+  AttackPathSystemRecommendation,
   CaseSummaryCard,
   DecisionCard,
   InsightCard,
@@ -347,6 +348,15 @@ export function buildAndRenderAiResponse(context: AiQueryContext): { ui: React.R
   const intent = detectIntent(context.query);
   const modules = buildComposedResponse(context);
   if (modules.length === 0) return null;
+
+  // attack_paths: merge graph + insight into one unified container (no nested cards)
+  if (intent === "attack_paths" && modules.length === 2 && modules[0].type === "attack_path" && modules[1].type === "insight") {
+    const graphProps = modules[0] as Extract<AiRenderableResponse, { type: "attack_path" }>;
+    const insightProps = modules[1] as Extract<AiRenderableResponse, { type: "insight" }>;
+    const ui = <AttackPathSystemRecommendation graph={graphProps} insight={insightProps} />;
+    return { ui, modules, intent };
+  }
+
   const ui = modules.length === 1
     ? renderAiResponse(modules[0])
     : (
