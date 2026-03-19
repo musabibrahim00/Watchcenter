@@ -90,10 +90,20 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
 
   const handleAction = () => {
     setLoading(true);
+    window.dispatchEvent(new CustomEvent("aibox-inject-query", {
+      detail: { query: `Authorization submitted for: "${task.title}". What will happen next and what risk does this remediate?` },
+    }));
     setTimeout(() => {
       setLoading(false);
       onAction?.();
     }, 3000);
+  };
+
+  const handleDefer = () => {
+    window.dispatchEvent(new CustomEvent("aibox-inject-query", {
+      detail: { query: `"${task.title}" has been deferred. What is the risk of deferring this and when should it be revisited?` },
+    }));
+    onAction?.();
   };
 
   return (
@@ -173,7 +183,7 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
               </div>
             </div>
             {!loading && (
-            <div onClick={handleAction} className="cursor-pointer">
+            <div onClick={handleDefer} className="cursor-pointer">
               <div className="h-[24px] relative rounded-[6px] shrink-0 hover:bg-[#1e2a34] transition-colors" data-name="ButtonGray">
                 <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex h-full items-center justify-center px-[12px] py-[8px] relative">
                   <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Defer</p>
@@ -212,10 +222,20 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
 
   const handleAction = () => {
     setLoading(true);
+    window.dispatchEvent(new CustomEvent("aibox-inject-query", {
+      detail: { query: `Authorization submitted for: "${task.title}". What will happen next and what risk does this remediate?` },
+    }));
     setTimeout(() => {
       setLoading(false);
       onAction?.();
     }, 3000);
+  };
+
+  const handleDefer = () => {
+    window.dispatchEvent(new CustomEvent("aibox-inject-query", {
+      detail: { query: `"${task.title}" has been deferred. What is the risk of deferring this and when should it be revisited?` },
+    }));
+    onAction?.();
   };
 
   return (
@@ -342,7 +362,7 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
               </div>
             </div>
             {!loading && (
-            <div onClick={handleAction} className="cursor-pointer">
+            <div onClick={handleDefer} className="cursor-pointer">
               <div className="h-[24px] relative rounded-[6px] shrink-0 hover:bg-[#1e2a34] transition-colors" data-name="ButtonGray">
                 <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex h-full items-center justify-center px-[12px] py-[8px] relative">
                   <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Defer</p>

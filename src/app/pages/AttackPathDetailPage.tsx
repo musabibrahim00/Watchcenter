@@ -2973,8 +2973,14 @@ export default function AttackPathDetailPage() {
       </div>
 
       {/* Main content: Full-width Graph canvas */}
-      <div className="flex-1 flex p-2 overflow-hidden" style={{ minHeight: 0 }}>
+      <div className="flex-1 flex flex-col p-2 overflow-hidden" style={{ minHeight: 0 }}>
         <GraphCanvas pathData={pathData} pathId={resolvedPathId} selectedNodeId={selectedNodeId} onSelectNode={handleSelectNode} />
+        {/* Graph exploration hint */}
+        <div className="shrink-0 flex items-center justify-center gap-[20px] py-[6px] px-4">
+          <span className="text-[10px] font-['Inter',sans-serif]" style={{ color: colors.textDim }}>
+            Click a node to inspect · Hover the blast radius pill to see exposed assets · Ask AI to walk through each hop
+          </span>
+        </div>
       </div>
     </div>
   );

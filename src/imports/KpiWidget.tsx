@@ -208,7 +208,10 @@ export default function KpiWidget() {
       <Separator />
 
       {/* Metric rows */}
-      <div className="flex flex-col w-full -my-[1px]">
+      <div className="flex flex-col w-full gap-[3px]">
+        <span className="text-[8px] text-[#4a5f72] font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.6px] leading-[1] mb-[1px]">
+          Performance
+        </span>
         {standardMetrics.map((m, i) => (
           <MetricRow key={m.label} metric={m} index={i} />
         ))}
