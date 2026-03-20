@@ -174,13 +174,13 @@ function Container() {
             className="absolute top-[24px] left-[24px] z-[2] flex flex-col gap-[12px] overflow-hidden"
             style={{ width: sideW, height: sideH * 0.88 }}
           >
-            <div style={{ flex: "2 2 0%", minHeight: 0, overflow: "hidden" }}>
+            <div style={{ flex: "1 1 0%", minHeight: 0, overflow: "hidden" }}>
               <ActivityFeed />
             </div>
-            <div style={{ flex: "5 5 0%", minHeight: 0, overflow: "hidden" }}>
+            <div style={{ flex: "3 3 0%", minHeight: 0, overflow: "hidden" }}>
               <KpiWidget />
             </div>
-            <div style={{ flex: "3 3 0%", minHeight: 0, overflow: "hidden" }}>
+            <div style={{ flex: "1 1 0%", minHeight: 0, overflow: "hidden" }}>
               <InvestigationTimeline hoveredAgent={hoveredAgent} />
             </div>
           </div>

@@ -448,7 +448,8 @@ function ChatArea({ messages, isTyping, onSuggestionClick, onAction, messagesEnd
   messages: ChatMessage[]; isTyping: boolean; onSuggestionClick: (t: string) => void; onAction: (l: string) => void; messagesEndRef: React.RefObject<HTMLDivElement | null>;
   proactiveScenario?: ProactiveScenario | null; onDismissProactive?: () => void; welcomeSuggestions: string[];
 }) {
-  if (messages.length === 0 && !isTyping && proactiveScenario) {
+  const hasUserMessages = messages.some(m => m.role === "user");
+  if (!hasUserMessages && !isTyping && proactiveScenario) {
     return (
       <div
         className="flex-1 min-h-0 relative w-full z-[2]"

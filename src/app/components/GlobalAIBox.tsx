@@ -2190,37 +2190,21 @@ function GlobalAIBoxInner() {
     try { sessionStorage.setItem(SESSION_CTX_KEY, contextKey); } catch { /* ignore */ }
 
     if (isFirstLoad) {
-      // Initial page load — show greeting or start empty
-      if (pageContext?.greeting) {
-        setMessages([{
-          id: crypto.randomUUID(),
-          role: "agent",
-          text: pageContext.greeting,
-          timestamp: new Date(),
-        }]);
-      } else {
-        setMessages([]);
+      // Initial page load — only show greeting if there is no prior session
+      const restored = loadMessagesFromSession();
+      if (restored.length === 0) {
+        if (pageContext?.greeting) {
+          setMessages([{
+            id: crypto.randomUUID(),
+            role: "agent",
+            text: pageContext.greeting,
+            timestamp: new Date(),
+          }]);
+        }
       }
-    } else {
-      // Context switch — keep history, append a subtle separator
-      if (!pageContext?.label) return;
-      const switchLabel = pageContext.label;
-      setMessages(prev => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "divider" as const,
-          text: `Now focusing on ${switchLabel}`,
-          timestamp: new Date(),
-        },
-        ...(pageContext?.greeting ? [{
-          id: crypto.randomUUID(),
-          role: "agent" as const,
-          text: pageContext.greeting,
-          timestamp: new Date(),
-        }] : []),
-      ]);
+      // else: session messages already loaded into state — keep them
     }
+    // Context switch (non-first-load): keep history silently, no separator
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contextKey]);
 
