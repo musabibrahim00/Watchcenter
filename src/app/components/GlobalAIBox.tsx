@@ -2032,7 +2032,8 @@ function processChangeSummaryQuery(
    ================================================================ */
 
 // ── Session storage helpers ──────────────────────────────────────────────────
-const SESSION_MSGS_KEY = "globalaibox:messages";
+/* Shared key — same key used by AiBox.tsx (Watch Center) so conversation persists cross-screen */
+const SESSION_MSGS_KEY = "aibox:shared:messages";
 const SESSION_CTX_KEY  = "globalaibox:contextKey";
 
 function loadMessagesFromSession(): ChatMessage[] {
@@ -2189,22 +2190,21 @@ function GlobalAIBoxInner() {
     // Persist new context key so restored sessions don't re-show greeting
     try { sessionStorage.setItem(SESSION_CTX_KEY, contextKey); } catch { /* ignore */ }
 
-    if (isFirstLoad) {
-      // Initial page load — only show greeting if there is no prior session
-      const restored = loadMessagesFromSession();
-      if (restored.length === 0) {
-        if (pageContext?.greeting) {
-          setMessages([{
-            id: crypto.randomUUID(),
-            role: "agent",
-            text: pageContext.greeting,
-            timestamp: new Date(),
-          }]);
-        }
-      }
-      // else: session messages already loaded into state — keep them
+    // On any context switch (including first load): sync from shared session if it has more
+    // messages than current state — this picks up conversation history from Watch Center AiBox
+    const restored = loadMessagesFromSession();
+    if (restored.length > messages.length) {
+      setMessages(restored);
+    } else if (isFirstLoad && restored.length === 0 && pageContext?.greeting) {
+      // Truly first load with no prior session — show page greeting
+      setMessages([{
+        id: crypto.randomUUID(),
+        role: "agent",
+        text: pageContext.greeting,
+        timestamp: new Date(),
+      }]);
     }
-    // Context switch (non-first-load): keep history silently, no separator
+    // All other cases: keep current messages (non-first-load context switch)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contextKey]);
 

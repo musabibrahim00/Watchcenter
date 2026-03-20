@@ -27,7 +27,8 @@ import {
 
 /* ── Module-level message store — survives React unmount/remount (route changes) ── */
 let _persistedWcMessages: ChatMessage[] | null = null;
-const _WC_SESSION_KEY = "aibox:wc:messages";
+/* Shared key — same key used by GlobalAIBox so cross-screen history is unified */
+const _WC_SESSION_KEY = "aibox:shared:messages";
 function _loadWcSession(): ChatMessage[] | null {
   try {
     const raw = sessionStorage.getItem(_WC_SESSION_KEY);
@@ -452,12 +453,10 @@ function ChatArea({ messages, isTyping, onSuggestionClick, onAction, messagesEnd
   if (!hasUserMessages && !isTyping && proactiveScenario) {
     return (
       <div
-        className="flex-1 min-h-0 relative w-full z-[2]"
+        className="flex-1 min-h-0 w-full flex flex-col overflow-hidden z-[2]"
         onClick={(e) => { const el = (e.target as HTMLElement).closest("[data-suggestion]") as HTMLElement|null; if (el?.dataset.suggestion) onSuggestionClick(el.dataset.suggestion); }}>
-        <div className="absolute inset-0 flex flex-col">
-          <ProactiveCard scenario={proactiveScenario} onDismiss={onDismissProactive!} fill />
-          <div ref={messagesEndRef}/>
-        </div>
+        <ProactiveCard scenario={proactiveScenario} onDismiss={onDismissProactive!} fill />
+        <div ref={messagesEndRef}/>
       </div>
     );
   }
@@ -467,10 +466,10 @@ function ChatArea({ messages, isTyping, onSuggestionClick, onAction, messagesEnd
       onClick={(e) => { const el = (e.target as HTMLElement).closest("[data-suggestion]") as HTMLElement|null; if (el?.dataset.suggestion) onSuggestionClick(el.dataset.suggestion); }}>
       {messages.length === 0 && !isTyping ? <SharedWelcomeScreen suggestions={welcomeSuggestions}/> : (
         <div className="flex flex-col py-[12px] min-h-full justify-end">
+          {messages.map(m => <SharedMessageBubble key={m.id} message={m} onAction={onAction} taskGraphRenderer={renderTaskGraph}/>)}
           {proactiveScenario && onDismissProactive && (
             <ProactiveCard scenario={proactiveScenario} onDismiss={onDismissProactive}/>
           )}
-          {messages.map(m => <SharedMessageBubble key={m.id} message={m} onAction={onAction} taskGraphRenderer={renderTaskGraph}/>)}
           {isTyping && <TypingIndicator/>}
           <div ref={messagesEndRef}/>
         </div>
@@ -528,7 +527,14 @@ export default function AiBox() {
     ? "Welcome back — risk posture shifted since your last session and one intervention is ready for sign-off. Where do you want to start?"
     : "One intervention needs sign-off. Risks have been ranked and prioritized. Pick a task below or ask me anything.";
 
-  const [messages, setMessages] = React.useState<ChatMessage[]>(() => _persistedWcMessages ?? _loadWcSession() ?? [{
+  const [messages, setMessages] = React.useState<ChatMessage[]>(() => {
+    const sessionMsgs = _loadWcSession();
+    // Prefer session over stale module-level var when GlobalAIBox added messages since last WC visit
+    if (_persistedWcMessages && sessionMsgs && sessionMsgs.length > _persistedWcMessages.length) {
+      _persistedWcMessages = sessionMsgs;
+      return sessionMsgs;
+    }
+    return _persistedWcMessages ?? sessionMsgs ?? [{
     id: crypto.randomUUID(),
     role: "agent" as const,
     text: greetingText,
@@ -552,7 +558,8 @@ export default function AiBox() {
         </div>
       </div>
     ),
-  }]);
+  }];
+  });
   React.useEffect(() => { _persistedWcMessages = messages; _saveWcSession(messages); }, [messages]);
 
   const [inputValue, setInputValue] = React.useState("");

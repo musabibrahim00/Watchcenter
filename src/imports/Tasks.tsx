@@ -263,7 +263,7 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
 
   return (
     <div
-      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[10px] items-start p-[12px] relative rounded-[12px]"
+      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[8px] items-start p-[10px] relative rounded-[12px]"
       style={{ animation: "tasksFadeIn 0.3s ease forwards", backgroundImage: "linear-gradient(35deg, rgba(5, 11, 17, 0) 73.614%, rgba(255, 87, 87, 0.12) 100%)" }}
       data-name="TaskCard"
     >
@@ -437,7 +437,7 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
 
   return (
     <div
-      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[10px] items-start p-[12px] relative rounded-[12px]"
+      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[8px] items-start p-[10px] relative rounded-[12px]"
       style={{ animation: "tasksFadeIn 0.3s ease forwards", backgroundImage: "linear-gradient(35deg, rgba(5, 11, 17, 0) 73.614%, rgba(255, 87, 87, 0.12) 100%)" }}
       data-name="KdTaskCard"
     >

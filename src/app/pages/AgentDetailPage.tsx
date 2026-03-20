@@ -371,7 +371,7 @@ function InterventionCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -6 }}
       transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
-      className="relative rounded-[10px] p-[10px] flex flex-col gap-[6px]"
+      className="relative rounded-[10px] p-[8px] flex flex-col gap-[4px]"
     >
       <div aria-hidden="true" className="absolute inset-0 mix-blend-screen pointer-events-none rounded-[10px]" style={{ backgroundImage: "linear-gradient(112.026deg, rgb(8, 3, 3) 0%, rgb(0, 0, 0) 35.132%, rgb(0, 0, 0) 65.097%, rgb(8, 3, 3) 90.93%)" }} />
       <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[10px] overflow-hidden" style={{ WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude", padding: "1px" }}>
@@ -421,7 +421,7 @@ function InterventionCard({
         <VerticalPipelineStatus steps={data.pipelineSteps} activeStep={displayStep} animating={data.status === "executing"} />
       </div>
 
-      <div className="flex items-center justify-between flex-wrap gap-[8px] ml-[18px]">
+      <div className="flex items-center justify-between flex-wrap gap-[5px] ml-[18px]">
         <div className="flex items-center gap-[4px]">
           <span className="font-['Inter',sans-serif] text-[10px] text-[#89949E] leading-[13px]">
             Confidence:
@@ -567,7 +567,7 @@ function PaginatedInterventions({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="flex flex-col gap-[10px]"
+          className="flex flex-col gap-[6px]"
         >
           {visibleItems.map((item) => (
             <InterventionCard key={item.id} data={item} onAuthorize={onAuthorize} onDefer={onDefer} onInvestigate={onInvestigate} />
