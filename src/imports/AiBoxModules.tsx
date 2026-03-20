@@ -554,9 +554,6 @@ export const AttackPathSystemRecommendation = React.memo(function AttackPathSyst
                   <stop offset="100%" stopColor="#ff7a1a" stopOpacity={0.03} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="week" stroke={colors.textMuted} tick={{ fill: colors.textMuted, fontSize: 9 }} />
-              <YAxis stroke={colors.textMuted} tick={{ fill: colors.textMuted, fontSize: 9 }} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: colors.bgPanel,

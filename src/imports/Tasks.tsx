@@ -262,7 +262,7 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
 
   return (
     <div
-      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[20px] items-start p-[17px] relative rounded-[12px]"
+      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[14px] items-start p-[17px] relative rounded-[12px]"
       style={{ animation: "tasksFadeIn 0.3s ease forwards", backgroundImage: "linear-gradient(35deg, rgba(5, 11, 17, 0) 73.614%, rgba(255, 87, 87, 0.12) 100%)" }}
       data-name="TaskCard"
     >
@@ -296,30 +296,6 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
               </div>
               <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[12px] w-full">{task.title}</p>
               <p className="font-['Inter:Regular',sans-serif] text-[10px] text-[#6b7c8a] leading-[14px] w-full whitespace-normal mt-[1px]">{task.subtitle}</p>
-              {task.affectedAsset && (
-                <div className="flex items-center gap-[4px] mt-[1px]">
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3a5868" }}>Asset:</span>
-                  <span className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[8px]" style={{ color: "#4a7888" }}>{task.affectedAsset}</span>
-                </div>
-              )}
-              {task.source && (
-                <div className="flex items-center gap-[4px] mt-[1px]">
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3a5868" }}>Detected by:</span>
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#4a6878" }}>{task.source}</span>
-                </div>
-              )}
-              {task.owner && (
-                <div className="flex items-center gap-[4px] mt-[1px]">
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3a5868" }}>Owner:</span>
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#4e7282" }}>{task.owner}</span>
-                </div>
-              )}
-              {task.detectedAt && (
-                <div className="flex items-center gap-[3px] mt-[2px]">
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a3e4e" }}>·</span>
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2e4452" }}>{task.detectedAt}</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -460,7 +436,7 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
 
   return (
     <div
-      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[20px] items-start p-[17px] relative rounded-[12px]"
+      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[14px] items-start p-[17px] relative rounded-[12px]"
       style={{ animation: "tasksFadeIn 0.3s ease forwards", backgroundImage: "linear-gradient(35deg, rgba(5, 11, 17, 0) 73.614%, rgba(255, 87, 87, 0.12) 100%)" }}
       data-name="KdTaskCard"
     >
@@ -494,30 +470,6 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
               </div>
               <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[12px] w-full">{task.title}</p>
               <p className="font-['Inter:Regular',sans-serif] text-[10px] text-[#6b7c8a] leading-[14px] w-full whitespace-normal mt-[1px]">{task.subtitle}</p>
-              {task.affectedAsset && (
-                <div className="flex items-center gap-[4px] mt-[1px]">
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3a5868" }}>Asset:</span>
-                  <span className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[8px]" style={{ color: "#4a7888" }}>{task.affectedAsset}</span>
-                </div>
-              )}
-              {task.source && (
-                <div className="flex items-center gap-[4px] mt-[1px]">
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3a5868" }}>Detected by:</span>
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#4a6878" }}>{task.source}</span>
-                </div>
-              )}
-              {task.owner && (
-                <div className="flex items-center gap-[4px] mt-[1px]">
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#3a5868" }}>Owner:</span>
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#4e7282" }}>{task.owner}</span>
-                </div>
-              )}
-              {task.detectedAt && (
-                <div className="flex items-center gap-[3px] mt-[2px]">
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a3e4e" }}>·</span>
-                  <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2e4452" }}>{task.detectedAt}</span>
-                </div>
-              )}
             </div>
           </div>
         </div>

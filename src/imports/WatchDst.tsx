@@ -191,7 +191,7 @@ function Container() {
                   <p className="bg-clip-text bg-gradient-to-r font-['Inter:Regular',sans-serif] font-normal from-[#ffcba3] from-[6.932%] leading-[20px] not-italic shrink-0 text-[16px] text-[transparent] to-[48.267%] to-white via-[#ffe8a3] via-[1.412%] whitespace-nowrap">Risk tracker — required interventions</p>
                 </div>
               )}
-              <div className="min-h-[350px]">
+              <div className="min-h-[260px]">
                 <Tasks onViewChange={setIsDetailView} onTaskDone={handleTaskDone} />
               </div>
             </div>

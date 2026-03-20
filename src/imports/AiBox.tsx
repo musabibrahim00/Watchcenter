@@ -333,7 +333,7 @@ const ProactiveCard = React.memo(function ProactiveCard({ scenario, onDismiss }:
           <p className="font-['Inter:Medium',sans-serif] text-[11px] leading-[14px] text-[#c8d4de] break-words">{scenario.label}</p>
         </div>
         {/* Narrative content — unified block, no inner cards */}
-        <div className="px-[10px] pb-[10px]">
+        <div className="px-[12px] pb-[12px]">
           {scenario.modules.length === 2 &&
            scenario.modules[0].type === "attack_path" &&
            scenario.modules[1].type === "insight" ? (
