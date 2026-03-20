@@ -2193,9 +2193,10 @@ function GlobalAIBoxInner() {
     // On any context switch (including first load): sync from shared session if it has more
     // messages than current state — this picks up conversation history from Watch Center AiBox
     const restored = loadMessagesFromSession();
-    if (restored.length > messages.length) {
+    if (restored.length > 0) {
+      // Always restore from session — session is the unified source of truth across Watch Center and all other pages
       setMessages(restored);
-    } else if (isFirstLoad && restored.length === 0 && pageContext?.greeting) {
+    } else if (isFirstLoad && pageContext?.greeting) {
       // Truly first load with no prior session — show page greeting
       setMessages([{
         id: crypto.randomUUID(),

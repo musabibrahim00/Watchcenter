@@ -324,8 +324,8 @@ const PRIORITY_COLORS: Record<string, { bg: string; border: string; text: string
 const ProactiveCard = React.memo(function ProactiveCard({ scenario, onDismiss, fill = false }: { scenario: ProactiveScenario; onDismiss: () => void; fill?: boolean }) {
   const colors = PRIORITY_COLORS[scenario.priority] || PRIORITY_COLORS.high;
   return (
-    <div className={`w-full z-[2] ${fill ? "flex-1 flex flex-col min-h-0" : "shrink-0"}`} style={{ animation: "proactiveSlideIn 0.4s ease-out" }}>
-      <div className={`mx-[8px] mt-[4px] mb-[2px] rounded-[10px] overflow-hidden ${fill ? "flex-1 flex flex-col min-h-0" : ""}`} style={{ background: colors.bg, border: `1px solid ${colors.border}` }}>
+    <div className={`w-full z-[2] ${fill ? "flex-1 flex flex-col" : "shrink-0"}`} style={{ animation: "proactiveSlideIn 0.4s ease-out" }}>
+      <div className={`mx-[8px] mt-[4px] mb-[2px] rounded-[10px] overflow-hidden ${fill ? "flex-1 flex flex-col" : ""}`} style={{ background: colors.bg, border: `1px solid ${colors.border}` }}>
         {/* Header bar — lean: pulse dot + label + score + dismiss only */}
         <div className="flex items-center justify-between px-[10px] py-[6px]" style={{ borderBottom: `1px solid ${colors.border}` }}>
           <div className="flex items-center gap-[6px]">
@@ -453,9 +453,11 @@ function ChatArea({ messages, isTyping, onSuggestionClick, onAction, messagesEnd
   if (!hasUserMessages && !isTyping && proactiveScenario) {
     return (
       <div
-        className="flex-1 min-h-0 w-full flex flex-col overflow-hidden z-[2]"
+        className="flex-1 min-h-0 relative w-full z-[2]"
         onClick={(e) => { const el = (e.target as HTMLElement).closest("[data-suggestion]") as HTMLElement|null; if (el?.dataset.suggestion) onSuggestionClick(el.dataset.suggestion); }}>
-        <ProactiveCard scenario={proactiveScenario} onDismiss={onDismissProactive!} fill />
+        <div className="absolute inset-0 flex flex-col overflow-hidden">
+          <ProactiveCard scenario={proactiveScenario} onDismiss={onDismissProactive!} fill />
+        </div>
         <div ref={messagesEndRef}/>
       </div>
     );

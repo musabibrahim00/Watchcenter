@@ -371,7 +371,7 @@ function InterventionCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -6 }}
       transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
-      className="relative rounded-[10px] p-[8px] flex flex-col gap-[4px]"
+      className="relative rounded-[10px] p-[7px] flex flex-col gap-[3px]"
     >
       <div aria-hidden="true" className="absolute inset-0 mix-blend-screen pointer-events-none rounded-[10px]" style={{ backgroundImage: "linear-gradient(112.026deg, rgb(8, 3, 3) 0%, rgb(0, 0, 0) 35.132%, rgb(0, 0, 0) 65.097%, rgb(8, 3, 3) 90.93%)" }} />
       <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[10px] overflow-hidden" style={{ WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude", padding: "1px" }}>
@@ -396,7 +396,7 @@ function InterventionCard({
             </p>
             {/* Assessment — why it matters, business impact */}
             {data.status !== "completed" && data.businessImpact && (
-              <div className="flex items-start justify-between gap-[8px] mt-[3px]">
+              <div className="flex items-start justify-between gap-[8px] mt-[2px]">
                 <p className="font-['Inter',sans-serif] text-[10px] text-[#89949e] leading-[13px] flex-1">
                   <span className="text-[#89949E]">Impact: </span>
                   {data.businessImpact}
@@ -421,7 +421,7 @@ function InterventionCard({
         <VerticalPipelineStatus steps={data.pipelineSteps} activeStep={displayStep} animating={data.status === "executing"} />
       </div>
 
-      <div className="flex items-center justify-between flex-wrap gap-[5px] ml-[18px]">
+      <div className="flex items-center justify-between flex-wrap gap-[3px] ml-[18px]">
         <div className="flex items-center gap-[4px]">
           <span className="font-['Inter',sans-serif] text-[10px] text-[#89949E] leading-[13px]">
             Confidence:
@@ -451,7 +451,7 @@ function InterventionCard({
         <div className="flex items-center gap-[10px]">
           {data.status === "awaiting" && (
             <>
-              <div className="flex items-center gap-[5px] w-full mb-[2px]">
+              <div className="flex items-center gap-[4px] w-full mb-[1px]">
                 <div className="size-[5px] rounded-full shrink-0" style={{ backgroundColor: "#d97706", opacity: 0.85 }} />
                 <span className="font-['Inter',sans-serif] text-[10px] leading-[13px]" style={{ color: "#b87a20" }}>
                   Awaiting your authorization

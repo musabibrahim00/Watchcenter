@@ -263,7 +263,7 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
 
   return (
     <div
-      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[8px] items-start p-[10px] relative rounded-[12px]"
+      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[6px] items-start p-[8px] relative rounded-[12px]"
       style={{ animation: "tasksFadeIn 0.3s ease forwards", backgroundImage: "linear-gradient(35deg, rgba(5, 11, 17, 0) 73.614%, rgba(255, 87, 87, 0.12) 100%)" }}
       data-name="TaskCard"
     >
@@ -295,8 +295,8 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
                 )}
                 <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#3d6070" }}>Identification</span>
               </div>
-              <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[12px] w-full">{task.title}</p>
-              <p className="font-['Inter:Regular',sans-serif] text-[10px] text-[#6b7c8a] leading-[14px] w-full line-clamp-2 overflow-hidden mt-[1px]">{task.subtitle}</p>
+              <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[11px] w-full">{task.title}</p>
+              <p className="font-['Inter:Regular',sans-serif] text-[10px] text-[#6b7c8a] leading-[13px] w-full line-clamp-2 overflow-hidden mt-[1px]">{task.subtitle}</p>
             </div>
           </div>
         </div>
@@ -437,7 +437,7 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
 
   return (
     <div
-      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[8px] items-start p-[10px] relative rounded-[12px]"
+      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[6px] items-start p-[8px] relative rounded-[12px]"
       style={{ animation: "tasksFadeIn 0.3s ease forwards", backgroundImage: "linear-gradient(35deg, rgba(5, 11, 17, 0) 73.614%, rgba(255, 87, 87, 0.12) 100%)" }}
       data-name="KdTaskCard"
     >
@@ -469,8 +469,8 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
                 )}
                 <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#3d6070" }}>Identification</span>
               </div>
-              <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[12px] w-full">{task.title}</p>
-              <p className="font-['Inter:Regular',sans-serif] text-[10px] text-[#6b7c8a] leading-[14px] w-full line-clamp-2 overflow-hidden mt-[1px]">{task.subtitle}</p>
+              <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[11px] w-full">{task.title}</p>
+              <p className="font-['Inter:Regular',sans-serif] text-[10px] text-[#6b7c8a] leading-[13px] w-full line-clamp-2 overflow-hidden mt-[1px]">{task.subtitle}</p>
             </div>
           </div>
         </div>
