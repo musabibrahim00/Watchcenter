@@ -432,17 +432,21 @@ function ChatArea({ messages, isTyping, onSuggestionClick, onAction, messagesEnd
   messages: ChatMessage[]; isTyping: boolean; onSuggestionClick: (t: string) => void; onAction: (l: string) => void; messagesEndRef: React.RefObject<HTMLDivElement | null>;
   proactiveScenario?: ProactiveScenario | null; onDismissProactive?: () => void; welcomeSuggestions: string[];
 }) {
+  /* Fill mode — no scroll container, ProactiveCard expands to fill flex space */
+  if (messages.length === 0 && !isTyping && proactiveScenario) {
+    return (
+      <div className="flex-1 min-h-0 min-w-0 relative w-full z-[2] flex flex-col py-[6px]"
+        onClick={(e) => { const el = (e.target as HTMLElement).closest("[data-suggestion]") as HTMLElement|null; if (el?.dataset.suggestion) onSuggestionClick(el.dataset.suggestion); }}>
+        <ProactiveCard scenario={proactiveScenario} onDismiss={onDismissProactive!} fill />
+        <div ref={messagesEndRef}/>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 min-h-0 min-w-0 relative w-full z-[2] overflow-y-auto" style={{ scrollbarWidth: "none" }}
       onClick={(e) => { const el = (e.target as HTMLElement).closest("[data-suggestion]") as HTMLElement|null; if (el?.dataset.suggestion) onSuggestionClick(el.dataset.suggestion); }}>
-      {messages.length === 0 && !isTyping && !proactiveScenario ? <SharedWelcomeScreen suggestions={welcomeSuggestions}/> :
-       messages.length === 0 && !isTyping && proactiveScenario ? (
-        /* Fill mode — recommendation occupies the full content area */
-        <div className="flex flex-col min-h-full py-[6px]">
-          <ProactiveCard scenario={proactiveScenario} onDismiss={onDismissProactive!} fill />
-          <div ref={messagesEndRef}/>
-        </div>
-       ) : (
+      {messages.length === 0 && !isTyping ? <SharedWelcomeScreen suggestions={welcomeSuggestions}/> : (
         <div className="flex flex-col py-[12px] min-h-full justify-end">
           {proactiveScenario && onDismissProactive && (
             <ProactiveCard scenario={proactiveScenario} onDismiss={onDismissProactive}/>
