@@ -262,7 +262,7 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
 
   return (
     <div
-      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[14px] items-start p-[17px] relative rounded-[12px]"
+      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[10px] items-start p-[12px] relative rounded-[12px]"
       style={{ animation: "tasksFadeIn 0.3s ease forwards", backgroundImage: "linear-gradient(35deg, rgba(5, 11, 17, 0) 73.614%, rgba(255, 87, 87, 0.12) 100%)" }}
       data-name="TaskCard"
     >
@@ -274,7 +274,7 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
       <div className="relative shrink-0 w-full" data-name="Container">
         <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-start justify-between relative w-full">
           <div className="flex-[1_0_0] min-h-px min-w-px relative" data-name="Container">
-            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col gap-[5px] items-start leading-[normal] not-italic relative w-full tracking-[0.4px] whitespace-pre-wrap">
+            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col gap-[3px] items-start leading-[normal] not-italic relative w-full tracking-[0.4px] whitespace-pre-wrap">
               <div className="flex items-center justify-between w-full">
                 <span className="inline-flex items-center gap-[4px] px-[5px] py-[1px] rounded-[3px] text-[9px] font-['Inter:Semi_Bold',sans-serif] tracking-[0.4px] uppercase" style={{ background: "rgba(255,87,87,0.10)", border: "1px solid rgba(255,87,87,0.22)", color: "#ff8a8a" }}>
                   <span className="block size-[4px] rounded-full bg-[#FF5757]" />
@@ -295,7 +295,7 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
                 <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#3d6070" }}>Identification</span>
               </div>
               <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[12px] w-full">{task.title}</p>
-              <p className="font-['Inter:Regular',sans-serif] text-[10px] text-[#6b7c8a] leading-[14px] w-full whitespace-normal mt-[1px]">{task.subtitle}</p>
+              <p className="font-['Inter:Regular',sans-serif] text-[10px] text-[#6b7c8a] leading-[14px] w-full line-clamp-2 overflow-hidden mt-[1px]">{task.subtitle}</p>
             </div>
           </div>
         </div>
@@ -330,7 +330,7 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
         <RiskPipeline stage={task.pipelineStage} />
       </div>
       {/* Buttons / Loader */}
-      <div className="relative shrink-0 w-full mt-auto" data-name="Buttons">
+      <div className="relative shrink-0 w-full" data-name="Buttons">
         {/* Audit trail — shows if there's a previous decision on record */}
         {!loading && task.lastDecision && (
           <p className="font-['Inter:Regular',sans-serif] text-[8px] mb-[4px] italic" style={{ color: "#2e4452" }}>{task.lastDecision}</p>
@@ -436,7 +436,7 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
 
   return (
     <div
-      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[14px] items-start p-[17px] relative rounded-[12px]"
+      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[10px] items-start p-[12px] relative rounded-[12px]"
       style={{ animation: "tasksFadeIn 0.3s ease forwards", backgroundImage: "linear-gradient(35deg, rgba(5, 11, 17, 0) 73.614%, rgba(255, 87, 87, 0.12) 100%)" }}
       data-name="KdTaskCard"
     >
@@ -448,7 +448,7 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
       <div className="relative shrink-0 w-full" data-name="Container">
         <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-start justify-between relative w-full">
           <div className="flex-[1_0_0] min-h-px min-w-px relative" data-name="Container">
-            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col gap-[5px] items-start leading-[normal] not-italic relative w-full tracking-[0.4px]">
+            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col gap-[3px] items-start leading-[normal] not-italic relative w-full tracking-[0.4px]">
               <div className="flex items-center justify-between w-full">
                 <span className="inline-flex items-center gap-[4px] px-[5px] py-[1px] rounded-[3px] text-[9px] font-['Inter:Semi_Bold',sans-serif] tracking-[0.4px] uppercase" style={{ background: "rgba(255,87,87,0.10)", border: "1px solid rgba(255,87,87,0.22)", color: "#ff8a8a" }}>
                   <span className="block size-[4px] rounded-full bg-[#FF5757]" />
@@ -469,7 +469,7 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
                 <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#3d6070" }}>Identification</span>
               </div>
               <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[12px] w-full">{task.title}</p>
-              <p className="font-['Inter:Regular',sans-serif] text-[10px] text-[#6b7c8a] leading-[14px] w-full whitespace-normal mt-[1px]">{task.subtitle}</p>
+              <p className="font-['Inter:Regular',sans-serif] text-[10px] text-[#6b7c8a] leading-[14px] w-full line-clamp-2 overflow-hidden mt-[1px]">{task.subtitle}</p>
             </div>
           </div>
         </div>
@@ -551,7 +551,7 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
         <RiskPipeline stage={task.pipelineStage} />
       </div>
       {/* Buttons / Loader */}
-      <div className="relative shrink-0 w-full mt-auto" data-name="Buttons">
+      <div className="relative shrink-0 w-full" data-name="Buttons">
         {!loading && (
           <p className="font-['Inter:Regular',sans-serif] text-[8px] text-[#3d5a6a] mb-[5px] uppercase tracking-[0.4px]">Recommended action</p>
         )}

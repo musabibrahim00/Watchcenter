@@ -437,9 +437,6 @@ function ChatArea({ messages, isTyping, onSuggestionClick, onAction, messagesEnd
           {proactiveScenario && onDismissProactive && (
             <ProactiveCard scenario={proactiveScenario} onDismiss={onDismissProactive}/>
           )}
-          {messages.length === 0 && !isTyping && proactiveScenario && (
-            <div className="flex-1"/>
-          )}
           {messages.map(m => <SharedMessageBubble key={m.id} message={m} onAction={onAction} taskGraphRenderer={renderTaskGraph}/>)}
           {isTyping && <TypingIndicator/>}
           <div ref={messagesEndRef}/>

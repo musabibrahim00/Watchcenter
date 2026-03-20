@@ -541,7 +541,7 @@ export const AttackPathSystemRecommendation = React.memo(function AttackPathSyst
           Attack Surface
         </span>
         <p className="text-[10px] font-medium leading-[1.35]" style={{ color: colors.textSecondary }}>{graph.title}</p>
-        <div style={{ width: "100%", height: 100 }}>
+        <div style={{ width: "100%", height: 120 }}>
           <DeferredChart>
             <AreaChart data={graph.chartData}>
               <defs>
