@@ -27,6 +27,22 @@ import {
 
 /* ── Module-level message store — survives React unmount/remount (route changes) ── */
 let _persistedWcMessages: ChatMessage[] | null = null;
+const _WC_SESSION_KEY = "aibox:wc:messages";
+function _loadWcSession(): ChatMessage[] | null {
+  try {
+    const raw = sessionStorage.getItem(_WC_SESSION_KEY);
+    if (!raw) return null;
+    const arr = JSON.parse(raw) as Array<{id: string; role: string; text: string; timestamp: string}>;
+    return arr.map(m => ({ id: m.id, role: m.role as ChatMessage["role"], text: m.text, timestamp: new Date(m.timestamp) }));
+  } catch { return null; }
+}
+function _saveWcSession(msgs: ChatMessage[]) {
+  try {
+    const data = msgs.filter(m => !m.renderedUI).slice(-60)
+      .map(m => ({ id: m.id, role: m.role, text: m.text, timestamp: m.timestamp.toISOString() }));
+    sessionStorage.setItem(_WC_SESSION_KEY, JSON.stringify(data));
+  } catch { /* storage quota */ }
+}
 
 /* ═══════════════════════════════════════════════════════════
    Intent Classification
@@ -432,13 +448,15 @@ function ChatArea({ messages, isTyping, onSuggestionClick, onAction, messagesEnd
   messages: ChatMessage[]; isTyping: boolean; onSuggestionClick: (t: string) => void; onAction: (l: string) => void; messagesEndRef: React.RefObject<HTMLDivElement | null>;
   proactiveScenario?: ProactiveScenario | null; onDismissProactive?: () => void; welcomeSuggestions: string[];
 }) {
-  /* Fill mode — no scroll container, ProactiveCard expands to fill flex space */
   if (messages.length === 0 && !isTyping && proactiveScenario) {
     return (
-      <div className="flex-1 min-h-0 min-w-0 relative w-full z-[2] flex flex-col py-[6px]"
+      <div
+        className="flex-1 min-h-0 relative w-full z-[2]"
         onClick={(e) => { const el = (e.target as HTMLElement).closest("[data-suggestion]") as HTMLElement|null; if (el?.dataset.suggestion) onSuggestionClick(el.dataset.suggestion); }}>
-        <ProactiveCard scenario={proactiveScenario} onDismiss={onDismissProactive!} fill />
-        <div ref={messagesEndRef}/>
+        <div className="absolute inset-0 flex flex-col">
+          <ProactiveCard scenario={proactiveScenario} onDismiss={onDismissProactive!} fill />
+          <div ref={messagesEndRef}/>
+        </div>
       </div>
     );
   }
@@ -509,7 +527,7 @@ export default function AiBox() {
     ? "Welcome back — risk posture shifted since your last session and one intervention is ready for sign-off. Where do you want to start?"
     : "One intervention needs sign-off. Risks have been ranked and prioritized. Pick a task below or ask me anything.";
 
-  const [messages, setMessages] = React.useState<ChatMessage[]>(() => _persistedWcMessages ?? [{
+  const [messages, setMessages] = React.useState<ChatMessage[]>(() => _persistedWcMessages ?? _loadWcSession() ?? [{
     id: crypto.randomUUID(),
     role: "agent" as const,
     text: greetingText,
@@ -534,8 +552,7 @@ export default function AiBox() {
       </div>
     ),
   }]);
-  /* Persist messages to module-level store so state survives unmount/remount */
-  React.useEffect(() => { _persistedWcMessages = messages; }, [messages]);
+  React.useEffect(() => { _persistedWcMessages = messages; _saveWcSession(messages); }, [messages]);
 
   const [inputValue, setInputValue] = React.useState("");
   const [isTyping, setIsTyping] = React.useState(false);

@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router";
 import DetailContainer from "./Container";
 import svgPaths from "./svg-tu9d27elxy";
 import MoveLeft from "./MoveLeft";
@@ -382,7 +383,7 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
               data-name="ButtonGray"
               onClick={onViewDetails}
             >
-              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Details</p>
+              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Investigate</p>
             </div>
             <div
               className="content-stretch flex h-[24px] items-center justify-center gap-[4px] px-[8px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer transition-colors"
@@ -598,7 +599,7 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
               data-name="ButtonGray"
               onClick={onViewDetails}
             >
-              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Details</p>
+              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Investigate</p>
             </div>
             <div
               className="content-stretch flex h-[24px] items-center justify-center gap-[4px] px-[8px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer transition-colors"
@@ -636,6 +637,7 @@ export default function Tasks({ onViewChange, onTaskDone }: { onViewChange?: (is
   const maxIndex = Math.max(0, visibleTasks.length - VISIBLE_COUNT);
 
   const { investigateTask } = useTaskInvestigation();
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     const el = containerRef.current;
