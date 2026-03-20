@@ -172,7 +172,7 @@ function Container() {
           </div>
           <div
             className="absolute top-[24px] left-[24px] z-[2] flex flex-col gap-[12px] overflow-hidden"
-            style={{ width: sideW, height: sideH }}
+            style={{ width: sideW, height: sideH * 0.8 }}
           >
             <div style={{ flex: "2 2 0%", minHeight: 0, overflow: "hidden" }}>
               <ActivityFeed />
@@ -186,7 +186,7 @@ function Container() {
           </div>
           <div
             className="absolute top-[24px] right-[24px] z-[3]"
-            style={{ width: sideW, height: sideH }}
+            style={{ width: sideW, height: sideH * 0.8 }}
           >
             <AiBox />
           </div>
