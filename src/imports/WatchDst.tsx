@@ -148,7 +148,7 @@ function Container() {
   const globeNative = 600;
   const globeScale = React.useMemo(() => Math.min(1, Math.max(0.55, (dims.w - 620) / 800)), [dims.w]);
   const sideW = React.useMemo(() => Math.min(300, Math.max(220, dims.w * 0.19)), [dims.w]);
-  const sideH = React.useMemo(() => Math.min(680, Math.max(480, dims.h * 0.82)), [dims.h]);
+  const sideH = React.useMemo(() => Math.min(720, Math.max(520, dims.h * 0.85)), [dims.h]);
 
   return (
     <StatusProvider>

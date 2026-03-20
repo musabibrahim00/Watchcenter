@@ -605,8 +605,20 @@ function PaginatedInterventions({
    MODULE SECTION — one per module, self-contained state
    ================================================================ */
 
+const MODULE_VIEW_ALL_ROUTES: Record<string, string> = {
+  "Risk Register": "/risk-register",
+  "Attack Paths": "/attack-paths",
+  "Vulnerabilities": "/vulnerabilities",
+  "Case Management": "/case-management",
+  "Cases": "/case-management",
+  "Compliance": "/compliance",
+  "Asset Register": "/asset-register",
+  "Misconfigurations": "/misconfigurations",
+};
+
 function ModuleSection({ moduleKey, config, onComplete, defaultExpanded = false, onInvestigate }: { moduleKey: string; config: ModuleConfig; onComplete?: (action: CompletedAction) => void; defaultExpanded?: boolean; onInvestigate?: (data: InterventionData) => void }) {
   const IconComp = MODULE_ICONS[moduleKey] || Shield;
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   /* evaluating rotation */
@@ -762,8 +774,8 @@ function ModuleSection({ moduleKey, config, onComplete, defaultExpanded = false,
           <span
             role="button"
             tabIndex={0}
-            onClick={(e) => { e.stopPropagation(); }}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); } }}
+            onClick={(e) => { e.stopPropagation(); const route = MODULE_VIEW_ALL_ROUTES[moduleKey]; if (route) navigate(route); }}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); const route = MODULE_VIEW_ALL_ROUTES[moduleKey]; if (route) navigate(route); } }}
             className="font-['Inter',sans-serif] text-[11px] text-[#076498] leading-[14px] hover:text-[#0992d0] transition-colors cursor-pointer whitespace-nowrap"
           >
             {MODULE_VIEW_ALL_LABELS[moduleKey]}

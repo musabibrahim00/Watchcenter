@@ -156,12 +156,18 @@ function LayoutInner() {
           </div>
 
           {/* GlobalAIBox - Right sidebar (inline, not fixed).
-              Suppressed on Watch Center (/) which has its own embedded AiBox. */}
-          {isAiBoxOpen && !isOnWatchCenter && (
-            <div className="shrink-0 h-full p-[24px]" style={{ width: "clamp(308px, calc(20vw + 48px), 348px)" }}>
-              <GlobalAIBox />
-            </div>
-          )}
+              Always mounted so chat state persists across route changes.
+              Hidden (zero-width) when on Watch Center or when closed. */}
+          <div
+            className="shrink-0 h-full overflow-hidden"
+            style={{
+              width: isAiBoxOpen && !isOnWatchCenter ? "clamp(308px, calc(20vw + 48px), 348px)" : "0px",
+              padding: isAiBoxOpen && !isOnWatchCenter ? "24px" : "0px",
+              transition: "width 0.2s ease",
+            }}
+          >
+            <GlobalAIBox />
+          </div>
         </div>
       </div>
     </div>

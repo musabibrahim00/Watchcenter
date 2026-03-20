@@ -25,6 +25,9 @@ import {
   type ActionCardData,
 } from "./AiBoxShared";
 
+/* ── Module-level message store — survives React unmount/remount (route changes) ── */
+let _persistedWcMessages: ChatMessage[] | null = null;
+
 /* ═══════════════════════════════════════════════════════════
    Intent Classification
    ═══════════════════════════════════════════════════════════ */
@@ -301,11 +304,11 @@ const PRIORITY_COLORS: Record<string, { bg: string; border: string; text: string
   high: { bg: "rgba(240,91,6,0.06)", border: "rgba(240,91,6,0.18)", text: "#F05B06", dot: "#F05B06" },
 };
 
-const ProactiveCard = React.memo(function ProactiveCard({ scenario, onDismiss }: { scenario: ProactiveScenario; onDismiss: () => void }) {
+const ProactiveCard = React.memo(function ProactiveCard({ scenario, onDismiss, fill = false }: { scenario: ProactiveScenario; onDismiss: () => void; fill?: boolean }) {
   const colors = PRIORITY_COLORS[scenario.priority] || PRIORITY_COLORS.high;
   return (
-    <div className="w-full shrink-0 z-[2]" style={{ animation: "proactiveSlideIn 0.4s ease-out" }}>
-      <div className="mx-[8px] mt-[4px] mb-[2px] rounded-[10px] overflow-hidden" style={{ background: colors.bg, border: `1px solid ${colors.border}` }}>
+    <div className={`w-full z-[2] ${fill ? "flex-1 flex flex-col min-h-0" : "shrink-0"}`} style={{ animation: "proactiveSlideIn 0.4s ease-out" }}>
+      <div className={`mx-[8px] mt-[4px] mb-[2px] rounded-[10px] overflow-hidden ${fill ? "flex-1 flex flex-col min-h-0" : ""}`} style={{ background: colors.bg, border: `1px solid ${colors.border}` }}>
         {/* Header bar — lean: pulse dot + label + score + dismiss only */}
         <div className="flex items-center justify-between px-[10px] py-[6px]" style={{ borderBottom: `1px solid ${colors.border}` }}>
           <div className="flex items-center gap-[6px]">
@@ -333,7 +336,7 @@ const ProactiveCard = React.memo(function ProactiveCard({ scenario, onDismiss }:
           <p className="font-['Inter:Medium',sans-serif] text-[11px] leading-[14px] text-[#c8d4de] break-words">{scenario.label}</p>
         </div>
         {/* Narrative content — unified block, no inner cards */}
-        <div className="px-[12px] pb-[12px]">
+        <div className={`px-[12px] pb-[12px] ${fill ? "flex-1 overflow-y-auto" : ""}`}>
           {scenario.modules.length === 2 &&
            scenario.modules[0].type === "attack_path" &&
            scenario.modules[1].type === "insight" ? (
@@ -432,7 +435,14 @@ function ChatArea({ messages, isTyping, onSuggestionClick, onAction, messagesEnd
   return (
     <div className="flex-1 min-h-0 min-w-0 relative w-full z-[2] overflow-y-auto" style={{ scrollbarWidth: "none" }}
       onClick={(e) => { const el = (e.target as HTMLElement).closest("[data-suggestion]") as HTMLElement|null; if (el?.dataset.suggestion) onSuggestionClick(el.dataset.suggestion); }}>
-      {messages.length === 0 && !isTyping && !proactiveScenario ? <SharedWelcomeScreen suggestions={welcomeSuggestions}/> : (
+      {messages.length === 0 && !isTyping && !proactiveScenario ? <SharedWelcomeScreen suggestions={welcomeSuggestions}/> :
+       messages.length === 0 && !isTyping && proactiveScenario ? (
+        /* Fill mode — recommendation occupies the full content area */
+        <div className="flex flex-col min-h-full py-[6px]">
+          <ProactiveCard scenario={proactiveScenario} onDismiss={onDismissProactive!} fill />
+          <div ref={messagesEndRef}/>
+        </div>
+       ) : (
         <div className="flex flex-col py-[12px] min-h-full justify-end">
           {proactiveScenario && onDismissProactive && (
             <ProactiveCard scenario={proactiveScenario} onDismiss={onDismissProactive}/>
@@ -495,7 +505,7 @@ export default function AiBox() {
     ? "Welcome back — risk posture shifted since your last session and one intervention is ready for sign-off. Where do you want to start?"
     : "One intervention needs sign-off. Risks have been ranked and prioritized. Pick a task below or ask me anything.";
 
-  const [messages, setMessages] = React.useState<ChatMessage[]>(() => [{
+  const [messages, setMessages] = React.useState<ChatMessage[]>(() => _persistedWcMessages ?? [{
     id: crypto.randomUUID(),
     role: "agent" as const,
     text: greetingText,
@@ -520,6 +530,9 @@ export default function AiBox() {
       </div>
     ),
   }]);
+  /* Persist messages to module-level store so state survives unmount/remount */
+  React.useEffect(() => { _persistedWcMessages = messages; }, [messages]);
+
   const [inputValue, setInputValue] = React.useState("");
   const [isTyping, setIsTyping] = React.useState(false);
   const ctxRef = React.useRef<InteractionContext>(EMPTY_CONTEXT);
