@@ -108,7 +108,7 @@ function useActivityCycler(tasks: string[], interval: number) {
   return { task: tasks[index], fading };
 }
 
-function AgentTooltip({ agentId }: { agentId: AgentId }) {
+function AgentTooltip({ agentId, onTooltipHover }: { agentId: AgentId; onTooltipHover?: (h: boolean) => void }) {
   const { status, tasks } = AGENT_ACTIVITIES[agentId];
   const config = STATUS_CONFIG[status];
   const pos = AGENT_POSITIONS[agentId];
@@ -130,7 +130,7 @@ function AgentTooltip({ agentId }: { agentId: AgentId }) {
     position: "absolute",
     top: pos.y + 30,
     zIndex: 1000,
-    pointerEvents: "none",
+    pointerEvents: "auto",
   };
 
   if (pos.side === "right") {
@@ -144,7 +144,11 @@ function AgentTooltip({ agentId }: { agentId: AgentId }) {
   }
 
   return (
-    <div style={tooltipStyle}>
+    <div
+      style={tooltipStyle}
+      onMouseEnter={() => onTooltipHover?.(true)}
+      onMouseLeave={() => onTooltipHover?.(false)}
+    >
       <div
         className="rounded-[8px] px-[12px] py-[8px] flex flex-col gap-[5px] backdrop-blur-[8px]"
         style={{
@@ -300,14 +304,30 @@ function AgentTooltip({ agentId }: { agentId: AgentId }) {
             </>
           );
         })()}
-        {/* "Click to interact" hint — always visible */}
+        {/* Action row — ask or open details */}
         <div className="h-px w-full" style={{ background: "rgba(87,177,255,0.06)" }} />
-        <span
-          className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic text-[#506070]"
-          style={{ fontSize: 8 }}
-        >
-          Click to open agent details and interact
-        </span>
+        <div className="flex items-center justify-between gap-[6px]">
+          <button
+            className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic"
+            style={{ fontSize: 9, color: "rgba(87,177,255,0.55)", cursor: "pointer", transition: "color 0.15s", background: "none", border: "none", padding: 0 }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(87,177,255,0.95)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(87,177,255,0.55)"; }}
+            onClick={(e) => {
+              e.stopPropagation();
+              const agentName = AGENT_NAMES[agentId];
+              const query = `Tell me about the ${agentName} agent — what is it currently working on, what are its capabilities, and what should I watch for?`;
+              window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query } }));
+            }}
+          >
+            Ask this agent →
+          </button>
+          <span
+            className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic text-[#3a4a58]"
+            style={{ fontSize: 8 }}
+          >
+            Click to open
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -2166,9 +2186,33 @@ function Agents({ selectedAgent, onAgentClick, onAgentHover }: { selectedAgent?:
   const [hoveredAgent, setHoveredAgent] = React.useState<AgentId | null>(null);
   const { scenario, phase, revealedSegments } = useInvestigation();
 
+  /* Delay-close so cursor can move from agent node to tooltip card */
+  const closeTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tooltipHovered = React.useRef(false);
+
+  const handleTooltipHover = React.useCallback((h: boolean) => {
+    tooltipHovered.current = h;
+    if (!h) {
+      // cursor left tooltip — close now (agent node already fired its leave)
+      setHoveredAgent(null);
+      onAgentHover?.(null);
+    }
+  }, [onAgentHover]);
+
   const handleHover = React.useCallback((id: AgentId | null) => {
-    setHoveredAgent(id);
-    onAgentHover?.(id);
+    if (id !== null) {
+      if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; }
+      setHoveredAgent(id);
+      onAgentHover?.(id);
+    } else {
+      closeTimer.current = setTimeout(() => {
+        closeTimer.current = null;
+        if (!tooltipHovered.current) {
+          setHoveredAgent(null);
+          onAgentHover?.(null);
+        }
+      }, 140);
+    }
   }, [onAgentHover]);
 
   /* Stable per-agent callback refs — avoids new closures every render */
@@ -2217,7 +2261,7 @@ function Agents({ selectedAgent, onAgentClick, onAgentHover }: { selectedAgent?:
       <Manager />
       <Working1 />
       <Status />
-      {tooltipAgent && <AgentTooltip agentId={tooltipAgent} />}
+      {tooltipAgent && <AgentTooltip agentId={tooltipAgent} onTooltipHover={handleTooltipHover} />}
     </div>
   );
 }

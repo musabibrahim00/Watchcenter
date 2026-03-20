@@ -103,12 +103,26 @@ function useActivityFeed(maxVisible = 50) {
 // ── Components ────────────────────────────────────────────────────────────
 
 function EventRow({ event, isNew }: { event: ActivityEvent; isNew: boolean }) {
+  const [hovered, setHovered] = React.useState(false);
+
+  const handleClick = () => {
+    const query = `What did ${event.analyst} just do? They ${event.action} — give me more context on this activity and its security implications.`;
+    window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query } }));
+  };
+
   return (
     <div
-      className="flex gap-[12px] items-baseline w-full"
+      className="flex gap-[12px] items-baseline w-full rounded-[4px] cursor-pointer"
       style={{
         animation: isNew ? "activitySlideIn 0.5s ease both" : undefined,
+        background: hovered ? "rgba(87,177,255,0.04)" : "transparent",
+        transition: "background 0.15s",
+        padding: "1px 3px",
+        margin: "0 -3px",
       }}
+      onClick={handleClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
       <span
         className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[10px] shrink-0 tabular-nums"
@@ -116,16 +130,26 @@ function EventRow({ event, isNew }: { event: ActivityEvent; isNew: boolean }) {
       >
         {event.timestamp}
       </span>
-      <div className="flex-1 min-w-0 leading-[1.4]">
-        <span
-          className="font-['IBM_Plex_Mono:Medium',sans-serif] font-medium text-[10px]"
-          style={{ color: event.color }}
-        >
-          {event.analyst}
-        </span>
-        <span className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[10px] text-[#7e8e9e]">
-          {" "}{event.action}
-        </span>
+      <div className="flex-1 min-w-0 leading-[1.4] flex items-baseline justify-between gap-[4px]">
+        <div className="min-w-0">
+          <span
+            className="font-['IBM_Plex_Mono:Medium',sans-serif] font-medium text-[10px]"
+            style={{ color: event.color }}
+          >
+            {event.analyst}
+          </span>
+          <span className="font-['IBM_Plex_Mono:Regular',sans-serif] text-[10px] text-[#7e8e9e]">
+            {" "}{event.action}
+          </span>
+        </div>
+        {hovered && (
+          <span
+            className="shrink-0 font-['Inter:Regular',sans-serif] text-[9px]"
+            style={{ color: "rgba(87,177,255,0.5)" }}
+          >
+            Ask →
+          </span>
+        )}
       </div>
     </div>
   );
