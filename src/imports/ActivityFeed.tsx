@@ -147,7 +147,7 @@ export default function ActivityFeed() {
   }, [events.length]);
 
   return (
-    <div className="relative rounded-[12px] w-full shrink-0 overflow-hidden" style={{ height: 130 }} data-name="ActivityFeed">
+    <div className="relative rounded-[12px] w-full h-full overflow-hidden" data-name="ActivityFeed">
       <div className="content-stretch flex flex-col items-start overflow-hidden p-px relative rounded-[inherit] size-full bg-[rgba(8,18,30,0.80)]">
         <div className="flex-1 min-h-0 relative w-full">
           <div className="absolute inset-0 flex flex-col gap-[8px] items-start pt-[12px] px-[14px] pb-[6px]">

@@ -174,7 +174,7 @@ export default function KpiWidget() {
 
   return (
     <div
-      className="bg-[rgba(8,18,30,0.60)] content-stretch flex flex-col gap-[6px] items-start p-[12px] relative rounded-[12px] w-full shrink-0"
+      className="bg-[rgba(8,18,30,0.60)] content-stretch flex flex-col gap-[6px] items-start p-[12px] relative rounded-[12px] w-full h-full overflow-y-auto"
       data-name="KPIWidget"
     >
       <div
