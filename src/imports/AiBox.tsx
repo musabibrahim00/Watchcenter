@@ -324,8 +324,13 @@ const PRIORITY_COLORS: Record<string, { bg: string; border: string; text: string
 const ProactiveCard = React.memo(function ProactiveCard({ scenario, onDismiss, fill = false }: { scenario: ProactiveScenario; onDismiss: () => void; fill?: boolean }) {
   const colors = PRIORITY_COLORS[scenario.priority] || PRIORITY_COLORS.high;
   return (
-    <div className={`w-full z-[2] ${fill ? "flex-1 flex flex-col" : "shrink-0"}`} style={{ animation: "proactiveSlideIn 0.4s ease-out" }}>
-      <div className={`mx-[8px] mt-[4px] mb-[2px] rounded-[10px] overflow-hidden ${fill ? "flex-1 flex flex-col" : ""}`} style={{ background: colors.bg, border: `1px solid ${colors.border}` }}>
+    <div className={`w-full z-[2] ${fill ? "flex-1 flex flex-col" : "shrink-0"}`} style={fill ? {} : { animation: "proactiveSlideIn 0.4s ease-out" }}>
+      <div
+        className={`overflow-hidden ${fill ? "flex-1 flex flex-col" : "mx-[8px] mt-[4px] mb-[2px] rounded-[10px]"}`}
+        style={fill
+          ? { background: colors.bg }
+          : { background: colors.bg, border: `1px solid ${colors.border}` }}
+      >
         {/* Header bar — lean: pulse dot + label + score + dismiss only */}
         <div className="flex items-center justify-between px-[10px] py-[6px]" style={{ borderBottom: `1px solid ${colors.border}` }}>
           <div className="flex items-center gap-[6px]">
@@ -531,12 +536,16 @@ export default function AiBox() {
 
   const [messages, setMessages] = React.useState<ChatMessage[]>(() => {
     const sessionMsgs = _loadWcSession();
-    // Prefer session over stale module-level var when GlobalAIBox added messages since last WC visit
-    if (_persistedWcMessages && sessionMsgs && sessionMsgs.length > _persistedWcMessages.length) {
+    // Always prefer session (unified cross-screen history from WC + all other pages).
+    // Session is the single source of truth — any messages added by GlobalAIBox on other
+    // screens are already there.  Fall back to in-memory cache (preserves renderedUI)
+    // only when session is empty (e.g. fresh tab).
+    if (sessionMsgs && sessionMsgs.length > 0) {
       _persistedWcMessages = sessionMsgs;
       return sessionMsgs;
     }
-    return _persistedWcMessages ?? sessionMsgs ?? [{
+    if (_persistedWcMessages) return _persistedWcMessages;
+    return [{
     id: crypto.randomUUID(),
     role: "agent" as const,
     text: greetingText,

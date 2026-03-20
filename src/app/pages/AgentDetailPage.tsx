@@ -259,20 +259,20 @@ function VerticalPipelineStatus({
   animating?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-[4px] ml-[2px]">
+    <div className="flex flex-col gap-[2px] ml-[2px]">
       {steps.map((label, i) => {
         const isComplete = i < activeStep;
         const isActive = i === activeStep;
         return (
-          <div key={`${label}-${i}`} className="flex items-center gap-[8px]">
+          <div key={`${label}-${i}`} className="flex items-center gap-[6px]">
             {isComplete ? (
-              <div className="size-[14px] rounded-full bg-[rgba(47,216,151,0.10)] flex items-center justify-center shrink-0">
-                <Check size={8} className="text-[#2fd897]" />
+              <div className="size-[10px] rounded-full bg-[rgba(47,216,151,0.10)] flex items-center justify-center shrink-0">
+                <Check size={6} className="text-[#2fd897]" />
               </div>
             ) : isActive ? (
-              <div className="size-[14px] flex items-center justify-center shrink-0">
+              <div className="size-[10px] flex items-center justify-center shrink-0">
                 <div
-                  className="size-[7px] rounded-full"
+                  className="size-[6px] rounded-full"
                   style={{
                     backgroundColor: animating ? "#3b82f6" : "#1eb2c2",
                     transition: "background-color 0.3s ease",
@@ -280,12 +280,12 @@ function VerticalPipelineStatus({
                 />
               </div>
             ) : (
-              <div className="size-[14px] flex items-center justify-center shrink-0">
-                <div className="size-[5px] rounded-full bg-[#1e2a34]" />
+              <div className="size-[10px] flex items-center justify-center shrink-0">
+                <div className="size-[4px] rounded-full bg-[#1e2a34]" />
               </div>
             )}
             <span
-              className="font-['Inter',sans-serif] text-[11px] leading-[14px] transition-colors duration-200"
+              className="font-['Inter',sans-serif] text-[10px] leading-[12px] transition-colors duration-200"
               style={{
                 color: isComplete ? "#89949E" : isActive ? (animating ? "#3b82f6" : "#89949e") : "#89949E",
               }}
@@ -387,18 +387,18 @@ function InterventionCard({
                 data.status === "completed" ? "#2fd897" : data.severity === "Critical" ? "#ff5757" : "#d97506",
             }}
           />
-          <div className="flex flex-col gap-[3px] min-w-0">
-            <p className="font-['Inter',sans-serif] text-[13px] text-[#dadfe3] leading-[17px]">
+          <div className="flex flex-col gap-[2px] min-w-0">
+            <p className="font-['Inter',sans-serif] text-[12px] text-[#dadfe3] leading-[15px]">
               {data.status === "completed" ? `${data.title} — completed` : data.title}
             </p>
-            <p className="font-['Inter',sans-serif] text-[11px] text-[#89949E] leading-[14px]">
+            <p className="font-['Inter',sans-serif] text-[10px] text-[#89949E] leading-[13px]">
               {data.status === "completed" ? "Remediation completed successfully." : data.description}
             </p>
             {/* Assessment — why it matters, business impact */}
             {data.status !== "completed" && data.businessImpact && (
-              <div className="flex items-start justify-between gap-[8px] mt-[2px]">
-                <p className="font-['Inter',sans-serif] text-[10px] text-[#89949e] leading-[13px] flex-1">
-                  <span className="text-[#89949E]">Impact: </span>
+              <div className="flex items-start justify-between gap-[8px] mt-[1px]">
+                <p className="font-['Inter',sans-serif] text-[10px] text-[#89949e] leading-[12px] flex-1">
+                  <span className="text-[#6a7a86]">Impact: </span>
                   {data.businessImpact}
                 </p>
                 <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px] shrink-0 mt-[1px]" style={{ color: "#2a4a5a" }}>
@@ -448,13 +448,13 @@ function InterventionCard({
             Owner: {data.owner}
           </span>
         )}
-        <div className="flex items-center gap-[10px]">
+        <div className="flex items-center gap-[5px]">
           {data.status === "awaiting" && (
             <>
-              <div className="flex items-center gap-[4px] w-full mb-[1px]">
-                <div className="size-[5px] rounded-full shrink-0" style={{ backgroundColor: "#d97706", opacity: 0.85 }} />
-                <span className="font-['Inter',sans-serif] text-[10px] leading-[13px]" style={{ color: "#b87a20" }}>
-                  Awaiting your authorization
+              <div className="flex items-center gap-[3px] w-full mb-[0px]">
+                <div className="size-[4px] rounded-full shrink-0" style={{ backgroundColor: "#d97706", opacity: 0.85 }} />
+                <span className="font-['Inter',sans-serif] text-[9px] leading-[12px]" style={{ color: "#b87a20" }}>
+                  Awaiting authorization
                 </span>
               </div>
               {/* Ask why — injects intervention context into AIBox */}
@@ -1551,32 +1551,12 @@ function AgentDetailInner({
   }, [id, meta.label, persona, openWithContext, closeAiBox]);
 
   const handleInvestigateIntervention = useCallback((data: InterventionData) => {
-    /* Map intervention to a task-like investigation request */
-    const analysts = (TASK_ANALYST_MAP[data.id] || []).map(a => ({
-      name: a.name,
-      role: a.role,
-      contribution: a.contribution,
-    }));
-    /* If no direct match, build analyst list from agent role */
-    if (analysts.length === 0) {
-      analysts.push({
-        name: AGENT_ROLE[id].split(" ")[0],
-        role: AGENT_ROLE[id],
-        contribution: data.description,
-      });
-    }
-    investigateTask({
-      taskId: data.id,
-      title: data.title,
-      description: data.description,
-      reason: data.businessImpact || data.description,
-      actionType: "investigate",
-      severity: data.severity,
-      analysts,
-      source: id,
-      timestamp: Date.now(),
-    });
-  }, [id, investigateTask]);
+    /* Dispatch investigation query directly into GlobalAIBox — the TaskInvestigationBridge
+       only connects to WatchCenter's local AiBox; GlobalAIBox listens to this event instead. */
+    const query = `Investigation: "${data.title}"\nAgent: ${AGENT_ROLE[id]} | Confidence: ${data.confidence}%${data.owner ? ` | Owner: ${data.owner}` : ""}\n\nBusiness impact: ${data.businessImpact || data.description}\n\nPlease:\n1. Explain the root cause and supporting evidence\n2. Map the affected systems and blast radius\n3. Outline recommended investigation steps\n4. Assess urgency and escalation path`;
+    window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query } }));
+    if (!isAiBoxOpen) openAiBox();
+  }, [id, isAiBoxOpen, openAiBox]);
 
 
 
