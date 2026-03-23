@@ -1,6 +1,7 @@
 import React from "react";
 import { useInvestigation } from "./InvestigationContext";
 import type { AgentId } from "./Working";
+import type { ExecutionState } from "./Tasks";
 
 const AGENT_ICON_COLORS: Record<AgentId, string> = {
   alpha: "#019279",
@@ -140,6 +141,18 @@ export default function InvestigationTimeline({ hoveredAgent }: { hoveredAgent?:
   const isVisible = phase === "drawing" || phase === "holding";
   const isFading = phase === "fading";
 
+  const [latestExecution, setLatestExecution] = React.useState<ExecutionState | null>(null);
+  React.useEffect(() => {
+    const handler = (e: Event) => {
+      const { state } = (e as CustomEvent<{ taskId: string; state: ExecutionState }>).detail;
+      if (state.status === "completed" || state.status === "in_progress") {
+        setLatestExecution(state);
+      }
+    };
+    window.addEventListener("task-execution-update", handler);
+    return () => window.removeEventListener("task-execution-update", handler);
+  }, []);
+
   // When an agent is hovered, highlight if it's part of current scenario
   const highlightedAgent = hoveredAgent && scenario.agents.includes(hoveredAgent) ? hoveredAgent : null;
 
@@ -226,7 +239,67 @@ export default function InvestigationTimeline({ hoveredAgent }: { hoveredAgent?:
           })}
         </div>
 
- 
+        {/* Lifecycle: execution outcome entry */}
+        {latestExecution && (
+          <div
+            className="w-full mt-[4px] pt-[6px]"
+            style={{ borderTop: "1px solid rgba(87,177,255,0.08)", animation: "tasksFadeIn 0.4s ease forwards" }}
+          >
+            <p
+              className="font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.5px] mb-[6px]"
+              style={{ fontSize: 7, color: "#3d5060", letterSpacing: "0.06em" }}
+            >
+              Lifecycle
+            </p>
+            <div className="flex gap-[8px]">
+              <div className="flex flex-col items-center shrink-0" style={{ width: 20 }}>
+                <div
+                  className="rounded-full shrink-0"
+                  style={{
+                    width: 7,
+                    height: 7,
+                    marginTop: 3,
+                    backgroundColor: latestExecution.status === "completed" ? "#2fd897" : "#f59e0b",
+                    border: `1.5px solid ${latestExecution.status === "completed" ? "#2fd897" : "#f59e0b"}`,
+                    boxShadow: `0 0 6px ${latestExecution.status === "completed" ? "#2fd89744" : "#f59e0b44"}`,
+                  }}
+                />
+              </div>
+              <div className="flex flex-col gap-[2px] pb-[2px] min-w-0">
+                <span
+                  className="font-['Inter:Semi_Bold',sans-serif]"
+                  style={{ fontSize: 10, color: "#dadfe3", letterSpacing: "0.02em" }}
+                >
+                  {latestExecution.actor}
+                </span>
+                <span
+                  className="font-['Inter:Regular',sans-serif] leading-[14px]"
+                  style={{ fontSize: 10, color: "#89949e" }}
+                >
+                  {latestExecution.lastAction} · {latestExecution.timestamp}
+                </span>
+                {latestExecution.outcome && (
+                  <span
+                    className="font-['Inter:Regular',sans-serif] leading-[13px] mt-[1px]"
+                    style={{ fontSize: 9, color: "#4a6070" }}
+                  >
+                    {latestExecution.outcome}
+                  </span>
+                )}
+                {latestExecution.status === "completed" && (
+                  <span
+                    className="font-['Inter:Regular',sans-serif] mt-[2px]"
+                    style={{ fontSize: 9, color: "#2a3e4a" }}
+                  >
+                    Monitoring: <span style={{ color: "#f59e0b" }}>Pending validation</span>
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+
       </div>
 
       {/* Border overlay */}

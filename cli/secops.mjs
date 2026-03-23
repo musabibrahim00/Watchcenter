@@ -36,6 +36,8 @@ import {
   riskBadge, printActionPreview, printSuccess,
   printError, printWarn, printInfo, printUpdate,
   printNextSteps, printDeepLink, printSessionStatus, printHelp,
+  printWorkflowList, printWorkflowRunStarted, printWorkflowRuns, printRunDebug,
+  printAlertTrigger, printAlertList, printRiskList,
 } from "./lib/output.mjs";
 
 import {
@@ -50,18 +52,52 @@ import { buildActionPreview, applyModification, simulateResult } from "./lib/act
 import { setPending, clearPending, setLastContext, getPending, getLastContext, readSession } from "./lib/session.mjs";
 import { logCliAction }                 from "./lib/audit.mjs";
 import { deepLinkForContext, describeDeepLink } from "./lib/deep-link.mjs";
+import { listWorkflows, runWorkflow, getRecentRuns, debugRun } from "./lib/workflow-runner.mjs";
+import { triggerAlert, listAlerts }     from "./lib/alert-trigger.mjs";
+import { listRisks, getRisk, setRiskExecution } from "./lib/risk-state.mjs";
 
 // ── Parse arguments ───────────────────────────────────────────────────────────
 const rawArgs = process.argv.slice(2);
 
-// Extract --format=json / -j / --json before command parsing
-let jsonFlag = false;
-const args = rawArgs.filter(a => {
-  if (a === "-j" || a === "--json" || a === "--format=json") { jsonFlag = true; return false; }
-  if (a.startsWith("--format=")) { jsonFlag = a.split("=")[1] === "json"; return false; }
-  return true;
-});
+// Extract flags before command parsing
+let jsonFlag    = false;
+let ctxFlag     = null;   // --context <id>
+let assetFlag   = null;   // --asset <name>
+let agentIdFlag = null;   // --id <agent-id>
+
+const args = [];
+for (let i = 0; i < rawArgs.length; i++) {
+  const a = rawArgs[i];
+  if (a === "-j" || a === "--json" || a === "--format=json") { jsonFlag = true; continue; }
+  if (a.startsWith("--format="))  { jsonFlag = a.split("=")[1] === "json"; continue; }
+  if (a === "--context" || a === "-c") { ctxFlag     = rawArgs[++i]; continue; }
+  if (a.startsWith("--context="))      { ctxFlag     = a.slice(10);  continue; }
+  if (a === "--asset" || a === "-a")   { assetFlag   = rawArgs[++i]; continue; }
+  if (a.startsWith("--asset="))        { assetFlag   = a.slice(8);   continue; }
+  if (a === "--id")                    { agentIdFlag = rawArgs[++i]; continue; }
+  if (a.startsWith("--id="))           { agentIdFlag = a.slice(5);   continue; }
+  args.push(a);
+}
 if (jsonFlag) setMode("json");
+
+// Apply context flags: override context resolution when --context/--asset/--id supplied
+function applyContextFlags(baseCtx) {
+  if (assetFlag)   return resolveAsset(assetFlag);
+  if (agentIdFlag) return resolveAgent(agentIdFlag) ?? baseCtx;
+  if (ctxFlag) {
+    // Parse "type:id" format (e.g. "agent:hotel", "asset:finance-db-01")
+    const [type, ...rest] = ctxFlag.split(":");
+    const id = rest.join(":");
+    if (!id) return inferContext(ctxFlag);
+    switch (type) {
+      case "agent":  return resolveAgent(id)      ?? baseCtx;
+      case "asset":  return resolveAsset(id);
+      case "workflow": return resolveWorkflow(id) ?? baseCtx;
+      default:       return inferContext(id);
+    }
+  }
+  return baseCtx;
+}
 
 const [cmd, ...rest] = args;
 
@@ -154,27 +190,32 @@ function dispatchQuery(ctx, query, forcedIntent) {
 
 // ── Command handlers ──────────────────────────────────────────────────────────
 
-// secops ask <query>
+// secops ask <query> [--context <id>] [--asset <name>] [--id <agent-id>]
 async function cmdAsk(query) {
-  const ctx = watchCenterContext();
+  const base = watchCenterContext();
+  const ctx  = applyContextFlags(base);
   dispatchQuery(ctx, query || "what needs attention");
 }
 
-// secops agent <analyst> <query>
+// secops agent <analyst> <query> [--id <agent-id>]
 async function cmdAgent(nameArg, query) {
-  if (!nameArg) {
+  // --id flag overrides the positional name
+  const effectiveName = agentIdFlag ?? nameArg;
+
+  if (!effectiveName) {
     printInfo("Available analysts:");
     const { AGENT_ROLES } = await import("./lib/context-resolver.mjs");
     for (const label of Object.values(AGENT_ROLES)) bullet(label);
     blank();
-    printInfo('Example: secops agent "Vulnerability Analyst" "explain recent findings"');
+    printInfo('Example: watch agent "Vulnerability Analyst" "explain recent findings"');
+    printInfo('         watch agent exposure --id foxtrot');
     return;
   }
 
-  const ctx = resolveAgent(nameArg);
+  const ctx = resolveAgent(effectiveName);
   if (!ctx) {
-    printError(`Analyst not found: "${nameArg}"`);
-    const suggestions = suggestSimilar(nameArg);
+    printError(`Analyst not found: "${effectiveName}"`);
+    const suggestions = suggestSimilar(effectiveName);
     if (suggestions.length) printNextSteps(["Did you mean:", ...suggestions]);
     process.exit(1);
   }
@@ -393,6 +434,115 @@ async function cmdOpenInUI() {
   printDeepLink(url, desc);
 }
 
+// ── New commands ───────────────────────────────────────────────────────────────
+
+// watch workflow list | run <name> | runs | debug <run-id>
+async function cmdWorkflowSub(subCmd, ...subArgs) {
+  switch (subCmd) {
+    case "list":
+    case undefined:
+    case "": {
+      printWorkflowList(listWorkflows());
+      break;
+    }
+    case "run": {
+      const name = subArgs.join(" ");
+      if (!name) {
+        printError('Provide a workflow name.  Example: watch workflow run "Critical Alert Auto-Response"');
+        process.exit(1);
+      }
+      const result = runWorkflow(name);
+      if (result.error) { printError(result.error); process.exit(1); }
+      printWorkflowRunStarted(result.run, result.workflow);
+      logCliAction({
+        command:       `workflow run ${name}`,
+        contextType:   "workflow",
+        actionTitle:   `Run: ${result.workflow.label}`,
+        scope:         result.workflow.label,
+        guardrailLevel:"L1",
+        approvalStatus:"not-required",
+        outcome:       "initiated",
+      });
+      break;
+    }
+    case "runs": {
+      const runs = getRecentRuns();
+      printWorkflowRuns(runs);
+      break;
+    }
+    case "debug": {
+      const runId = subArgs.join(" ");
+      if (!runId) {
+        printError("Provide a run ID.  Example: watch workflow debug run-abc123");
+        process.exit(1);
+      }
+      const result = debugRun(runId);
+      if (result.error) { printError(result.error); process.exit(1); }
+      printRunDebug(result.run);
+      break;
+    }
+    default: {
+      // Fall through to the old workflow query command for backwards compat
+      const name = subCmd;
+      const ctx = resolveWorkflow(name);
+      if (!ctx) {
+        printError(`Unknown workflow subcommand or workflow: "${subCmd}"`);
+        printInfo('Subcommands: list | run "<name>" | runs | debug <run-id>');
+        printInfo(`Or: watch workflow "${subCmd}" "<query>"`);
+        process.exit(1);
+      }
+      dispatchQuery(ctx, subArgs.join(" ") || "summarise status");
+    }
+  }
+}
+
+// watch trigger alert "<description>" [--asset <name>]
+// watch trigger risk  "<description>" [--asset <name>]
+async function cmdTrigger(typeArg, ...descArgs) {
+  const description = descArgs.join(" ");
+  if (!typeArg || !description) {
+    printError('Usage: watch trigger <type> "<description>"');
+    printInfo('Types: alert | cve | attack_path | exposure | misconfiguration | identity | compliance | risk');
+    printInfo('Examples:');
+    bullet('watch trigger alert "CVE-2025-9999 detected on finance-db-01"');
+    bullet('watch trigger cve "CVSS 9.8 on prod-db-03 — exploit in the wild"');
+    bullet('watch trigger exposure "finance-db-01 newly reachable from internet" --asset finance-db-01');
+    process.exit(1);
+  }
+
+  const alertType = typeArg === "risk" ? "generic" : typeArg;
+  const result = triggerAlert({ type: alertType, description, assetId: assetFlag ?? undefined });
+
+  if (result.error) { printError(result.error); process.exit(1); }
+
+  printAlertTrigger(result.alert, result.context, result.response);
+
+  logCliAction({
+    command:       `trigger ${typeArg} "${description.slice(0, 60)}"`,
+    contextType:   result.context.type,
+    actionTitle:   `Alert: ${description.slice(0, 60)}`,
+    scope:         result.context.label,
+    guardrailLevel:"L1",
+    approvalStatus:"not-required",
+    outcome:       "completed",
+  });
+}
+
+// watch alerts — show queued alert history
+async function cmdAlerts() {
+  const alerts = listAlerts();
+  printAlertList(alerts);
+}
+
+// watch risk list [--asset <name>]
+async function cmdRiskList() {
+  const risks = listRisks();
+  const filtered = assetFlag
+    ? risks.filter(r => r.affectedAsset.toLowerCase().includes(assetFlag.toLowerCase()))
+    : risks;
+  printRiskList(filtered);
+}
+
 // ── Main dispatch ─────────────────────────────────────────────────────────────
 switch (cmd) {
   case "ask":
@@ -404,7 +554,13 @@ switch (cmd) {
     break;
 
   case "workflow":
-    await cmdWorkflow(rest[0], rest.slice(1).join(" "));
+    // If subcommand is list/run/runs/debug → new subcommand mode
+    // Otherwise → legacy query mode (backwards compatible)
+    if (["list", "run", "runs", "debug"].includes(rest[0]) || rest.length === 0) {
+      await cmdWorkflowSub(rest[0], ...rest.slice(1));
+    } else {
+      await cmdWorkflow(rest[0], rest.slice(1).join(" "));
+    }
     break;
 
   case "asset":
@@ -461,6 +617,24 @@ switch (cmd) {
 
   case "open-in-ui":
     await cmdOpenInUI();
+    break;
+
+  case "trigger":
+    await cmdTrigger(rest[0], ...rest.slice(1));
+    break;
+
+  case "alerts":
+    await cmdAlerts();
+    break;
+
+  case "risk":
+    // watch risk list [--asset <name>]
+    if (!rest[0] || rest[0] === "list") {
+      await cmdRiskList();
+    } else {
+      printError(`Unknown risk subcommand: "${rest[0]}".  Available: list`);
+      process.exit(1);
+    }
     break;
 
   case "help":

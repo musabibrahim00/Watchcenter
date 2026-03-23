@@ -16,7 +16,13 @@ const TTL_MS       = 2 * 60 * 60 * 1000; // 2 hours
 /** @typedef {{ pending: object|null, lastContext: object|null, updatedAt: string }} Session */
 
 function empty() {
-  return { pending: null, lastContext: null, updatedAt: new Date().toISOString() };
+  return {
+    pending: null,
+    lastContext: null,
+    workflowRuns: [],
+    riskExecutions: {},
+    updatedAt: new Date().toISOString(),
+  };
 }
 
 export function readSession() {

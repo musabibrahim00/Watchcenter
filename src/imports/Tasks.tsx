@@ -41,6 +41,45 @@ export interface TaskData {
   monitoringStatus?: "active" | "resolved" | "reopened" | "validated";
 }
 
+// ── Execution state store ───────────────────────────────────────────────────
+export type ExecutionStatus = "not_started" | "in_progress" | "awaiting_approval" | "completed" | "failed";
+
+export interface ExecutionState {
+  status: ExecutionStatus;
+  lastAction: string;
+  actor: string;
+  timestamp: string;
+  outcome?: string;
+  taskTitle?: string;
+}
+
+const _executionStates = new Map<string, ExecutionState>();
+
+function setTaskExecution(taskId: string, taskTitle: string, state: Omit<ExecutionState, "taskTitle">) {
+  const full: ExecutionState = { ...state, taskTitle };
+  _executionStates.set(taskId, full);
+  window.dispatchEvent(new CustomEvent("task-execution-update", { detail: { taskId, state: full } }));
+}
+
+function useTaskExecution(taskId: string): [ExecutionState, (s: Omit<ExecutionState, "taskTitle">, title: string) => void] {
+  const [state, setState] = React.useState<ExecutionState>(
+    () => _executionStates.get(taskId) ?? { status: "not_started", lastAction: "", actor: "", timestamp: "" }
+  );
+  React.useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ taskId: string; state: ExecutionState }>).detail;
+      if (detail.taskId === taskId) setState(detail.state);
+    };
+    window.addEventListener("task-execution-update", handler);
+    return () => window.removeEventListener("task-execution-update", handler);
+  }, [taskId]);
+  const update = React.useCallback(
+    (s: Omit<ExecutionState, "taskTitle">, title: string) => setTaskExecution(taskId, title, s),
+    [taskId]
+  );
+  return [state, update];
+}
+
 const TASK_POOL: TaskData[] = [
   {
     id: "task-1",
@@ -233,21 +272,45 @@ function RiskPipeline({ stage }: { stage?: RiskPipelineStage }) {
   );
 }
 
+function ExecutionBadge({ status }: { status: ExecutionStatus }) {
+  if (status === "not_started") return null;
+  const styles: Record<Exclude<ExecutionStatus, "not_started">, { label: string; color: string; bg: string; border: string; pulse: boolean }> = {
+    in_progress:       { label: "In progress",       color: "#f59e0b", bg: "rgba(245,158,11,0.09)",  border: "rgba(245,158,11,0.22)",  pulse: true },
+    awaiting_approval: { label: "Awaiting approval", color: "#57b1ff", bg: "rgba(87,177,255,0.08)",  border: "rgba(87,177,255,0.20)",  pulse: true },
+    completed:         { label: "Completed",         color: "#2fd897", bg: "rgba(47,216,151,0.08)",  border: "rgba(47,216,151,0.18)",  pulse: false },
+    failed:            { label: "Failed",            color: "#ff5757", bg: "rgba(255,87,87,0.08)",   border: "rgba(255,87,87,0.18)",   pulse: false },
+  };
+  const c = styles[status];
+  return (
+    <span
+      className="inline-flex items-center gap-[3px] px-[4px] py-[0.5px] rounded-[3px] shrink-0"
+      style={{ background: c.bg, border: `1px solid ${c.border}`, color: c.color, fontSize: 8, fontFamily: "'Inter:Medium',sans-serif", letterSpacing: "0.3px" }}
+    >
+      {c.pulse && (
+        <span className="block rounded-full shrink-0" style={{ width: 4, height: 4, background: c.color, animation: "pulseGlow 1.5s ease-in-out infinite" }} />
+      )}
+      {c.label}
+    </span>
+  );
+}
+
 function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDetails?: () => void; onAction?: () => void }) {
   const [loading, setLoading] = React.useState(false);
+  const [execState, updateExec] = useTaskExecution(task.id);
 
   const handleAction = () => {
     setLoading(true);
-    window.dispatchEvent(new CustomEvent("aibox-inject-query", {
-      detail: {
-        query: `Authorization submitted for: "${task.title}". What will happen next and what risk does this remediate?`,
-        actionType: "authorize",
-        taskOwner: task.owner,
-      },
-    }));
+    updateExec({ status: "awaiting_approval", lastAction: "Authorization submitted", actor: "You", timestamp: "just now" }, task.title);
     setTimeout(() => {
       setLoading(false);
-      onAction?.();
+      updateExec({ status: "completed", lastAction: "Authorized", actor: "You", timestamp: "just now", outcome: task.expectedOutcome }, task.title);
+      window.dispatchEvent(new CustomEvent("aibox-inject-query", {
+        detail: {
+          query: `Authorization confirmed for "${task.title}". The remediation is now executing. Expected outcome: ${task.expectedOutcome ?? "risk mitigated"}. Confirm this was the right call and what to monitor for.`,
+          actionType: "authorize",
+          taskOwner: task.owner,
+        },
+      }));
     }, 3000);
   };
 
@@ -259,6 +322,13 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
       },
     }));
     onAction?.();
+  };
+
+  const handleInvestigate = () => {
+    if (execState.status === "not_started") {
+      updateExec({ status: "in_progress", lastAction: "Investigation started", actor: "You", timestamp: "just now" }, task.title);
+    }
+    onViewDetails?.();
   };
 
   return (
@@ -295,7 +365,10 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
                 )}
                 <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#3d6070" }}>Identification</span>
               </div>
-              <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[10px] w-full">{task.title}</p>
+              <div className="flex items-center gap-[5px] w-full">
+                <p className="font-['Inter:Medium',sans-serif] font-medium relative text-[#dadfe3] text-[10px] flex-1 min-w-0">{task.title}</p>
+                <ExecutionBadge status={execState.status} />
+              </div>
               <p className="font-['Inter:Regular',sans-serif] text-[9px] text-[#6b7c8a] leading-[12px] w-full line-clamp-1 overflow-hidden">{task.subtitle}</p>
             </div>
           </div>
@@ -311,78 +384,111 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
       <div className="relative shrink-0 w-full px-[2px]">
         <RiskPipeline stage={task.pipelineStage} />
       </div>
-      {/* Buttons / Loader */}
+      {/* Buttons / Outcome */}
       <div className="relative shrink-0 w-full" data-name="Buttons">
-        {/* Audit trail — shows if there's a previous decision on record */}
-        {!loading && task.lastDecision && (
-          <p className="font-['Inter:Regular',sans-serif] text-[8px] mb-[4px] italic" style={{ color: "#2e4452" }}>{task.lastDecision}</p>
-        )}
-        {/* Action label — makes the CTA intent explicit */}
-        {!loading && (
-          <p className="font-['Inter:Regular',sans-serif] text-[7px] text-[#3d5a6a] mb-[3px] uppercase tracking-[0.4px]">Action</p>
-        )}
-        <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-center justify-between relative w-full">
-          <div className="content-stretch flex gap-[8px] items-center relative shrink-0" data-name="buttons">
-            <div className={`h-[24px] min-w-[84px] relative rounded-[6px] shrink-0 transition-colors ${loading ? 'bg-transparent cursor-default pointer-events-none' : 'bg-[#076498] cursor-pointer hover:bg-[#0a7ab8]'}`} data-name="ButtonPrimary" onClick={!loading ? handleAction : undefined}>
-              <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[12px] h-full items-center justify-center min-w-[inherit] p-[8px] relative">
-                {loading ? (
-                  <div className="content-stretch flex gap-[8px] items-center relative size-full">
-                    <div className="overflow-clip relative shrink-0 size-[14px]" style={{ animation: "loaderSpin 1s linear infinite" }}>
-                      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[12px] top-1/2">
-                        <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 12">
-                          <path d={svgPaths.p4071f00} fill="#076498" fillOpacity="0.24" />
-                        </svg>
-                      </div>
-                      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[12px] top-1/2">
-                        <div className="absolute bottom-[0.23%] left-1/2 right-[0.23%] top-1/2">
-                          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.97276 5.97276">
-                            <path d={svgPaths.p22ac670} fill="#0781C2" />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[#dadfe3] text-[10px] whitespace-pre-wrap">Authorizing</p>
-                  </div>
-                ) : (
-                  <p className="flex-[1_0_0] font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] min-h-px min-w-px not-italic relative text-[#f1f3ff] text-[10px] text-center whitespace-pre-wrap">{task.actionLabel}</p>
+        {execState.status === "completed" ? (
+          <div className="flex flex-col gap-[3px]">
+            <div className="flex items-start gap-[5px]">
+              <svg width="9" height="9" viewBox="0 0 9 9" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
+                <circle cx="4.5" cy="4.5" r="4" stroke="#2fd897" strokeWidth="0.8" />
+                <path d="M2.7 4.5L4 5.8L6.3 3.2" stroke="#2fd897" strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <div className="flex flex-col gap-[1px] flex-1 min-w-0">
+                <p className="font-['Inter:Medium',sans-serif] text-[9px]" style={{ color: "#2fd897" }}>
+                  {execState.lastAction} · {execState.actor} · {execState.timestamp}
+                </p>
+                {execState.outcome && (
+                  <p className="font-['Inter:Regular',sans-serif] text-[8px] leading-[11px]" style={{ color: "#4a6070" }}>{execState.outcome}</p>
                 )}
               </div>
             </div>
+            <div className="flex items-center justify-between w-full mt-[1px]">
+              <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a3e4a" }}>
+                Monitoring: <span style={{ color: "#f59e0b" }}>Pending validation</span>
+              </span>
+              <button
+                className="h-[20px] px-[8px] rounded-[5px] font-['Inter:Medium',sans-serif] text-[9px] cursor-pointer transition-colors"
+                style={{ color: "#89949e", background: "rgba(137,148,158,0.06)", border: "1px solid rgba(137,148,158,0.12)" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(137,148,158,0.12)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(137,148,158,0.06)"; }}
+                onClick={() => updateExec({ status: "in_progress", lastAction: "Reopened for review", actor: "You", timestamp: "just now" }, task.title)}
+              >
+                Re-open
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {!loading && task.lastDecision && (
+              <p className="font-['Inter:Regular',sans-serif] text-[8px] mb-[4px] italic" style={{ color: "#2e4452" }}>{task.lastDecision}</p>
+            )}
             {!loading && (
-            <div onClick={handleDefer} className="cursor-pointer">
-              <div className="h-[24px] relative rounded-[6px] shrink-0 hover:bg-[#1e2a34] transition-colors" data-name="ButtonGray">
-                <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex h-full items-center justify-center px-[12px] py-[8px] relative">
-                  <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Defer</p>
+              <p className="font-['Inter:Regular',sans-serif] text-[7px] text-[#3d5a6a] mb-[3px] uppercase tracking-[0.4px]">Action</p>
+            )}
+            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-center justify-between relative w-full">
+              <div className="content-stretch flex gap-[8px] items-center relative shrink-0" data-name="buttons">
+                <div className={`h-[24px] min-w-[84px] relative rounded-[6px] shrink-0 transition-colors ${loading ? 'bg-transparent cursor-default pointer-events-none' : 'bg-[#076498] cursor-pointer hover:bg-[#0a7ab8]'}`} data-name="ButtonPrimary" onClick={!loading ? handleAction : undefined}>
+                  <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[12px] h-full items-center justify-center min-w-[inherit] p-[8px] relative">
+                    {loading ? (
+                      <div className="content-stretch flex gap-[8px] items-center relative size-full">
+                        <div className="overflow-clip relative shrink-0 size-[14px]" style={{ animation: "loaderSpin 1s linear infinite" }}>
+                          <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[12px] top-1/2">
+                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 12">
+                              <path d={svgPaths.p4071f00} fill="#076498" fillOpacity="0.24" />
+                            </svg>
+                          </div>
+                          <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[12px] top-1/2">
+                            <div className="absolute bottom-[0.23%] left-1/2 right-[0.23%] top-1/2">
+                              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.97276 5.97276">
+                                <path d={svgPaths.p22ac670} fill="#0781C2" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                        <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[#dadfe3] text-[10px] whitespace-pre-wrap">Authorizing</p>
+                      </div>
+                    ) : (
+                      <p className="flex-[1_0_0] font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] min-h-px min-w-px not-italic relative text-[#f1f3ff] text-[10px] text-center whitespace-pre-wrap">{task.actionLabel}</p>
+                    )}
+                  </div>
+                </div>
+                {!loading && (
+                  <div onClick={handleDefer} className="cursor-pointer">
+                    <div className="h-[24px] relative rounded-[6px] shrink-0 hover:bg-[#1e2a34] transition-colors" data-name="ButtonGray">
+                      <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex h-full items-center justify-center px-[12px] py-[8px] relative">
+                        <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Defer</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="content-stretch flex gap-[6px] items-center shrink-0">
+                <div
+                  className="content-stretch flex h-[24px] items-center justify-center px-[12px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer hover:bg-[#1e2a34] transition-colors"
+                  data-name="ButtonGray"
+                  onClick={handleInvestigate}
+                >
+                  <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Investigate</p>
+                </div>
+                <div
+                  className="content-stretch flex h-[24px] items-center justify-center gap-[4px] px-[8px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer transition-colors"
+                  style={{ background: "rgba(87,177,255,0.06)", border: "1px solid rgba(87,177,255,0.13)" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.11)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.06)")}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const confidenceLabel = task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate confidence" : "Needs review";
+                    const query = `Priority insight: "${task.title}" (${confidenceLabel}).\n\nSource: ${task.source ?? "Security analysis"} | Asset: ${task.affectedAsset ?? "—"} | Owner: ${task.owner ?? "Security Operations"}\n\nPlease explain:\n1. Why this recommendation exists and what evidence supports it\n2. What happens if authorized — expected outcome: ${task.expectedOutcome ?? "remediation completes"}\n3. What risk remains or grows if deferred — ${task.riskIfDeferred ?? "risk persists"}\n4. How confident the system is and why`;
+                    window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query } }));
+                  }}
+                >
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff" opacity="0.8"/></svg>
+                  <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center tracking-[0.2px]">Ask why</p>
                 </div>
               </div>
             </div>
-            )}
-          </div>
-          <div className="content-stretch flex gap-[6px] items-center shrink-0">
-            <div
-              className="content-stretch flex h-[24px] items-center justify-center px-[12px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer hover:bg-[#1e2a34] transition-colors"
-              data-name="ButtonGray"
-              onClick={onViewDetails}
-            >
-              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Investigate</p>
-            </div>
-            <div
-              className="content-stretch flex h-[24px] items-center justify-center gap-[4px] px-[8px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer transition-colors"
-              style={{ background: "rgba(87,177,255,0.06)", border: "1px solid rgba(87,177,255,0.13)" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.11)")}
-              onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.06)")}
-              onClick={(e) => {
-                e.stopPropagation();
-                const confidenceLabel = task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate confidence" : "Needs review";
-                const query = `Priority insight: "${task.title}" (${confidenceLabel}).\n\nSource: ${task.source ?? "Security analysis"} | Asset: ${task.affectedAsset ?? "—"} | Owner: ${task.owner ?? "Security Operations"}\n\nPlease explain:\n1. Why this recommendation exists and what evidence supports it\n2. What happens if authorized — expected outcome: ${task.expectedOutcome ?? "remediation completes"}\n3. What risk remains or grows if deferred — ${task.riskIfDeferred ?? "risk persists"}\n4. How confident the system is and why`;
-                window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query } }));
-              }}
-            >
-              <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff" opacity="0.8"/></svg>
-              <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center tracking-[0.2px]">Ask why</p>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -390,19 +496,21 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
 
 function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDetails?: () => void; onAction?: () => void }) {
   const [loading, setLoading] = React.useState(false);
+  const [execState, updateExec] = useTaskExecution(task.id);
 
   const handleAction = () => {
     setLoading(true);
-    window.dispatchEvent(new CustomEvent("aibox-inject-query", {
-      detail: {
-        query: `Authorization submitted for: "${task.title}". What will happen next and what risk does this remediate?`,
-        actionType: "authorize",
-        taskOwner: task.owner,
-      },
-    }));
+    updateExec({ status: "awaiting_approval", lastAction: "Authorization submitted", actor: "You", timestamp: "just now" }, task.title);
     setTimeout(() => {
       setLoading(false);
-      onAction?.();
+      updateExec({ status: "completed", lastAction: "Authorized", actor: "You", timestamp: "just now", outcome: task.expectedOutcome }, task.title);
+      window.dispatchEvent(new CustomEvent("aibox-inject-query", {
+        detail: {
+          query: `Authorization confirmed for "${task.title}". The remediation is now executing. Expected outcome: ${task.expectedOutcome ?? "risk mitigated"}. Confirm this was the right call and what to monitor for.`,
+          actionType: "authorize",
+          taskOwner: task.owner,
+        },
+      }));
     }, 3000);
   };
 
@@ -414,6 +522,13 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
       },
     }));
     onAction?.();
+  };
+
+  const handleInvestigate = () => {
+    if (execState.status === "not_started") {
+      updateExec({ status: "in_progress", lastAction: "Investigation started", actor: "You", timestamp: "just now" }, task.title);
+    }
+    onViewDetails?.();
   };
 
   return (
@@ -450,7 +565,10 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
                 )}
                 <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#3d6070" }}>Identification</span>
               </div>
-              <p className="font-['Inter:Medium',sans-serif] font-medium relative shrink-0 text-[#dadfe3] text-[10px] w-full">{task.title}</p>
+              <div className="flex items-center gap-[5px] w-full">
+                <p className="font-['Inter:Medium',sans-serif] font-medium relative text-[#dadfe3] text-[10px] flex-1 min-w-0">{task.title}</p>
+                <ExecutionBadge status={execState.status} />
+              </div>
               <p className="font-['Inter:Regular',sans-serif] text-[9px] text-[#6b7c8a] leading-[12px] w-full line-clamp-1 overflow-hidden">{task.subtitle}</p>
             </div>
           </div>
@@ -499,73 +617,108 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
       <div className="relative shrink-0 w-full px-[2px]">
         <RiskPipeline stage={task.pipelineStage} />
       </div>
-      {/* Buttons / Loader */}
+      {/* Buttons / Outcome */}
       <div className="relative shrink-0 w-full" data-name="Buttons">
-        {!loading && (
-          <p className="font-['Inter:Regular',sans-serif] text-[7px] text-[#3d5a6a] mb-[3px] uppercase tracking-[0.4px]">Action</p>
-        )}
-        <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-center justify-between relative w-full">
-          <div className="content-stretch flex gap-[8px] items-center relative shrink-0" data-name="buttons">
-            <div className={`h-[24px] min-w-[84px] relative rounded-[6px] shrink-0 transition-colors ${loading ? 'bg-transparent cursor-default pointer-events-none' : 'bg-[#076498] cursor-pointer hover:bg-[#0a7ab8]'}`} data-name="ButtonPrimary" onClick={!loading ? handleAction : undefined}>
-              <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[12px] h-full items-center justify-center min-w-[inherit] p-[8px] relative">
-                {loading ? (
-                  <div className="content-stretch flex gap-[8px] items-center relative size-full">
-                    <div className="overflow-clip relative shrink-0 size-[14px]" style={{ animation: "loaderSpin 1s linear infinite" }}>
-                      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[12px] top-1/2">
-                        <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 12">
-                          <path d={svgPaths.p4071f00} fill="#076498" fillOpacity="0.24" />
-                        </svg>
-                      </div>
-                      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[12px] top-1/2">
-                        <div className="absolute bottom-[0.23%] left-1/2 right-[0.23%] top-1/2">
-                          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.97276 5.97276">
-                            <path d={svgPaths.p22ac670} fill="#0781C2" />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[#dadfe3] text-[10px] whitespace-pre-wrap">Authorizing</p>
-                  </div>
-                ) : (
-                  <p className="flex-[1_0_0] font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] min-h-px min-w-px not-italic relative text-[#f1f3ff] text-[10px] text-center whitespace-pre-wrap">{task.actionLabel}</p>
+        {execState.status === "completed" ? (
+          <div className="flex flex-col gap-[3px]">
+            <div className="flex items-start gap-[5px]">
+              <svg width="9" height="9" viewBox="0 0 9 9" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
+                <circle cx="4.5" cy="4.5" r="4" stroke="#2fd897" strokeWidth="0.8" />
+                <path d="M2.7 4.5L4 5.8L6.3 3.2" stroke="#2fd897" strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <div className="flex flex-col gap-[1px] flex-1 min-w-0">
+                <p className="font-['Inter:Medium',sans-serif] text-[9px]" style={{ color: "#2fd897" }}>
+                  {execState.lastAction} · {execState.actor} · {execState.timestamp}
+                </p>
+                {execState.outcome && (
+                  <p className="font-['Inter:Regular',sans-serif] text-[8px] leading-[11px]" style={{ color: "#4a6070" }}>{execState.outcome}</p>
                 )}
               </div>
             </div>
+            <div className="flex items-center justify-between w-full mt-[1px]">
+              <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a3e4a" }}>
+                Monitoring: <span style={{ color: "#f59e0b" }}>Pending validation</span>
+              </span>
+              <button
+                className="h-[20px] px-[8px] rounded-[5px] font-['Inter:Medium',sans-serif] text-[9px] cursor-pointer transition-colors"
+                style={{ color: "#89949e", background: "rgba(137,148,158,0.06)", border: "1px solid rgba(137,148,158,0.12)" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(137,148,158,0.12)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(137,148,158,0.06)"; }}
+                onClick={() => updateExec({ status: "in_progress", lastAction: "Reopened for review", actor: "You", timestamp: "just now" }, task.title)}
+              >
+                Re-open
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
             {!loading && (
-            <div onClick={handleDefer} className="cursor-pointer">
-              <div className="h-[24px] relative rounded-[6px] shrink-0 hover:bg-[#1e2a34] transition-colors" data-name="ButtonGray">
-                <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex h-full items-center justify-center px-[12px] py-[8px] relative">
-                  <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Defer</p>
+              <p className="font-['Inter:Regular',sans-serif] text-[7px] text-[#3d5a6a] mb-[3px] uppercase tracking-[0.4px]">Action</p>
+            )}
+            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-center justify-between relative w-full">
+              <div className="content-stretch flex gap-[8px] items-center relative shrink-0" data-name="buttons">
+                <div className={`h-[24px] min-w-[84px] relative rounded-[6px] shrink-0 transition-colors ${loading ? 'bg-transparent cursor-default pointer-events-none' : 'bg-[#076498] cursor-pointer hover:bg-[#0a7ab8]'}`} data-name="ButtonPrimary" onClick={!loading ? handleAction : undefined}>
+                  <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[12px] h-full items-center justify-center min-w-[inherit] p-[8px] relative">
+                    {loading ? (
+                      <div className="content-stretch flex gap-[8px] items-center relative size-full">
+                        <div className="overflow-clip relative shrink-0 size-[14px]" style={{ animation: "loaderSpin 1s linear infinite" }}>
+                          <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[12px] top-1/2">
+                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 12">
+                              <path d={svgPaths.p4071f00} fill="#076498" fillOpacity="0.24" />
+                            </svg>
+                          </div>
+                          <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[12px] top-1/2">
+                            <div className="absolute bottom-[0.23%] left-1/2 right-[0.23%] top-1/2">
+                              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.97276 5.97276">
+                                <path d={svgPaths.p22ac670} fill="#0781C2" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                        <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[#dadfe3] text-[10px] whitespace-pre-wrap">Authorizing</p>
+                      </div>
+                    ) : (
+                      <p className="flex-[1_0_0] font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] min-h-px min-w-px not-italic relative text-[#f1f3ff] text-[10px] text-center whitespace-pre-wrap">{task.actionLabel}</p>
+                    )}
+                  </div>
+                </div>
+                {!loading && (
+                  <div onClick={handleDefer} className="cursor-pointer">
+                    <div className="h-[24px] relative rounded-[6px] shrink-0 hover:bg-[#1e2a34] transition-colors" data-name="ButtonGray">
+                      <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex h-full items-center justify-center px-[12px] py-[8px] relative">
+                        <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Defer</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="content-stretch flex gap-[6px] items-center shrink-0">
+                <div
+                  className="content-stretch flex h-[24px] items-center justify-center px-[12px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer hover:bg-[#1e2a34] transition-colors"
+                  data-name="ButtonGray"
+                  onClick={handleInvestigate}
+                >
+                  <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Investigate</p>
+                </div>
+                <div
+                  className="content-stretch flex h-[24px] items-center justify-center gap-[4px] px-[8px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer transition-colors"
+                  style={{ background: "rgba(87,177,255,0.06)", border: "1px solid rgba(87,177,255,0.13)" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.11)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.06)")}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const confidenceLabel = task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate confidence" : "Needs review";
+                    const query = `Priority insight: "${task.title}" (${confidenceLabel}).\n\nSource: ${task.source ?? "Security analysis"} | Asset: ${task.affectedAsset ?? "—"} | Owner: ${task.owner ?? "Security Operations"}\n\nPlease explain:\n1. Why this recommendation exists and what evidence supports it\n2. What happens if authorized — expected outcome: ${task.expectedOutcome ?? "remediation completes"}\n3. What risk remains or grows if deferred — ${task.riskIfDeferred ?? "risk persists"}\n4. How confident the system is and why`;
+                    window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query } }));
+                  }}
+                >
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff" opacity="0.8"/></svg>
+                  <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center tracking-[0.2px]">Ask why</p>
                 </div>
               </div>
             </div>
-            )}
-          </div>
-          <div className="content-stretch flex gap-[6px] items-center shrink-0">
-            <div
-              className="content-stretch flex h-[24px] items-center justify-center px-[12px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer hover:bg-[#1e2a34] transition-colors"
-              data-name="ButtonGray"
-              onClick={onViewDetails}
-            >
-              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Investigate</p>
-            </div>
-            <div
-              className="content-stretch flex h-[24px] items-center justify-center gap-[4px] px-[8px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer transition-colors"
-              style={{ background: "rgba(87,177,255,0.06)", border: "1px solid rgba(87,177,255,0.13)" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.11)")}
-              onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.06)")}
-              onClick={(e) => {
-                e.stopPropagation();
-                const confidenceLabel = task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate confidence" : "Needs review";
-                const query = `Priority insight: "${task.title}" (${confidenceLabel}).\n\nSource: ${task.source ?? "Security analysis"} | Asset: ${task.affectedAsset ?? "—"} | Owner: ${task.owner ?? "Security Operations"}\n\nPlease explain:\n1. Why this recommendation exists and what evidence supports it\n2. What happens if authorized — expected outcome: ${task.expectedOutcome ?? "remediation completes"}\n3. What risk remains or grows if deferred — ${task.riskIfDeferred ?? "risk persists"}\n4. How confident the system is and why`;
-                window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query } }));
-              }}
-            >
-              <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff" opacity="0.8"/></svg>
-              <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center tracking-[0.2px]">Ask why</p>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
