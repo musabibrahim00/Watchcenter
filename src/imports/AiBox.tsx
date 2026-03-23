@@ -39,8 +39,13 @@ function _loadWcSession(): ChatMessage[] | null {
 }
 function _saveWcSession(msgs: ChatMessage[]) {
   try {
-    const data = msgs.filter(m => !m.renderedUI).slice(-60)
-      .map(m => ({ id: m.id, role: m.role, text: m.text, timestamp: m.timestamp.toISOString() }));
+    const data = msgs.slice(-60)
+      .map(m => ({
+        id: m.id,
+        role: m.role,
+        text: m.renderedUI && !m.text ? "[Analysis complete — ask a follow-up to re-run]" : m.text,
+        timestamp: m.timestamp.toISOString(),
+      }));
     sessionStorage.setItem(_WC_SESSION_KEY, JSON.stringify(data));
   } catch { /* storage quota */ }
 }

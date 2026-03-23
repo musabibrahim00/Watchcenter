@@ -2052,11 +2052,16 @@ function loadMessagesFromSession(): ChatMessage[] {
 
 function saveMessagesToSession(msgs: ChatMessage[]) {
   try {
-    // Skip messages that carry renderedUI (not serializable); keep last 60
+    // renderedUI is a React element (not serializable) — save with fallback text so
+    // the conversation flow is preserved across navigation; the rich UI re-runs on demand.
     const serializable = msgs
-      .filter(m => !m.renderedUI)
       .slice(-60)
-      .map(m => ({ id: m.id, role: m.role, text: m.text, timestamp: m.timestamp.toISOString() }));
+      .map(m => ({
+        id: m.id,
+        role: m.role,
+        text: m.renderedUI && !m.text ? "[Analysis complete — ask a follow-up to re-run]" : m.text,
+        timestamp: m.timestamp.toISOString(),
+      }));
     sessionStorage.setItem(SESSION_MSGS_KEY, JSON.stringify(serializable));
   } catch { /* storage quota — silently skip */ }
 }

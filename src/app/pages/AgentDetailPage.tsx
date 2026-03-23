@@ -465,7 +465,7 @@ function InterventionCard({
                 onClick={() => handleAskWhy(
                   `Required intervention: "${data.title}"\nStage: ${data.pipelineSteps[data.activeStep] ?? "Awaiting authorization"} | Confidence: ${data.confidence}%${data.owner ? ` | Owner: ${data.owner}` : ""}\n\nBusiness impact: ${data.businessImpact}\n\nPlease explain:\n1. Why this intervention is required and what evidence exists\n2. What the system is ${data.confidence >= 92 ? "highly confident" : data.confidence >= 80 ? "moderately confident" : "flagging for review"} about and why\n3. What happens if authorized — expected outcome\n4. What risk grows or persists if this is deferred${data.deferRisk ? `: ${data.deferRisk}` : ""}`
                 )}
-                className="flex items-center gap-[3px] font-['Inter',sans-serif] text-[10px] leading-[13px] transition-colors cursor-pointer rounded-[5px] px-[7px] py-[3px]"
+                className="flex items-center gap-[3px] font-['Inter',sans-serif] text-[10px] leading-[13px] transition-colors cursor-pointer rounded-[5px] px-[7px] py-[3px] whitespace-nowrap"
                 style={{ background: "rgba(87,177,255,0.07)", border: "1px solid rgba(87,177,255,0.16)", color: "#57b1ff" }}
                 onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.13)")}
                 onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.07)")}

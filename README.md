@@ -46,11 +46,15 @@ Node 18+ required.
 ```
 src/
   app/
+    components/     # Shared app-level components (GlobalAIBox, layout wrappers)
+    features/       # Feature modules (watch-center, attack-paths, …)
     pages/          # Route-level page components
-    routes/         # React Router configuration
+    shared/
+      types/        # Shared TypeScript types (agent-types.ts, …)
+    routes.tsx      # React Router configuration
   imports/          # Core UI components and data modules
     WatchDst.tsx      # Watch Center main layout
-    AiBox.tsx         # AIBox assistant component
+    AiBox.tsx         # AIBox assistant component (Watch Center)
     AiBoxModules.tsx  # AIBox response module renderers
     Tasks.tsx         # Risk Tracker task cards
     Working.tsx       # Globe + agent visualization
@@ -58,7 +62,7 @@ src/
     ...
 
 cli/                # secops CLI utility (secops.mjs)
-guidelines/         # Product design and development guidelines
+Guidelines.md       # Product design and development guidelines
 dist/               # Production build output (git-ignored)
 ```
 

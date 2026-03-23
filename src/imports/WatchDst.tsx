@@ -175,13 +175,13 @@ function Container() {
             className="absolute top-[24px] left-[24px] z-[2] flex flex-col gap-[12px] overflow-hidden"
             style={{ width: sideW, height: sideH * 0.95 }}
           >
-            <div style={{ flex: "2 2 0%", minHeight: 0, overflow: "hidden" }}>
+            <div style={{ flex: "3 3 0%", minHeight: 0, overflow: "hidden" }}>
               <ActivityFeed />
             </div>
             <div style={{ flex: "4 4 0%", minHeight: 0, overflow: "hidden" }}>
               <KpiWidget />
             </div>
-            <div style={{ flex: "2 2 0%", minHeight: 0, overflow: "hidden" }}>
+            <div style={{ flex: "3 3 0%", minHeight: 0, overflow: "hidden" }}>
               <InvestigationTimeline hoveredAgent={hoveredAgent} />
             </div>
           </div>
@@ -197,7 +197,7 @@ function Container() {
                 <div className="relative flex items-center justify-center w-full">
                   <p className="bg-clip-text bg-gradient-to-r font-['Inter:Regular',sans-serif] font-normal from-[#ffcba3] from-[6.932%] leading-[20px] not-italic shrink-0 text-[16px] text-[transparent] to-[48.267%] to-white via-[#ffe8a3] via-[1.412%] whitespace-nowrap">Risk tracker — required interventions</p>
                   <button
-                    className="absolute right-0 font-['Inter:Regular',sans-serif] text-[11px] leading-[14px] transition-colors cursor-pointer"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 font-['Inter:Regular',sans-serif] text-[11px] leading-[14px] transition-colors cursor-pointer"
                     style={{ color: "rgba(87,177,255,0.55)" }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(87,177,255,0.90)"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(87,177,255,0.55)"; }}
