@@ -10,6 +10,7 @@ import { getPersonaDefaultSkills } from "../app/shared/skills";
 /* AgentId canonical definition is in /src/app/shared/types/agent-types.ts */
 export type { AgentId } from "../app/shared/types/agent-types";
 import type { AgentId } from "../app/shared/types/agent-types";
+import { AGENT_NAMES } from "../app/shared/types/agent-types";
 
 export interface WorkingProps {
   selectedAgent?: AgentId | null;
@@ -66,16 +67,7 @@ const AgentStatusIndicator = React.memo(function AgentStatusIndicator({ agentId 
   );
 });
 
-const AGENT_NAMES: Record<AgentId, string> = {
-  alpha: "Asset Intelligence Analyst",
-  hotel: "Vulnerability Analyst",
-  bravo: "Configuration Security Analyst",
-  charlie: "Application Security Analyst",
-  foxtrot: "Exposure Analyst",
-  delta: "Governance & Compliance Analyst",
-  echo: "Risk Intelligence Analyst",
-  golf: "Identity Security Analyst",
-};
+// AGENT_NAMES imported from ../app/shared/types/agent-types
 
 const AGENT_POSITIONS: Record<AgentId, { x: number; y: number; side: "left" | "right" | "center"; ring: "outer" | "inner" }> = {
   // Single ring (r=225) — 8 agents at 45° intervals, clockwise from top
@@ -108,7 +100,7 @@ function useActivityCycler(tasks: string[], interval: number) {
   return { task: tasks[index], fading };
 }
 
-function AgentTooltip({ agentId, onTooltipHover }: { agentId: AgentId; onTooltipHover?: (h: boolean) => void }) {
+const AgentTooltip = React.memo(function AgentTooltip({ agentId, onTooltipHover }: { agentId: AgentId; onTooltipHover?: (h: boolean) => void }) {
   const { status, tasks } = AGENT_ACTIVITIES[agentId];
   const config = STATUS_CONFIG[status];
   const pos = AGENT_POSITIONS[agentId];
@@ -312,12 +304,12 @@ function AgentTooltip({ agentId, onTooltipHover }: { agentId: AgentId; onTooltip
             style={{ fontSize: 9, color: "rgba(87,177,255,0.55)", cursor: "pointer", transition: "color 0.15s", background: "none", border: "none", padding: 0 }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(87,177,255,0.95)"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(87,177,255,0.55)"; }}
-            onClick={(e) => {
+            onClick={React.useCallback((e: React.MouseEvent) => {
               e.stopPropagation();
               const agentName = AGENT_NAMES[agentId];
               const query = `Tell me about the ${agentName} agent — what is it currently working on, what are its capabilities, and what should I watch for?`;
               window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query } }));
-            }}
+            }, [agentId])}
           >
             Ask this agent →
           </button>
@@ -331,7 +323,7 @@ function AgentTooltip({ agentId, onTooltipHover }: { agentId: AgentId; onTooltip
       </div>
     </div>
   );
-}
+});
 
 const ParticleFlow = React.memo(function ParticleFlow({ color, intensity = 1 }: { color: string; intensity?: number; count?: number; duration?: number }) {
   const [particles, setParticles] = React.useState<{ id: number; duration: number; size: number }[]>([]);

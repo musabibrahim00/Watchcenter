@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import type { AgentId } from "../shared/types/agent-types";
-import { SLUG_TO_AGENT_ID } from "../shared/types/agent-types";
+import { SLUG_TO_AGENT_ID, AGENT_ROLE_LABELS } from "../shared/types/agent-types";
 import { colors } from "../shared/design-system/tokens";
 import { AGENT_TASKS } from "../../imports/agent-tasks-data";
 import {
@@ -178,16 +178,7 @@ const AGENT_META: Record<
   hotel: { label: "Vulnerability Analyst", status: "Idle", color: "#62707D" },
 };
 
-const AGENT_ROLE: Record<AgentId, string> = {
-  alpha: "Asset Intelligence Analyst",
-  bravo: "Configuration Security Analyst",
-  charlie: "Application Security Analyst",
-  delta: "Governance & Compliance Analyst",
-  echo: "Risk Intelligence Analyst",
-  foxtrot: "Exposure Analyst",
-  golf: "Identity Security Analyst",
-  hotel: "Vulnerability Analyst",
-};
+const AGENT_ROLE = AGENT_ROLE_LABELS;
 
 const MODULE_ICONS: Record<string, typeof Shield> = {
   "Risk Register": Shield,

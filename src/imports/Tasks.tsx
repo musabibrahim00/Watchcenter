@@ -297,11 +297,16 @@ function ExecutionBadge({ status }: { status: ExecutionStatus }) {
 function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDetails?: () => void; onAction?: () => void }) {
   const [loading, setLoading] = React.useState(false);
   const [execState, updateExec] = useTaskExecution(task.id);
+  const actionTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    return () => { if (actionTimeoutRef.current) clearTimeout(actionTimeoutRef.current); };
+  }, []);
 
   const handleAction = () => {
     setLoading(true);
     updateExec({ status: "awaiting_approval", lastAction: "Authorization submitted", actor: "You", timestamp: "just now" }, task.title);
-    setTimeout(() => {
+    actionTimeoutRef.current = setTimeout(() => {
       setLoading(false);
       updateExec({ status: "completed", lastAction: "Authorized", actor: "You", timestamp: "just now", outcome: task.expectedOutcome }, task.title);
       window.dispatchEvent(new CustomEvent("aibox-inject-query", {
@@ -497,11 +502,16 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
 function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDetails?: () => void; onAction?: () => void }) {
   const [loading, setLoading] = React.useState(false);
   const [execState, updateExec] = useTaskExecution(task.id);
+  const actionTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    return () => { if (actionTimeoutRef.current) clearTimeout(actionTimeoutRef.current); };
+  }, []);
 
   const handleAction = () => {
     setLoading(true);
     updateExec({ status: "awaiting_approval", lastAction: "Authorization submitted", actor: "You", timestamp: "just now" }, task.title);
-    setTimeout(() => {
+    actionTimeoutRef.current = setTimeout(() => {
       setLoading(false);
       updateExec({ status: "completed", lastAction: "Authorized", actor: "You", timestamp: "just now", outcome: task.expectedOutcome }, task.title);
       window.dispatchEvent(new CustomEvent("aibox-inject-query", {
