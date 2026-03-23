@@ -147,8 +147,8 @@ const AgentTooltip = React.memo(function AgentTooltip({ agentId, onTooltipHover 
           background: "rgba(3,6,9,0.92)",
           border: `1px solid ${investigationActive && agentInChain ? `${scenario.color}40` : "rgba(87,177,255,0.16)"}`,
           boxShadow: `0 4px 16px rgba(0,0,0,0.4)${investigationActive && isCurrentlyActive ? `, 0 0 12px ${scenario.color}20` : ""}`,
-          minWidth: 190,
-          maxWidth: 240,
+          minWidth: 210,
+          maxWidth: 260,
           animation: "taskFadeIn 0.15s ease forwards",
         }}
       >
@@ -271,22 +271,28 @@ const AgentTooltip = React.memo(function AgentTooltip({ agentId, onTooltipHover 
           </div>
         )}
 
-        {/* Top-2 skill hints — what this agent can do */}
+        {/* Skill hints — what this agent can do */}
         {(() => {
-          const topSkills = getPersonaDefaultSkills("agent", "analyst", agentId).slice(0, 2);
+          const topSkills = getPersonaDefaultSkills("agent", "analyst", agentId).slice(0, 3);
           if (topSkills.length === 0) return null;
           return (
             <>
-              <div className="h-px w-full" style={{ background: "rgba(87,177,255,0.06)" }} />
-              <div className="flex flex-col gap-[3px]">
+              <div className="h-px w-full" style={{ background: "rgba(87,177,255,0.08)" }} />
+              <div className="flex flex-col gap-[4px]">
+                <span
+                  className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic uppercase"
+                  style={{ fontSize: 7, color: "rgba(87,177,255,0.4)", letterSpacing: "0.06em" }}
+                >
+                  Can help with
+                </span>
                 {topSkills.map(skill => (
-                  <div key={skill.id} className="flex items-center gap-[3px]">
+                  <div key={skill.id} className="flex items-center gap-[4px]">
                     <svg width="6" height="6" viewBox="0 0 6 6" fill="none" style={{ flexShrink: 0 }}>
-                      <path d="M1 3H5M5 3L3.5 1.5M5 3L3.5 4.5" stroke="#3a5a72" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M1 3H5M5 3L3.5 1.5M5 3L3.5 4.5" stroke="rgba(87,177,255,0.45)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                     <span
                       className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic"
-                      style={{ fontSize: 9, color: "#4a6880" }}
+                      style={{ fontSize: 9, color: "rgba(87,177,255,0.55)" }}
                     >
                       {skill.label}
                     </span>
@@ -297,13 +303,29 @@ const AgentTooltip = React.memo(function AgentTooltip({ agentId, onTooltipHover 
           );
         })()}
         {/* Action row — ask or open details */}
-        <div className="h-px w-full" style={{ background: "rgba(87,177,255,0.06)" }} />
-        <div className="flex items-center justify-between gap-[6px]">
+        <div className="h-px w-full" style={{ background: "rgba(87,177,255,0.08)" }} />
+        <div className="flex items-center gap-[6px]">
           <button
-            className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic"
-            style={{ fontSize: 9, color: "rgba(87,177,255,0.55)", cursor: "pointer", transition: "color 0.15s", background: "none", border: "none", padding: 0 }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(87,177,255,0.95)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(87,177,255,0.55)"; }}
+            className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic flex items-center gap-[4px] flex-1"
+            style={{
+              fontSize: 10,
+              color: "#57b1ff",
+              cursor: "pointer",
+              transition: "background 0.15s, border-color 0.15s",
+              background: "rgba(87,177,255,0.09)",
+              border: "1px solid rgba(87,177,255,0.22)",
+              borderRadius: 6,
+              padding: "5px 8px",
+              justifyContent: "center",
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.background = "rgba(87,177,255,0.16)";
+              (e.currentTarget as HTMLElement).style.borderColor = "rgba(87,177,255,0.38)";
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.background = "rgba(87,177,255,0.09)";
+              (e.currentTarget as HTMLElement).style.borderColor = "rgba(87,177,255,0.22)";
+            }}
             onClick={React.useCallback((e: React.MouseEvent) => {
               e.stopPropagation();
               const agentName = AGENT_NAMES[agentId];
@@ -311,13 +333,16 @@ const AgentTooltip = React.memo(function AgentTooltip({ agentId, onTooltipHover 
               window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query } }));
             }, [agentId])}
           >
-            Ask this agent →
+            <svg width="9" height="9" viewBox="0 0 9 9" fill="none" style={{ flexShrink: 0 }}>
+              <path d="M1 7.5L2.5 5.5C1.67 4.83 1.5 3.83 2 3C2.5 2.17 3.42 1.5 4.5 1.5C6.16 1.5 7.5 2.84 7.5 4.5C7.5 6.16 6.16 7.5 4.5 7.5H1Z" stroke="#57b1ff" strokeWidth="0.9" strokeLinejoin="round" fill="none"/>
+            </svg>
+            Ask this analyst
           </button>
           <span
-            className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic text-[#3a4a58]"
-            style={{ fontSize: 8 }}
+            className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic shrink-0"
+            style={{ fontSize: 8, color: "#4a6070" }}
           >
-            Click to open
+            Click to open →
           </span>
         </div>
       </div>

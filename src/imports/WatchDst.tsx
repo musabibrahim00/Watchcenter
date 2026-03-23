@@ -155,7 +155,7 @@ function Container() {
     <StatusProvider>
       <InvestigationProvider>
       <TaskInvestigationBridgeProvider>
-      <div ref={containerRef} className="relative h-full bg-[#030609] overflow-clip" data-name="Container">
+      <div ref={containerRef} className="relative h-full bg-[#070d18] overflow-clip" data-name="Container">
         <Bg />
         <div className="absolute inset-0 flex flex-col items-center">
           <div className="relative w-full flex justify-center mt-[8px]">

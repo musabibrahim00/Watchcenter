@@ -1635,18 +1635,28 @@ function AgentDetailInner({
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "5px",
-                  padding: "5px 10px",
+                  gap: "6px",
+                  padding: "7px 14px",
                   borderRadius: "99px",
-                  border: `1px solid ${colors.accent}33`,
-                  background: `${colors.accent}0e`,
+                  border: `1px solid ${colors.accent}44`,
+                  background: `${colors.accent}14`,
                   color: colors.accent,
-                  fontSize: "10px",
+                  fontSize: "12px",
                   cursor: "pointer",
                   lineHeight: "1",
+                  fontWeight: 500,
+                  transition: "background 0.15s, border-color 0.15s",
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLElement).style.background = `${colors.accent}22`;
+                  (e.currentTarget as HTMLElement).style.borderColor = `${colors.accent}66`;
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLElement).style.background = `${colors.accent}14`;
+                  (e.currentTarget as HTMLElement).style.borderColor = `${colors.accent}44`;
                 }}
               >
-                <MessageCircle size={10} />
+                <MessageCircle size={12} />
                 Ask analyst
               </button>
             </div>
