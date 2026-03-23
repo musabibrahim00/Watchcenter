@@ -167,14 +167,14 @@ const AGENT_META: Record<
   AgentId,
   { label: string; status: "Active" | "Idle"; color: string }
 > = {
-  alpha: { label: "Alpha", status: "Active", color: "#00A46E" },
-  bravo: { label: "Bravo", status: "Idle", color: "#62707D" },
-  charlie: { label: "Charlie", status: "Active", color: "#00A46E" },
-  delta: { label: "Delta", status: "Active", color: "#F05B06" },
-  echo: { label: "Echo", status: "Idle", color: "#62707D" },
-  foxtrot: { label: "Foxtrot", status: "Idle", color: "#62707D" },
-  golf: { label: "Golf", status: "Idle", color: "#62707D" },
-  hotel: { label: "Hotel", status: "Idle", color: "#62707D" },
+  alpha: { label: "Asset Intelligence Analyst", status: "Active", color: "#00A46E" },
+  bravo: { label: "Configuration Security Analyst", status: "Idle", color: "#62707D" },
+  charlie: { label: "Application Security Analyst", status: "Active", color: "#00A46E" },
+  delta: { label: "Governance & Compliance Analyst", status: "Active", color: "#F05B06" },
+  echo: { label: "Risk Intelligence Analyst", status: "Idle", color: "#62707D" },
+  foxtrot: { label: "Exposure Analyst", status: "Idle", color: "#62707D" },
+  golf: { label: "Identity Security Analyst", status: "Idle", color: "#62707D" },
+  hotel: { label: "Vulnerability Analyst", status: "Idle", color: "#62707D" },
 };
 
 const AGENT_ROLE: Record<AgentId, string> = {
