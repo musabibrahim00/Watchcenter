@@ -351,6 +351,17 @@ function InterventionCard({
   onDefer: (id: string) => void;
   onInvestigate?: (data: InterventionData) => void;
 }) {
+  const { isOpen: isAiBoxOpen, open: openAiBox, setPendingEntryQuery } = useAiBox();
+
+  const handleAskWhy = useCallback((query: string) => {
+    if (isAiBoxOpen) {
+      window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query } }));
+    } else {
+      setPendingEntryQuery(query);
+      openAiBox();
+    }
+  }, [isAiBoxOpen, openAiBox, setPendingEntryQuery]);
+
   const displaySeverity =
     data.status === "executing" ? "In Progress" : data.status === "completed" ? "Completed" : data.severity;
   const displayStep =
@@ -449,13 +460,11 @@ function InterventionCard({
                   Awaiting authorization
                 </span>
               </div>
-              {/* Ask why — injects intervention context into AIBox */}
+              {/* Ask why — opens AIBox (if closed) then injects intervention context */}
               <button
-                onClick={() => window.dispatchEvent(new CustomEvent("globalaibox-inject-query", {
-                  detail: {
-                    query: `Required intervention: "${data.title}"\nStage: ${data.pipelineSteps[data.activeStep] ?? "Awaiting authorization"} | Confidence: ${data.confidence}%${data.owner ? ` | Owner: ${data.owner}` : ""}\n\nBusiness impact: ${data.businessImpact}\n\nPlease explain:\n1. Why this intervention is required and what evidence exists\n2. What the system is ${data.confidence >= 92 ? "highly confident" : data.confidence >= 80 ? "moderately confident" : "flagging for review"} about and why\n3. What happens if authorized — expected outcome\n4. What risk grows or persists if this is deferred${data.deferRisk ? `: ${data.deferRisk}` : ""}`,
-                  },
-                }))}
+                onClick={() => handleAskWhy(
+                  `Required intervention: "${data.title}"\nStage: ${data.pipelineSteps[data.activeStep] ?? "Awaiting authorization"} | Confidence: ${data.confidence}%${data.owner ? ` | Owner: ${data.owner}` : ""}\n\nBusiness impact: ${data.businessImpact}\n\nPlease explain:\n1. Why this intervention is required and what evidence exists\n2. What the system is ${data.confidence >= 92 ? "highly confident" : data.confidence >= 80 ? "moderately confident" : "flagging for review"} about and why\n3. What happens if authorized — expected outcome\n4. What risk grows or persists if this is deferred${data.deferRisk ? `: ${data.deferRisk}` : ""}`
+                )}
                 className="flex items-center gap-[3px] font-['Inter',sans-serif] text-[10px] leading-[13px] transition-colors cursor-pointer rounded-[5px] px-[7px] py-[3px]"
                 style={{ background: "rgba(87,177,255,0.07)", border: "1px solid rgba(87,177,255,0.16)", color: "#57b1ff" }}
                 onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.13)")}
@@ -1543,12 +1552,14 @@ function AgentDetailInner({
   }, [id, meta.label, persona, openWithContext, closeAiBox]);
 
   const handleInvestigateIntervention = useCallback((data: InterventionData) => {
-    /* Dispatch investigation query directly into GlobalAIBox — the TaskInvestigationBridge
-       only connects to WatchCenter's local AiBox; GlobalAIBox listens to this event instead. */
     const query = `Investigation: "${data.title}"\nAgent: ${AGENT_ROLE[id]} | Confidence: ${data.confidence}%${data.owner ? ` | Owner: ${data.owner}` : ""}\n\nBusiness impact: ${data.businessImpact || data.description}\n\nPlease:\n1. Explain the root cause and supporting evidence\n2. Map the affected systems and blast radius\n3. Outline recommended investigation steps\n4. Assess urgency and escalation path`;
-    window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query } }));
-    if (!isAiBoxOpen) openAiBox();
-  }, [id, isAiBoxOpen, openAiBox]);
+    if (isAiBoxOpen) {
+      window.dispatchEvent(new CustomEvent("globalaibox-inject-query", { detail: { query } }));
+    } else {
+      setPendingEntryQuery(query);
+      openAiBox();
+    }
+  }, [id, isAiBoxOpen, openAiBox, setPendingEntryQuery]);
 
 
 
