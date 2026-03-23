@@ -368,7 +368,6 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
                     {task.confidence === "high" ? "High conf." : task.confidence === "moderate" ? "Moderate" : "Needs review"}
                   </span>
                 )}
-                <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#3d6070" }}>Identification</span>
               </div>
               <div className="flex items-center gap-[5px] w-full">
                 <p className="font-['Inter:Medium',sans-serif] font-medium relative text-[#dadfe3] text-[10px] flex-1 min-w-0">{task.title}</p>
@@ -424,12 +423,6 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
           </div>
         ) : (
           <>
-            {!loading && task.lastDecision && (
-              <p className="font-['Inter:Regular',sans-serif] text-[8px] mb-[4px] italic" style={{ color: "#2e4452" }}>{task.lastDecision}</p>
-            )}
-            {!loading && (
-              <p className="font-['Inter:Regular',sans-serif] text-[7px] text-[#3d5a6a] mb-[3px] uppercase tracking-[0.4px]">Action</p>
-            )}
             <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-center justify-between relative w-full">
               <div className="content-stretch flex gap-[8px] items-center relative shrink-0" data-name="buttons">
                 <div className={`h-[24px] min-w-[84px] relative rounded-[6px] shrink-0 transition-colors ${loading ? 'bg-transparent cursor-default pointer-events-none' : 'bg-[#076498] cursor-pointer hover:bg-[#0a7ab8]'}`} data-name="ButtonPrimary" onClick={!loading ? handleAction : undefined}>
@@ -573,7 +566,6 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
                     {task.confidence === "high" ? "High conf." : task.confidence === "moderate" ? "Moderate" : "Needs review"}
                   </span>
                 )}
-                <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#3d6070" }}>Identification</span>
               </div>
               <div className="flex items-center gap-[5px] w-full">
                 <p className="font-['Inter:Medium',sans-serif] font-medium relative text-[#dadfe3] text-[10px] flex-1 min-w-0">{task.title}</p>
@@ -662,9 +654,6 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
           </div>
         ) : (
           <>
-            {!loading && (
-              <p className="font-['Inter:Regular',sans-serif] text-[7px] text-[#3d5a6a] mb-[3px] uppercase tracking-[0.4px]">Action</p>
-            )}
             <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-center justify-between relative w-full">
               <div className="content-stretch flex gap-[8px] items-center relative shrink-0" data-name="buttons">
                 <div className={`h-[24px] min-w-[84px] relative rounded-[6px] shrink-0 transition-colors ${loading ? 'bg-transparent cursor-default pointer-events-none' : 'bg-[#076498] cursor-pointer hover:bg-[#0a7ab8]'}`} data-name="ButtonPrimary" onClick={!loading ? handleAction : undefined}>

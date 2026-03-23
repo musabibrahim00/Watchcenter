@@ -424,48 +424,53 @@ function InterventionCard({
         <VerticalPipelineStatus steps={data.pipelineSteps} activeStep={displayStep} animating={data.status === "executing"} />
       </div>
 
-      <div className="flex items-center justify-between flex-wrap gap-[3px] ml-[18px]">
-        <div className="flex items-center gap-[4px]">
-          <span className="font-['Inter',sans-serif] text-[10px] text-[#89949E] leading-[13px]">
-            Confidence:
-          </span>
-          <span
-            className="font-['Inter',sans-serif] text-[10px] leading-[13px]"
-            style={{ color: data.confidence >= 92 ? "#2fd897" : data.confidence >= 80 ? "#f59e0b" : "#7e8e9e" }}
-          >
-            {data.confidence}%
-          </span>
-          <span
-            className="font-['Inter',sans-serif] text-[8px] px-[4px] py-[0.5px] rounded-[3px] leading-[11px]"
-            style={{
-              background: data.confidence >= 92 ? "rgba(47,216,151,0.07)" : data.confidence >= 80 ? "rgba(245,158,11,0.07)" : "rgba(98,112,125,0.08)",
-              border: `1px solid ${data.confidence >= 92 ? "rgba(47,216,151,0.16)" : data.confidence >= 80 ? "rgba(245,158,11,0.14)" : "rgba(98,112,125,0.14)"}`,
-              color: data.confidence >= 92 ? "#2fd897" : data.confidence >= 80 ? "#f59e0b" : "#7e8e9e",
-            }}
-          >
-            {data.confidence >= 92 ? "High" : data.confidence >= 80 ? "Moderate" : "Review"}
-          </span>
+      <div className="flex flex-col gap-[4px] ml-[18px]">
+        {/* Confidence + Owner row */}
+        <div className="flex items-center gap-[6px]">
+          <div className="flex items-center gap-[4px]">
+            <span className="font-['Inter',sans-serif] text-[10px] text-[#89949E] leading-[13px]">
+              Confidence:
+            </span>
+            <span
+              className="font-['Inter',sans-serif] text-[10px] leading-[13px]"
+              style={{ color: data.confidence >= 92 ? "#2fd897" : data.confidence >= 80 ? "#f59e0b" : "#7e8e9e" }}
+            >
+              {data.confidence}%
+            </span>
+            <span
+              className="font-['Inter',sans-serif] text-[8px] px-[4px] py-[0.5px] rounded-[3px] leading-[11px]"
+              style={{
+                background: data.confidence >= 92 ? "rgba(47,216,151,0.07)" : data.confidence >= 80 ? "rgba(245,158,11,0.07)" : "rgba(98,112,125,0.08)",
+                border: `1px solid ${data.confidence >= 92 ? "rgba(47,216,151,0.16)" : data.confidence >= 80 ? "rgba(245,158,11,0.14)" : "rgba(98,112,125,0.14)"}`,
+                color: data.confidence >= 92 ? "#2fd897" : data.confidence >= 80 ? "#f59e0b" : "#7e8e9e",
+              }}
+            >
+              {data.confidence >= 92 ? "High" : data.confidence >= 80 ? "Moderate" : "Review"}
+            </span>
+          </div>
+          {data.owner && (
+            <span className="font-['Inter',sans-serif] text-[9px] leading-[12px]" style={{ color: "#3d5a6a" }}>
+              {data.owner}
+            </span>
+          )}
         </div>
-        {data.owner && (
-          <span className="font-['Inter',sans-serif] text-[9px] leading-[12px]" style={{ color: "#2a4050" }}>
-            Owner: {data.owner}
-          </span>
-        )}
-        <div className="flex items-center gap-[5px]">
-          {data.status === "awaiting" && (
-            <>
-              <div className="flex items-center gap-[3px] w-full mb-[0px]">
-                <div className="size-[4px] rounded-full shrink-0" style={{ backgroundColor: "#d97706", opacity: 0.85 }} />
-                <span className="font-['Inter',sans-serif] text-[9px] leading-[12px]" style={{ color: "#b87a20" }}>
-                  Awaiting authorization
-                </span>
-              </div>
-              {/* Ask why — opens AIBox (if closed) then injects intervention context */}
+        {/* Awaiting authorization — status label + action buttons */}
+        {data.status === "awaiting" && (
+          <>
+            <div className="flex items-center gap-[3px]">
+              <div className="size-[4px] rounded-full shrink-0" style={{ backgroundColor: "#d97706", opacity: 0.85 }} />
+              <span className="font-['Inter',sans-serif] text-[9px] leading-[12px]" style={{ color: "#b87a20" }}>
+                Awaiting authorization
+              </span>
+            </div>
+            {/* Action buttons — all normalized to h-[24px] baseline */}
+            <div className="flex items-center flex-wrap gap-[5px]">
+              {/* Ask why — opens AIBox and injects intervention context */}
               <button
                 onClick={() => handleAskWhy(
                   `Required intervention: "${data.title}"\nStage: ${data.pipelineSteps[data.activeStep] ?? "Awaiting authorization"} | Confidence: ${data.confidence}%${data.owner ? ` | Owner: ${data.owner}` : ""}\n\nBusiness impact: ${data.businessImpact}\n\nPlease explain:\n1. Why this intervention is required and what evidence exists\n2. What the system is ${data.confidence >= 92 ? "highly confident" : data.confidence >= 80 ? "moderately confident" : "flagging for review"} about and why\n3. What happens if authorized — expected outcome\n4. What risk grows or persists if this is deferred${data.deferRisk ? `: ${data.deferRisk}` : ""}`
                 )}
-                className="flex items-center gap-[3px] font-['Inter',sans-serif] text-[10px] leading-[13px] transition-colors cursor-pointer rounded-[5px] px-[7px] py-[3px] whitespace-nowrap"
+                className="inline-flex items-center gap-[3px] font-['Inter',sans-serif] text-[11px] leading-[14px] transition-all cursor-pointer rounded-[5px] px-[7px] py-[5px] whitespace-nowrap"
                 style={{ background: "rgba(87,177,255,0.07)", border: "1px solid rgba(87,177,255,0.16)", color: "#57b1ff" }}
                 onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.13)")}
                 onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.07)")}
@@ -475,7 +480,7 @@ function InterventionCard({
               </button>
               <button
                 onClick={() => onAuthorize(data.id)}
-                className="rounded-[6px] px-[12px] py-[5px] font-['Inter',sans-serif] text-[11px] text-white leading-[14px] transition-colors cursor-pointer"
+                className="inline-flex items-center rounded-[5px] px-[10px] py-[5px] font-['Inter',sans-serif] text-[11px] text-white leading-[14px] transition-all cursor-pointer whitespace-nowrap"
                 style={{ backgroundColor: colors.buttonPrimary }}
                 onMouseEnter={e => { e.currentTarget.style.backgroundColor = colors.buttonPrimaryHover; }}
                 onMouseLeave={e => { e.currentTarget.style.backgroundColor = colors.buttonPrimary; }}
@@ -484,38 +489,42 @@ function InterventionCard({
               </button>
               <button
                 onClick={() => onDefer(data.id)}
-                className="font-['Inter',sans-serif] text-[11px] text-[#62707D] leading-[14px] hover:text-[#89949e] transition-colors cursor-pointer"
+                className="inline-flex items-center font-['Inter',sans-serif] text-[11px] text-[#62707D] leading-[14px] px-[8px] py-[5px] rounded-[5px] transition-all cursor-pointer whitespace-nowrap"
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(98,112,125,0.10)"; (e.currentTarget as HTMLButtonElement).style.color = "#89949e"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "#62707D"; }}
               >
                 Defer
               </button>
               {onInvestigate && (
                 <button
                   onClick={() => onInvestigate(data)}
-                  className="font-['Inter',sans-serif] text-[11px] text-[#1eb2c2] leading-[14px] hover:text-[#3dd4e4] transition-colors cursor-pointer"
+                  className="inline-flex items-center font-['Inter',sans-serif] text-[11px] text-[#1eb2c2] leading-[14px] px-[8px] py-[5px] rounded-[5px] transition-all cursor-pointer whitespace-nowrap"
+                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(30,178,194,0.08)"; (e.currentTarget as HTMLButtonElement).style.color = "#3dd4e4"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "#1eb2c2"; }}
                 >
                   Investigate
                 </button>
               )}
-            </>
-          )}
-          {data.status === "executing" && (
-            <div className="flex items-center gap-[6px]">
-              <motion.div
-                className="size-[12px] rounded-full border-2 border-[#3b82f6] border-t-transparent"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
-              />
-              <span className="font-['Inter',sans-serif] text-[11px] text-[#3b82f6] leading-[14px]">
-                Executing…
-              </span>
             </div>
-          )}
-          {data.status === "completed" && (
-            <span className="font-['Inter',sans-serif] text-[10px] text-[#2fd897] leading-[13px]">
-              Completed just now
+          </>
+        )}
+        {data.status === "executing" && (
+          <div className="flex items-center gap-[6px]">
+            <motion.div
+              className="size-[12px] rounded-full border-2 border-[#3b82f6] border-t-transparent"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+            />
+            <span className="font-['Inter',sans-serif] text-[11px] text-[#3b82f6] leading-[14px]">
+              Executing…
             </span>
-          )}
-        </div>
+          </div>
+        )}
+        {data.status === "completed" && (
+          <span className="font-['Inter',sans-serif] text-[10px] text-[#2fd897] leading-[13px]">
+            Completed just now
+          </span>
+        )}
       </div>
     </motion.div>
   );
