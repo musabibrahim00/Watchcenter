@@ -31,7 +31,7 @@ export const router = createBrowserRouter(
       children: [
         { index: true, lazy: () => import("../imports/WatchDst").then(m => ({ Component: m.default })) },
         { path: "sub/:moduleId", lazy: () => import("./pages/SubPage").then(m => ({ Component: m.default })) },
-        { path: "agent/:agentId", lazy: () => import("./pages/AgentDetailPage").then(m => ({ Component: m.default })) },
+        { path: "agent/:agentSlug", lazy: () => import("./pages/AgentDetailPage").then(m => ({ Component: m.default })) },
         { path: "attack-paths", lazy: () => import("./pages/AttackPathPage").then(m => ({ Component: m.default })) },
         { path: "attack-paths/:pathId", lazy: () => import("./pages/AttackPathDetailPage").then(m => ({ Component: m.default })) },
         { path: "asset/:assetId", lazy: () => import("./pages/AssetDetailPage").then(m => ({ Component: m.default })) },

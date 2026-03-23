@@ -9,6 +9,18 @@
 import { AGENT_ROLES, getAiBoxSuggestions } from "./skills-registry.mjs";
 export { AGENT_ROLES };
 
+// Agent ID → URL slug (mirrors AGENT_SLUGS in agent-types.ts)
+const AGENT_SLUGS = {
+  alpha:   "asset-intelligence-analyst",
+  bravo:   "configuration-security-analyst",
+  charlie: "application-security-analyst",
+  delta:   "governance-compliance-analyst",
+  echo:    "risk-intelligence-analyst",
+  foxtrot: "exposure-analyst",
+  golf:    "identity-security-analyst",
+  hotel:   "vulnerability-analyst",
+};
+
 // Reverse map: role label → agent id
 const ROLE_TO_ID = Object.fromEntries(
   Object.entries(AGENT_ROLES).map(([id, label]) => [label.toLowerCase(), id])
@@ -209,7 +221,7 @@ export function inferContext(entity) {
 // ── Derive UI deep-link path for a context ────────────────────────────────────
 export function deriveUIPath(ctx) {
   switch (ctx.type) {
-    case "agent":       return `/agent/${ctx.agentId}`;
+    case "agent":       return `/agent/${AGENT_SLUGS[ctx.agentId] ?? ctx.agentId}`;
     case "asset":       return `/asset/${ctx.id}`;
     case "attack-path": return `/attack-paths/${ctx.id}`;
     case "workflow":    return `/workflows/new/${ctx.id}`;

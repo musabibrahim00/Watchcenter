@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import type { AgentId } from "../shared/types/agent-types";
+import { SLUG_TO_AGENT_ID } from "../shared/types/agent-types";
 import { colors } from "../shared/design-system/tokens";
 import { AGENT_TASKS } from "../../imports/agent-tasks-data";
 import {
@@ -1420,11 +1421,11 @@ const WatchCenterBg = React.memo(function WatchCenterBg() {
    ================================================================ */
 
 export default function AgentDetailPage() {
-  const { agentId } = useParams<{ agentId: string }>();
+  const { agentSlug } = useParams<{ agentSlug: string }>();
   const navigate = useNavigate();
-  const id = agentId as AgentId;
-  const meta = AGENT_META[id];
-  const taskData = AGENT_TASKS[id];
+  const id = (agentSlug ? SLUG_TO_AGENT_ID[agentSlug] : undefined) as AgentId;
+  const meta = id ? AGENT_META[id] : undefined;
+  const taskData = id ? AGENT_TASKS[id] : undefined;
   const [doneTodayItems, setDoneTodayItems] = useState<DoneTodayItem[]>([]);
 
   const handleModuleComplete = useCallback((action: CompletedAction) => {
@@ -1446,7 +1447,7 @@ export default function AgentDetailPage() {
         <div className="flex flex-col items-center gap-4 text-center">
           <p style={{ fontSize: 15, fontWeight: 600, color: colors.textPrimary, margin: 0 }}>Agent not found</p>
           <p style={{ fontSize: 12, color: colors.textMuted, margin: 0 }}>
-            Agent <code style={{ color: colors.accent, fontFamily: "monospace" }}>{agentId}</code> does not exist.
+            Agent <code style={{ color: colors.accent, fontFamily: "monospace" }}>{agentSlug}</code> does not exist.
           </p>
           <button
             onClick={() => navigate("/")}

@@ -1,5 +1,5 @@
 import type { AiBoxPageContext } from "./AiBoxContext";
-import { AGENT_ROLE_LABELS } from "../../shared/types/agent-types";
+import { AGENT_ROLE_LABELS, AGENT_SLUGS } from "../../shared/types/agent-types";
 import type { AgentId } from "../../shared/types/agent-types";
 import { getPersonaAiBoxSuggestions } from "../../shared/skills";
 import type { Persona } from "../../shared/skills";
@@ -150,7 +150,7 @@ function fallbackContext(type: string, id: string, query?: string, persona?: Per
  */
 export function derivePageRoute(type: string, id: string): string {
   switch (type) {
-    case "agent":        return `/agent/${id}`;
+    case "agent":        return `/agent/${AGENT_SLUGS[id as AgentId] ?? id}`;
     case "asset":        return `/asset/${id}`;
     case "attack-path":  return `/attack-paths/${id}`;
     case "workflow":     return `/workflows/new/${id}`;

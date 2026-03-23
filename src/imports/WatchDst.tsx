@@ -4,6 +4,7 @@ import svgPaths from "./svg-kxe7qom7bz";
 import Tasks from "./Tasks";
 import Working from "./Working";
 import type { AgentId } from "./Working";
+import { AGENT_SLUGS } from "../app/shared/types/agent-types";
 import KpiWidget from "./KpiWidget";
 import ActivityFeed from "./ActivityFeed";
 import { StatusProvider } from "./StatusContext";
@@ -123,7 +124,7 @@ function Container() {
   const navigate = useNavigate();
 
   const handleAgentClick = React.useCallback((id: AgentId) => {
-    navigate(`/agent/${id}`);
+    navigate(`/agent/${AGENT_SLUGS[id]}`);
   }, [navigate]);
 
   const handleTaskDone = React.useCallback((_task: TaskData) => {

@@ -27,3 +27,20 @@ export const AGENT_ROLE_LABELS: Record<AgentId, string> = {
   golf: "Identity Security Analyst",
 };
 
+/** URL-safe slugs for each agent — used in page routes */
+export const AGENT_SLUGS: Record<AgentId, string> = {
+  alpha:   "asset-intelligence-analyst",
+  bravo:   "configuration-security-analyst",
+  charlie: "application-security-analyst",
+  delta:   "governance-compliance-analyst",
+  echo:    "risk-intelligence-analyst",
+  foxtrot: "exposure-analyst",
+  golf:    "identity-security-analyst",
+  hotel:   "vulnerability-analyst",
+};
+
+/** Reverse map: slug → AgentId */
+export const SLUG_TO_AGENT_ID: Record<string, AgentId> = Object.fromEntries(
+  Object.entries(AGENT_SLUGS).map(([id, slug]) => [slug, id as AgentId])
+) as Record<string, AgentId>;
+
