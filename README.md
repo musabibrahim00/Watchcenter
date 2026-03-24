@@ -63,7 +63,8 @@ src/
       watch-center/     # StatusContext, InvestigationContext, AgentNarratives
     pages/              # Route-level page components
       AgentDetailPage.tsx
-      AttackPathPage.tsx / AttackPathDetailPage.tsx
+      AttackPathPage.tsx
+      AttackPathDetailPage.tsx
       AssetDetailPage.tsx
       CompliancePage.tsx
       IntegrationsPage.tsx
@@ -103,7 +104,7 @@ src/
     agent-tasks-data.ts
     intervention-data-types.ts
     svg-*.ts/tsx         # SVG path data (Figma export, ~80 files)
-                        # + ~100 unused legacy Figma variant files
+                         # ~100 unused legacy Figma variant files also present
 
 cli/                # secops CLI utility (secops.mjs)
 guidelines/         # Product design and development guidelines
