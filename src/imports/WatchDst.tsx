@@ -147,9 +147,14 @@ function Container() {
 
   /* Responsive calculations — memoized to avoid recalc on unrelated state changes */
   const globeNative = 600;
-  const globeScale = React.useMemo(() => Math.min(1, Math.max(0.55, (dims.w - 620) / 800)), [dims.w]);
-  const sideW = React.useMemo(() => Math.min(300, Math.max(220, dims.w * 0.19)), [dims.w]);
-  const sideH = React.useMemo(() => Math.min(720, Math.max(520, dims.h * 0.85)), [dims.h]);
+  const globeScale = React.useMemo(() => {
+    // ≤2000px: identical to original (caps at 1.0 around 1420px wide)
+    const base = Math.min(1, Math.max(0.55, (dims.w - 620) / 800));
+    // >2000px: continue scaling past 1.0 at a gentle rate, cap at 1.3
+    return dims.w > 2000 ? Math.min(1.3, 1 + (dims.w - 2000) / 4000) : base;
+  }, [dims.w]);
+  const sideW = React.useMemo(() => Math.min(380, Math.max(220, dims.w * 0.19)), [dims.w]);
+  const sideH = React.useMemo(() => Math.min(900, Math.max(520, dims.h * 0.87)), [dims.h]);
 
   return (
     <StatusProvider>
@@ -175,10 +180,10 @@ function Container() {
             className="absolute top-[24px] left-[24px] z-[2] flex flex-col gap-[12px] overflow-hidden"
             style={{ width: sideW, height: sideH * 0.88 }}
           >
-            <div style={{ flex: "3 3 0%", minHeight: 0, overflow: "hidden" }}>
+            <div style={{ flex: "2.5 2.5 0%", minHeight: 0, overflow: "hidden" }}>
               <ActivityFeed />
             </div>
-            <div style={{ flex: "4 4 0%", minHeight: 0, overflow: "hidden" }}>
+            <div style={{ flex: "4.5 4.5 0%", minHeight: 0, overflow: "hidden" }}>
               <KpiWidget />
             </div>
             <div style={{ flex: "3 3 0%", minHeight: 0, overflow: "hidden" }}>
@@ -192,12 +197,19 @@ function Container() {
             <AiBox />
           </div>
           <div className="absolute bottom-[12px] left-0 right-0 flex justify-center px-[40px] pt-[100px] pb-[20px] z-0 max-h-[70%] overflow-y-auto" style={{ scrollbarWidth: "none" }}>
-            <div className="w-full max-w-[1237px] flex flex-col gap-[12px] pointer-events-auto">
+            <div className="w-full max-w-[1237px] flex flex-col pointer-events-auto">
               {!isDetailView && (
-                <div className="relative flex items-center justify-center w-full">
+                <div className="flex justify-center w-full pb-[12px]">
                   <p className="bg-clip-text bg-gradient-to-r font-['Inter:Regular',sans-serif] font-normal from-[#ffcba3] from-[6.932%] leading-[20px] not-italic shrink-0 text-[16px] text-[transparent] to-[48.267%] to-white via-[#ffe8a3] via-[1.412%] whitespace-nowrap">Risk tracker — required interventions</p>
+                </div>
+              )}
+              <div>
+                <Tasks onViewChange={setIsDetailView} onTaskDone={handleTaskDone} />
+              </div>
+              {!isDetailView && (
+                <div className="flex justify-center w-full pt-[12px]">
                   <button
-                    className="absolute right-0 top-1/2 -translate-y-1/2 font-['Inter:Regular',sans-serif] text-[11px] leading-[14px] transition-colors cursor-pointer"
+                    className="font-['Inter:Regular',sans-serif] text-[11px] leading-[14px] transition-colors cursor-pointer"
                     style={{ color: "rgba(87,177,255,0.55)" }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(87,177,255,0.90)"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(87,177,255,0.55)"; }}
@@ -207,9 +219,6 @@ function Container() {
                   </button>
                 </div>
               )}
-              <div className="min-h-[200px]">
-                <Tasks onViewChange={setIsDetailView} onTaskDone={handleTaskDone} />
-              </div>
             </div>
           </div>
         </div>
