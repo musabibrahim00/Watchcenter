@@ -155,6 +155,11 @@ function Container() {
   }, [dims.w]);
   const sideW = React.useMemo(() => Math.min(380, Math.max(220, dims.w * 0.19)), [dims.w]);
   const sideH = React.useMemo(() => Math.min(900, Math.max(520, dims.h * 0.87)), [dims.h]);
+  // Cap panel height so panels never overlap the risk tracker bottom section.
+  // Risk tracker: absolute bottom-[12px] + pt-[100px] ≈ occupies last ~370px of container.
+  // Label ("Risk tracker") appears at roughly dims.h - 280 from top.
+  // We keep panels at least 50px above that line.
+  const panelH = React.useMemo(() => Math.min(sideH * 0.88, dims.h - 350), [sideH, dims.h]);
 
   return (
     <StatusProvider>
@@ -178,7 +183,7 @@ function Container() {
           </div>
           <div
             className="absolute top-[24px] left-[24px] z-[2] flex flex-col gap-[12px] overflow-hidden"
-            style={{ width: sideW, height: sideH * 0.88 }}
+            style={{ width: sideW, height: panelH }}
           >
             <div style={{ flex: "2.5 2.5 0%", minHeight: 0, overflow: "hidden" }}>
               <ActivityFeed />
@@ -192,7 +197,7 @@ function Container() {
           </div>
           <div
             className="absolute top-[24px] right-[24px] z-[3]"
-            style={{ width: sideW, height: sideH * 0.88 }}
+            style={{ width: sideW, height: panelH }}
           >
             <AiBox />
           </div>
