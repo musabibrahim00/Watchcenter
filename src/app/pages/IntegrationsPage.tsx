@@ -186,7 +186,7 @@ function StatusBadge({ status }: { status: ConnectionStatus }) {
    INTEGRATION CARD
    ================================================================ */
 
-function IntegrationCard({
+const IntegrationCard = React.memo(function IntegrationCard({
   integration,
   onClick,
 }: {
@@ -242,7 +242,7 @@ function IntegrationCard({
       </div>
     </div>
   );
-}
+});
 
 /* ================================================================
    ADD INTEGRATION MODAL

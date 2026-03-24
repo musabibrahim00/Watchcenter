@@ -166,7 +166,7 @@ const AgentTooltip = React.memo(function AgentTooltip({ agentId, onTooltipHover 
               }}
             />
             <span
-              className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic text-[#dadfe3]"
+              className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic text-[#dadfe3] whitespace-nowrap"
               style={{ fontSize: 10 }}
             >
               {AGENT_NAMES[agentId]}

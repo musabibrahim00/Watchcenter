@@ -166,13 +166,13 @@ export function IntegrationSetupModal({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50"
+        className="fixed inset-0 z-[100]"
         style={{ backgroundColor: "rgba(0, 0, 0, 0.6)" }}
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-[24px] pointer-events-none">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-[24px] pointer-events-none">
         <div
           className="w-full max-w-[540px] rounded-[12px] pointer-events-auto max-h-[80vh] flex flex-col"
           style={{

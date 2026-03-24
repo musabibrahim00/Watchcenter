@@ -512,7 +512,7 @@ function KpiCard({ label, value, color }: {
    TABLE ROW
    ================================================================ */
 
-function PathRow({ path, last }: { path: PathSummary; last: boolean }) {
+const PathRow = React.memo(function PathRow({ path, last }: { path: PathSummary; last: boolean }) {
   const navigate = useNavigate();
   const { openWithContext } = useAiBox();
   const { persona } = usePersona();
@@ -630,4 +630,4 @@ function PathRow({ path, last }: { path: PathSummary; last: boolean }) {
       />
     </div>
   );
-}
+});

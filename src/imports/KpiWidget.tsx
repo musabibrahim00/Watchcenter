@@ -174,16 +174,16 @@ export default function KpiWidget() {
 
   return (
     <div
-      className="bg-[rgba(8,18,30,0.60)] content-stretch flex flex-col gap-[6px] items-start p-[12px] relative rounded-[12px] w-full h-full overflow-y-auto"
+      className="bg-[rgba(8,18,30,0.60)] flex flex-col relative rounded-[12px] w-full h-full overflow-hidden"
       data-name="KPIWidget"
     >
       <div
         aria-hidden="true"
-        className="absolute border border-[rgba(87,177,255,0.24)] border-solid inset-0 pointer-events-none rounded-[12px]"
+        className="absolute border border-[rgba(87,177,255,0.24)] border-solid inset-0 pointer-events-none rounded-[12px] z-[1]"
       />
 
-      {/* Header */}
-      <div className="flex items-center justify-between w-full">
+      {/* Fixed header — never scrolls */}
+      <div className="flex items-center justify-between w-full shrink-0 px-[12px] pt-[12px] pb-[6px]">
         <div className="flex items-center gap-[6px]">
           <div className="bg-[#00a46e] rounded-full shrink-0 size-[4px] animate-[blink_2s_ease-in-out_infinite]" />
           <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] text-[#dadfe3] text-[12px] tracking-[0.4px] uppercase">
@@ -195,26 +195,29 @@ export default function KpiWidget() {
         </span>
       </div>
 
-      <Separator />
+      {/* Scrollable body — clipped by the outer overflow-hidden */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-[12px] pb-[12px] flex flex-col gap-[6px]" style={{ scrollbarWidth: "none" }}>
+        <Separator />
 
-      {/* What Matters Now */}
-      <WhatMattersNow />
+        {/* What Matters Now */}
+        <WhatMattersNow />
 
-      <Separator />
+        <Separator />
 
-      {/* Hero KPIs row */}
-      <HeroStat />
+        {/* Hero KPIs row */}
+        <HeroStat />
 
-      <Separator />
+        <Separator />
 
-      {/* Metric rows */}
-      <div className="flex flex-col w-full gap-[3px]">
-        <span className="text-[8px] text-[#5a7280] font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.6px] leading-[1] mb-[1px]">
-          Performance
-        </span>
-        {standardMetrics.map((m, i) => (
-          <MetricRow key={m.label} metric={m} index={i} />
-        ))}
+        {/* Metric rows */}
+        <div className="flex flex-col w-full gap-[3px]">
+          <span className="text-[8px] text-[#5a7280] font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.6px] leading-[1] mb-[1px]">
+            Performance
+          </span>
+          {standardMetrics.map((m, i) => (
+            <MetricRow key={m.label} metric={m} index={i} />
+          ))}
+        </div>
       </div>
     </div>
   );

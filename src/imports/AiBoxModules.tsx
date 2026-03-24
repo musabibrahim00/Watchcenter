@@ -195,16 +195,10 @@ export const DecisionCard = React.memo(function DecisionCard({
         </div>
       </CardContent>
       <CardFooter>
-        <div className="flex items-center justify-between max-w-full overflow-hidden">
-          <div className="flex items-center gap-[8px] min-w-0">
-            <ActionButton label={primaryAction} tone={severity} />
-          </div>
-          {(secondaryAction || tertiaryAction) && (
-            <div className="flex items-center gap-[8px] min-w-0">
-              {secondaryAction && <ActionButton label={secondaryAction} subtle />}
-              {tertiaryAction && <ActionButton label={tertiaryAction} subtle />}
-            </div>
-          )}
+        <div className="flex items-center gap-[8px] flex-wrap">
+          <ActionButton label={primaryAction} tone={severity} />
+          {secondaryAction && <ActionButton label={secondaryAction} subtle />}
+          {tertiaryAction && <ActionButton label={tertiaryAction} subtle />}
         </div>
       </CardFooter>
     </PanelCard>

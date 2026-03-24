@@ -56,9 +56,10 @@ Render this component to see a visual representation of the layout architecture.
 
 ### Z-Index Hierarchy
 ```
-z-[50] → Sidebar Navigation (tooltips always visible)
-z-[40] → Top Header (sticky)
-z-[0]  → Main Content (base layer)
+z-[100] → Modals / overlays (always above sidebar)
+z-[50]  → Sidebar Navigation (tooltips always visible)
+z-[40]  → Top Header (sticky)
+z-[0]   → Main Content (base layer)
 ```
 
 ### Component Dimensions
@@ -93,9 +94,10 @@ The page will automatically inherit the global layout!
 
 **For Page Developers:**
 - ✅ Design content for scrollable canvas
-- ✅ Use z-index < 50 for page elements
+- ✅ Use z-index < 50 for regular page elements
+- ✅ Use z-[100] for modals and overlays (so they clear the sidebar)
 - ❌ Don't recreate sidebar or header
-- ❌ Don't use z-index > 50 for regular content
+- ❌ Don't use z-index between 50–99 for non-modal content
 
 **For Layout Modifications:**
 - ✅ Maintain z-index hierarchy

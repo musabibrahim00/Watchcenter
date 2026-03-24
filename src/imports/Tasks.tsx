@@ -4,7 +4,6 @@ import DetailContainer from "./Container";
 import svgPaths from "./svg-tu9d27elxy";
 import MoveLeft from "./MoveLeft";
 import MoveRight from "./MoveRight";
-import svgKdPaths from "./svg-g917fa6ogx";
 import { useTaskInvestigation, buildTaskRequest } from "./TaskInvestigationBridge";
 
 // ── Risk lifecycle stages ──────────────────────────────────────────────────
@@ -212,62 +211,26 @@ const TASK_POOL: TaskData[] = [
   },
 ];
 
-// ── Risk lifecycle pipeline strip ─────────────────────────────────────────
-const PIPELINE_STAGES: { key: RiskPipelineStage; label: string; abbr: string }[] = [
-  { key: "detected",                label: "Detected",      abbr: "Detected" },
-  { key: "analyzed",                label: "Analyzed",      abbr: "Analyzed" },
-  { key: "prepared",                label: "Prepared",      abbr: "Prepared" },
-  { key: "awaiting_authorization",  label: "Awaiting auth", abbr: "Awaiting auth" },
-  { key: "executing",               label: "Executing",     abbr: "Executing" },
-  { key: "completed",               label: "Completed",     abbr: "Done" },
-  { key: "monitoring",              label: "Monitoring",    abbr: "Monitoring" },
-];
-
-function RiskPipeline({ stage }: { stage?: RiskPipelineStage }) {
-  const currentStage = stage ?? "awaiting_authorization";
-  const currentIdx = PIPELINE_STAGES.findIndex(s => s.key === currentStage);
-  const nextStage = PIPELINE_STAGES[currentIdx + 1];
+// ── Status label for card status line ─────────────────────────────────────
+function StatusLine({ execStatus, pipelineStage }: { execStatus: ExecutionStatus; pipelineStage?: RiskPipelineStage }) {
+  if (execStatus === "completed") return null;
+  const label =
+    execStatus === "awaiting_approval" ? "Authorizing…" :
+    execStatus === "in_progress"       ? "Investigation in progress" :
+    pipelineStage === "executing"      ? "Executing" :
+    "Awaiting authorization";
+  const color =
+    execStatus === "awaiting_approval" ? "#57b1ff" :
+    execStatus === "in_progress"       ? "#f59e0b" :
+    "#b87a20";
+  const dotColor =
+    execStatus === "awaiting_approval" ? "#57b1ff" :
+    execStatus === "in_progress"       ? "#f59e0b" :
+    "#d97706";
   return (
-    <div className="flex flex-col gap-[5px] w-full">
-      {/* Dot track */}
-      <div className="flex items-center gap-[5px]">
-        {PIPELINE_STAGES.map((s, i) => {
-          const done = i < currentIdx;
-          const current = i === currentIdx;
-          return (
-            <React.Fragment key={s.key}>
-              {i > 0 && (
-                <div style={{ flex: 1, height: 1, background: done ? "rgba(7,129,194,0.35)" : "rgba(255,255,255,0.06)", borderRadius: 1 }} />
-              )}
-              <div
-                style={{
-                  width: current ? 6 : 4,
-                  height: current ? 6 : 4,
-                  borderRadius: "50%",
-                  flexShrink: 0,
-                  backgroundColor: current ? "#57b1ff" : done ? "#2a5a7a" : "#1e2e3a",
-                  boxShadow: current ? "0 0 5px #57b1ff88" : "none",
-                  transition: "all 0.3s ease",
-                }}
-              />
-            </React.Fragment>
-          );
-        })}
-      </div>
-      {/* Stage label */}
-      <div className="flex items-center gap-[5px]">
-        <span className="font-['Inter:Semi_Bold',sans-serif] text-[8px] text-[#57b1ff] tracking-[0.3px] leading-[1]">
-          {PIPELINE_STAGES[currentIdx]?.label ?? "—"}
-        </span>
-        {nextStage && (
-          <>
-            <span style={{ fontSize: 7, color: "#2a3a4a" }}>›</span>
-            <span className="font-['Inter:Regular',sans-serif] text-[8px] tracking-[0.3px] leading-[1]" style={{ color: "#2a3a4a" }}>
-              {nextStage.abbr}
-            </span>
-          </>
-        )}
-      </div>
+    <div className="flex items-center gap-[4px]">
+      <span className="block size-[4px] rounded-full shrink-0" style={{ backgroundColor: dotColor, opacity: 0.9 }} />
+      <span className="font-['Inter:Regular',sans-serif] text-[9px] leading-[12px]" style={{ color }}>{label}</span>
     </div>
   );
 }
@@ -338,7 +301,7 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
 
   return (
     <div
-      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[4px] items-start p-[6px] relative rounded-[12px]"
+      className="content-stretch flex flex-col h-full min-h-px min-w-px gap-[6px] items-start px-[8px] pt-[8px] pb-[12px] relative rounded-[12px]"
       style={{ animation: "tasksFadeIn 0.3s ease forwards", backgroundImage: "linear-gradient(35deg, rgba(5, 11, 17, 0) 73.614%, rgba(255, 87, 87, 0.12) 100%)" }}
       data-name="TaskCard"
     >
@@ -346,52 +309,57 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
       <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[10px] overflow-hidden" style={{ WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude", padding: "1px" }}>
         <div className="absolute inset-[-50%] animate-[border-spin_4s_linear_infinite]" style={{ background: "conic-gradient(from 0deg, #030609 0%, #FF575752 25%, #030609 50%, #FF575752 75%, #030609 100%)" }} />
       </div>
-      {/* Stage: Identification */}
-      <div className="relative shrink-0 w-full" data-name="Container">
-        <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-start justify-between relative w-full">
-          <div className="flex-[1_0_0] min-h-px min-w-px relative" data-name="Container">
-            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col gap-[3px] items-start leading-[normal] not-italic relative w-full tracking-[0.4px] whitespace-pre-wrap">
-              <div className="flex items-center justify-between w-full">
-                <span className="inline-flex items-center gap-[4px] px-[5px] py-[1px] rounded-[3px] text-[9px] font-['Inter:Semi_Bold',sans-serif] tracking-[0.4px] uppercase" style={{ background: "rgba(255,87,87,0.10)", border: "1px solid rgba(255,87,87,0.22)", color: "#ff8a8a" }}>
-                  <span className="block size-[4px] rounded-full bg-[#FF5757]" />
-                  Critical
-                </span>
-                {task.confidence && (
-                  <span
-                    className="inline-flex items-center px-[4px] py-[0.5px] rounded-[3px] text-[8px] font-['Inter:Medium',sans-serif] tracking-[0.3px] ml-[4px]"
-                    style={{
-                      background: task.confidence === "high" ? "rgba(47,216,151,0.08)" : task.confidence === "moderate" ? "rgba(245,158,11,0.07)" : "rgba(98,112,125,0.09)",
-                      border: `1px solid ${task.confidence === "high" ? "rgba(47,216,151,0.18)" : task.confidence === "moderate" ? "rgba(245,158,11,0.16)" : "rgba(98,112,125,0.16)"}`,
-                      color: task.confidence === "high" ? "#2fd897" : task.confidence === "moderate" ? "#f59e0b" : "#7e8e9e",
-                    }}
-                  >
-                    {task.confidence === "high" ? "High conf." : task.confidence === "moderate" ? "Moderate" : "Needs review"}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-[5px] w-full">
-                <p className="font-['Inter:Medium',sans-serif] font-medium relative text-[#dadfe3] text-[10px] flex-1 min-w-0">{task.title}</p>
-                <ExecutionBadge status={execState.status} />
-              </div>
-              <p className="font-['Inter:Regular',sans-serif] text-[9px] text-[#6b7c8a] leading-[12px] w-full line-clamp-1 overflow-hidden">{task.subtitle}</p>
-            </div>
-          </div>
-        </div>
+
+      {/* Badge row: severity + confidence */}
+      <div className="relative shrink-0 flex items-center justify-between w-full">
+        <span className="inline-flex items-center gap-[4px] px-[5px] py-[1px] rounded-[3px] text-[9px] font-['Inter:Semi_Bold',sans-serif] tracking-[0.4px] uppercase" style={{ background: "rgba(255,87,87,0.10)", border: "1px solid rgba(255,87,87,0.22)", color: "#ff8a8a" }}>
+          <span className="block size-[4px] rounded-full bg-[#FF5757]" />
+          Critical
+        </span>
+        {task.confidence && (
+          <span
+            className="inline-flex items-center px-[4px] py-[0.5px] rounded-[3px] text-[8px] font-['Inter:Medium',sans-serif] tracking-[0.3px]"
+            style={{
+              background: task.confidence === "high" ? "rgba(47,216,151,0.08)" : task.confidence === "moderate" ? "rgba(245,158,11,0.07)" : "rgba(98,112,125,0.09)",
+              border: `1px solid ${task.confidence === "high" ? "rgba(47,216,151,0.18)" : task.confidence === "moderate" ? "rgba(245,158,11,0.16)" : "rgba(98,112,125,0.16)"}`,
+              color: task.confidence === "high" ? "#2fd897" : task.confidence === "moderate" ? "#f59e0b" : "#7e8e9e",
+            }}
+          >
+            {task.confidence === "high" ? "High conf." : task.confidence === "moderate" ? "Moderate" : "Needs review"}
+          </span>
+        )}
       </div>
-      {/* Stage: Assessment — compact single-line */}
-      <div className="relative shrink-0 w-full">
-        <p className="font-['Inter:Regular',sans-serif] text-[9px] leading-[12px] pl-[0px]" style={{ color: "#556070" }}>
-          <span style={{ color: "#3d5060" }}>Impact: </span>{task.reason}
+
+      {/* Title + execution badge */}
+      <div className="relative shrink-0 flex items-center gap-[5px] w-full">
+        <p className="font-['Inter:Medium',sans-serif] font-medium text-[#dadfe3] text-[10px] flex-1 min-w-0 leading-[14px]">{task.title}</p>
+        <ExecutionBadge status={execState.status} />
+      </div>
+
+      {/* Description — max 2 lines */}
+      <p className="relative shrink-0 font-['Inter:Regular',sans-serif] text-[9px] text-[#6b7c8a] leading-[13px] w-full line-clamp-2">{task.subtitle}</p>
+
+      {/* Impact */}
+      <p className="relative shrink-0 font-['Inter:Regular',sans-serif] text-[9px] leading-[12px] w-full" style={{ color: "#556070" }}>
+        <span style={{ color: "#3d5060" }}>Impact: </span>{task.reason}
+      </p>
+      {/* MTTD — always inline under Impact when present, never floating */}
+      {task.mttdValue && (
+        <p className="relative shrink-0 font-['Inter:Regular',sans-serif] text-[9px] leading-[12px] w-full" style={{ color: "#556070" }}>
+          <span style={{ color: "#3d5060" }}>MTTD: </span>
+          {task.mttdValue}{task.mttdChange && <span style={{ color: "#b87a20" }}> ↑ {task.mttdChange}</span>}
         </p>
+      )}
+
+      {/* Status line */}
+      <div className="relative shrink-0 w-full">
+        <StatusLine execStatus={execState.status} pipelineStage={task.pipelineStage} />
       </div>
-      {/* Stage: Mitigation / Monitoring — lifecycle pipeline */}
-      <div className="relative shrink-0 w-full px-[2px]">
-        <RiskPipeline stage={task.pipelineStage} />
-      </div>
-      {/* Buttons / Outcome */}
-      <div className="relative shrink-0 w-full" data-name="Buttons">
+
+      {/* CTAs */}
+      <div className="relative w-full mt-auto pt-[12px]" data-name="Buttons">
         {execState.status === "completed" ? (
-          <div className="flex flex-col gap-[3px]">
+          <div className="flex flex-col gap-[4px]">
             <div className="flex items-start gap-[5px]">
               <svg width="9" height="9" viewBox="0 0 9 9" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
                 <circle cx="4.5" cy="4.5" r="4" stroke="#2fd897" strokeWidth="0.8" />
@@ -406,7 +374,7 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
                 )}
               </div>
             </div>
-            <div className="flex items-center justify-between w-full mt-[1px]">
+            <div className="flex items-center justify-between w-full">
               <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a3e4a" }}>
                 Monitoring: <span style={{ color: "#f59e0b" }}>Pending validation</span>
               </span>
@@ -422,70 +390,76 @@ function TaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewDet
             </div>
           </div>
         ) : (
-          <>
-            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-center justify-between relative w-full">
-              <div className="content-stretch flex gap-[8px] items-center relative shrink-0" data-name="buttons">
-                <div className={`h-[24px] min-w-[84px] relative rounded-[6px] shrink-0 transition-colors ${loading ? 'bg-transparent cursor-default pointer-events-none' : 'bg-[#076498] cursor-pointer hover:bg-[#0a7ab8]'}`} data-name="ButtonPrimary" onClick={!loading ? handleAction : undefined}>
-                  <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[12px] h-full items-center justify-center min-w-[inherit] p-[8px] relative">
-                    {loading ? (
-                      <div className="content-stretch flex gap-[8px] items-center relative size-full">
-                        <div className="overflow-clip relative shrink-0 size-[14px]" style={{ animation: "loaderSpin 1s linear infinite" }}>
-                          <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[12px] top-1/2">
-                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 12">
-                              <path d={svgPaths.p4071f00} fill="#076498" fillOpacity="0.24" />
+          <div className="flex items-center justify-between w-full">
+            {/* Action group: Authorize · Defer · Investigate */}
+            <div className="flex items-center gap-[6px]">
+              {/* Authorize */}
+              <div
+                className={`h-[24px] min-w-[74px] relative rounded-[6px] shrink-0 transition-colors ${loading ? 'bg-transparent cursor-default pointer-events-none' : 'bg-[#076498] cursor-pointer hover:bg-[#0a7ab8]'}`}
+                onClick={!loading ? handleAction : undefined}
+              >
+                <div className="flex h-full items-center justify-center px-[8px]">
+                  {loading ? (
+                    <div className="flex gap-[6px] items-center">
+                      <div className="overflow-clip relative shrink-0 size-[12px]" style={{ animation: "loaderSpin 1s linear infinite" }}>
+                        <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[12px] top-1/2">
+                          <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 12">
+                            <path d={svgPaths.p4071f00} fill="#076498" fillOpacity="0.24" />
+                          </svg>
+                        </div>
+                        <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[12px] top-1/2">
+                          <div className="absolute bottom-[0.23%] left-1/2 right-[0.23%] top-1/2">
+                            <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.97276 5.97276">
+                              <path d={svgPaths.p22ac670} fill="#0781C2" />
                             </svg>
                           </div>
-                          <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[12px] top-1/2">
-                            <div className="absolute bottom-[0.23%] left-1/2 right-[0.23%] top-1/2">
-                              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.97276 5.97276">
-                                <path d={svgPaths.p22ac670} fill="#0781C2" />
-                              </svg>
-                            </div>
-                          </div>
                         </div>
-                        <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[#dadfe3] text-[10px] whitespace-pre-wrap">Authorizing</p>
                       </div>
-                    ) : (
-                      <p className="flex-[1_0_0] font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] min-h-px min-w-px not-italic relative text-[#f1f3ff] text-[10px] text-center whitespace-pre-wrap">{task.actionLabel}</p>
-                    )}
-                  </div>
-                </div>
-                {!loading && (
-                  <div onClick={handleDefer} className="cursor-pointer">
-                    <div className="h-[24px] relative rounded-[6px] shrink-0 hover:bg-[#1e2a34] transition-colors" data-name="ButtonGray">
-                      <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex h-full items-center justify-center px-[12px] py-[8px] relative">
-                        <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Defer</p>
-                      </div>
+                      <p className="font-['Inter:Regular',sans-serif] text-[#dadfe3] text-[10px]">Authorizing</p>
                     </div>
-                  </div>
-                )}
-              </div>
-              <div className="content-stretch flex gap-[6px] items-center shrink-0">
-                <div
-                  className="content-stretch flex h-[24px] items-center justify-center px-[12px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer hover:bg-[#1e2a34] transition-colors"
-                  data-name="ButtonGray"
-                  onClick={handleInvestigate}
-                >
-                  <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Investigate</p>
+                  ) : (
+                    <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] text-[#f1f3ff] text-[10px] whitespace-nowrap">{task.actionLabel}</p>
+                  )}
                 </div>
+              </div>
+              {/* Defer */}
+              {!loading && (
                 <div
-                  className="content-stretch flex h-[24px] items-center justify-center gap-[4px] px-[8px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer transition-colors"
-                  style={{ background: "rgba(87,177,255,0.06)", border: "1px solid rgba(87,177,255,0.13)" }}
-                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.11)")}
-                  onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.06)")}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const confidenceLabel = task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate confidence" : "Needs review";
-                    const query = `Priority insight: "${task.title}" (${confidenceLabel}).\n\nSource: ${task.source ?? "Security analysis"} | Asset: ${task.affectedAsset ?? "—"} | Owner: ${task.owner ?? "Security Operations"}\n\nPlease explain:\n1. Why this recommendation exists and what evidence supports it\n2. What happens if authorized — expected outcome: ${task.expectedOutcome ?? "remediation completes"}\n3. What risk remains or grows if deferred — ${task.riskIfDeferred ?? "risk persists"}\n4. How confident the system is and why`;
-                    window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query } }));
-                  }}
+                  className="h-[24px] relative rounded-[6px] shrink-0 hover:bg-[#1e2a34] transition-colors cursor-pointer"
+                  onClick={handleDefer}
                 >
-                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff" opacity="0.8"/></svg>
-                  <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center tracking-[0.2px]">Ask why</p>
+                  <div className="flex h-full items-center justify-center px-[10px]">
+                    <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] text-[#f1f3ff] text-[10px]">Defer</p>
+                  </div>
+                </div>
+              )}
+              {/* Investigate */}
+              <div
+                className="h-[24px] relative rounded-[6px] shrink-0 hover:bg-[#1e2a34] transition-colors cursor-pointer"
+                onClick={handleInvestigate}
+              >
+                <div className="flex h-full items-center justify-center px-[10px]">
+                  <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] text-[#f1f3ff] text-[10px]">Investigate</p>
                 </div>
               </div>
             </div>
-          </>
+            {/* Ask why — visually separated from action group */}
+            <div
+              className="h-[24px] flex items-center justify-center gap-[4px] px-[8px] relative rounded-[6px] shrink-0 cursor-pointer transition-colors"
+              style={{ background: "rgba(87,177,255,0.06)", border: "1px solid rgba(87,177,255,0.13)" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.11)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.06)")}
+              onClick={(e) => {
+                e.stopPropagation();
+                const confidenceLabel = task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate confidence" : "Needs review";
+                const query = `Priority insight: "${task.title}" (${confidenceLabel}).\n\nSource: ${task.source ?? "Security analysis"} | Asset: ${task.affectedAsset ?? "—"} | Owner: ${task.owner ?? "Security Operations"}\n\nPlease explain:\n1. Why this recommendation exists and what evidence supports it\n2. What happens if authorized — expected outcome: ${task.expectedOutcome ?? "remediation completes"}\n3. What risk remains or grows if deferred — ${task.riskIfDeferred ?? "risk persists"}\n4. How confident the system is and why`;
+                window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query } }));
+              }}
+            >
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff" opacity="0.8"/></svg>
+              <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] text-[#57b1ff] text-[9px] tracking-[0.2px]">Ask why</p>
+            </div>
+          </div>
         )}
       </div>
     </div>
@@ -535,191 +509,7 @@ function KdTaskCard({ task, onViewDetails, onAction }: { task: TaskData; onViewD
   };
 
   return (
-    <div
-      className="content-stretch flex flex-col flex-1 min-h-px min-w-px gap-[4px] items-start p-[6px] relative rounded-[12px]"
-      style={{ animation: "tasksFadeIn 0.3s ease forwards", backgroundImage: "linear-gradient(35deg, rgba(5, 11, 17, 0) 73.614%, rgba(255, 87, 87, 0.12) 100%)" }}
-      data-name="KdTaskCard"
-    >
-      <div aria-hidden="true" className="absolute inset-0 mix-blend-screen pointer-events-none rounded-[12px]" style={{ backgroundImage: "linear-gradient(111.789deg, rgb(8, 3, 3) 0%, rgb(0, 0, 0) 35.132%, rgb(0, 0, 0) 65.097%, rgb(8, 3, 3) 90.93%)" }} />
-      <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[10px] overflow-hidden" style={{ WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude", padding: "1px" }}>
-        <div className="absolute inset-[-50%] animate-[border-spin_4s_linear_infinite]" style={{ background: "conic-gradient(from 0deg, #030609 0%, #FF575752 25%, #030609 50%, #FF575752 75%, #030609 100%)" }} />
-      </div>
-      {/* Stage: Identification */}
-      <div className="relative shrink-0 w-full" data-name="Container">
-        <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-start justify-between relative w-full">
-          <div className="flex-[1_0_0] min-h-px min-w-px relative" data-name="Container">
-            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex flex-col gap-[3px] items-start leading-[normal] not-italic relative w-full tracking-[0.4px]">
-              <div className="flex items-center justify-between w-full">
-                <span className="inline-flex items-center gap-[4px] px-[5px] py-[1px] rounded-[3px] text-[9px] font-['Inter:Semi_Bold',sans-serif] tracking-[0.4px] uppercase" style={{ background: "rgba(255,87,87,0.10)", border: "1px solid rgba(255,87,87,0.22)", color: "#ff8a8a" }}>
-                  <span className="block size-[4px] rounded-full bg-[#FF5757]" />
-                  Critical
-                </span>
-                {task.confidence && (
-                  <span
-                    className="inline-flex items-center px-[4px] py-[0.5px] rounded-[3px] text-[8px] font-['Inter:Medium',sans-serif] tracking-[0.3px] ml-[4px]"
-                    style={{
-                      background: task.confidence === "high" ? "rgba(47,216,151,0.08)" : task.confidence === "moderate" ? "rgba(245,158,11,0.07)" : "rgba(98,112,125,0.09)",
-                      border: `1px solid ${task.confidence === "high" ? "rgba(47,216,151,0.18)" : task.confidence === "moderate" ? "rgba(245,158,11,0.16)" : "rgba(98,112,125,0.16)"}`,
-                      color: task.confidence === "high" ? "#2fd897" : task.confidence === "moderate" ? "#f59e0b" : "#7e8e9e",
-                    }}
-                  >
-                    {task.confidence === "high" ? "High conf." : task.confidence === "moderate" ? "Moderate" : "Needs review"}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-[5px] w-full">
-                <p className="font-['Inter:Medium',sans-serif] font-medium relative text-[#dadfe3] text-[10px] flex-1 min-w-0">{task.title}</p>
-                <ExecutionBadge status={execState.status} />
-              </div>
-              <p className="font-['Inter:Regular',sans-serif] text-[9px] text-[#6b7c8a] leading-[12px] w-full line-clamp-1 overflow-hidden">{task.subtitle}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      {/* Stage: Assessment + MTTD row — compact summary */}
-      <div className="relative shrink-0 w-full flex items-center gap-[8px]" data-name="Frame">
-        {/* Assessment — compact single line */}
-        <p className="font-['Inter:Regular',sans-serif] text-[9px] leading-[12px] flex-1 min-w-0" style={{ color: "#556070" }}>
-          <span style={{ color: "#3d5060" }}>Impact: </span>{task.reason}
-        </p>
-        {/* Vertical divider */}
-        <div className="w-px self-stretch" style={{ background: "rgba(137,148,158,0.12)" }} />
-          {/* MTTD */}
-          <div className="bg-[#050B11] content-stretch flex flex-col gap-[2px] items-start relative rounded-[12px] shadow-[0px_0px_15px_0px_rgba(0,0,0,0.1)] shrink-0" data-name="MTTD">
-            <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[#dadfe3] text-[10px] whitespace-nowrap">MTTD</p>
-            <div className="relative shrink-0" data-name="Metrics">
-              <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[8px] items-center relative">
-                <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[24px] not-italic relative shrink-0 text-[14px] text-white tracking-[-0.5px] whitespace-nowrap">{task.mttdValue}</p>
-                <div className="content-stretch flex gap-[4px] items-center relative shrink-0" data-name="progress">
-                  <div className="flex items-center justify-center relative shrink-0">
-                    <div className="-scale-y-100 flex-none">
-                      <div className="overflow-clip relative size-[14px]" data-name="Icons">
-                        <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[16px] top-1/2" data-name="Container" />
-                        <div className="absolute bottom-[20.83%] flex items-center justify-center left-1/4 right-1/4 top-[20.83%]">
-                          <div className="-rotate-90 flex-none h-[12px] w-[14px]">
-                            <div className="relative size-full" data-name="Vector">
-                              <div className="absolute inset-[-7.14%_-6.12%]">
-                                <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 9.16667 8">
-                                  <path d={svgKdPaths.p13457880} stroke="var(--stroke-0, #FF5757)" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="font-['Inter:Regular',sans-serif] font-normal leading-[14px] not-italic relative shrink-0 text-[#ff5757] text-[14px] whitespace-nowrap">{task.mttdChange}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-      </div>
-      {/* Stage: Mitigation / Monitoring — lifecycle pipeline */}
-      <div className="relative shrink-0 w-full px-[2px]">
-        <RiskPipeline stage={task.pipelineStage} />
-      </div>
-      {/* Buttons / Outcome */}
-      <div className="relative shrink-0 w-full" data-name="Buttons">
-        {execState.status === "completed" ? (
-          <div className="flex flex-col gap-[3px]">
-            <div className="flex items-start gap-[5px]">
-              <svg width="9" height="9" viewBox="0 0 9 9" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
-                <circle cx="4.5" cy="4.5" r="4" stroke="#2fd897" strokeWidth="0.8" />
-                <path d="M2.7 4.5L4 5.8L6.3 3.2" stroke="#2fd897" strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <div className="flex flex-col gap-[1px] flex-1 min-w-0">
-                <p className="font-['Inter:Medium',sans-serif] text-[9px]" style={{ color: "#2fd897" }}>
-                  {execState.lastAction} · {execState.actor} · {execState.timestamp}
-                </p>
-                {execState.outcome && (
-                  <p className="font-['Inter:Regular',sans-serif] text-[8px] leading-[11px]" style={{ color: "#4a6070" }}>{execState.outcome}</p>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center justify-between w-full mt-[1px]">
-              <span className="font-['Inter:Regular',sans-serif] text-[8px]" style={{ color: "#2a3e4a" }}>
-                Monitoring: <span style={{ color: "#f59e0b" }}>Pending validation</span>
-              </span>
-              <button
-                className="h-[20px] px-[8px] rounded-[5px] font-['Inter:Medium',sans-serif] text-[9px] cursor-pointer transition-colors"
-                style={{ color: "#89949e", background: "rgba(137,148,158,0.06)", border: "1px solid rgba(137,148,158,0.12)" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(137,148,158,0.12)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(137,148,158,0.06)"; }}
-                onClick={() => updateExec({ status: "in_progress", lastAction: "Reopened for review", actor: "You", timestamp: "just now" }, task.title)}
-              >
-                Re-open
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex items-center justify-between relative w-full">
-              <div className="content-stretch flex gap-[8px] items-center relative shrink-0" data-name="buttons">
-                <div className={`h-[24px] min-w-[84px] relative rounded-[6px] shrink-0 transition-colors ${loading ? 'bg-transparent cursor-default pointer-events-none' : 'bg-[#076498] cursor-pointer hover:bg-[#0a7ab8]'}`} data-name="ButtonPrimary" onClick={!loading ? handleAction : undefined}>
-                  <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex gap-[12px] h-full items-center justify-center min-w-[inherit] p-[8px] relative">
-                    {loading ? (
-                      <div className="content-stretch flex gap-[8px] items-center relative size-full">
-                        <div className="overflow-clip relative shrink-0 size-[14px]" style={{ animation: "loaderSpin 1s linear infinite" }}>
-                          <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[12px] top-1/2">
-                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 12">
-                              <path d={svgPaths.p4071f00} fill="#076498" fillOpacity="0.24" />
-                            </svg>
-                          </div>
-                          <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[12px] top-1/2">
-                            <div className="absolute bottom-[0.23%] left-1/2 right-[0.23%] top-1/2">
-                              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.97276 5.97276">
-                                <path d={svgPaths.p22ac670} fill="#0781C2" />
-                              </svg>
-                            </div>
-                          </div>
-                        </div>
-                        <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[#dadfe3] text-[10px] whitespace-pre-wrap">Authorizing</p>
-                      </div>
-                    ) : (
-                      <p className="flex-[1_0_0] font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] min-h-px min-w-px not-italic relative text-[#f1f3ff] text-[10px] text-center whitespace-pre-wrap">{task.actionLabel}</p>
-                    )}
-                  </div>
-                </div>
-                {!loading && (
-                  <div onClick={handleDefer} className="cursor-pointer">
-                    <div className="h-[24px] relative rounded-[6px] shrink-0 hover:bg-[#1e2a34] transition-colors" data-name="ButtonGray">
-                      <div className="bg-clip-padding border-0 border-[transparent] border-solid content-stretch flex h-full items-center justify-center px-[12px] py-[8px] relative">
-                        <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Defer</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="content-stretch flex gap-[6px] items-center shrink-0">
-                <div
-                  className="content-stretch flex h-[24px] items-center justify-center px-[12px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer hover:bg-[#1e2a34] transition-colors"
-                  data-name="ButtonGray"
-                  onClick={handleInvestigate}
-                >
-                  <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[12px] not-italic relative shrink-0 text-[#f1f3ff] text-[10px] text-center">Investigate</p>
-                </div>
-                <div
-                  className="content-stretch flex h-[24px] items-center justify-center gap-[4px] px-[8px] py-[8px] relative rounded-[6px] shrink-0 cursor-pointer transition-colors"
-                  style={{ background: "rgba(87,177,255,0.06)", border: "1px solid rgba(87,177,255,0.13)" }}
-                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(87,177,255,0.11)")}
-                  onMouseLeave={e => (e.currentTarget.style.background = "rgba(87,177,255,0.06)")}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const confidenceLabel = task.confidence === "high" ? "High confidence" : task.confidence === "moderate" ? "Moderate confidence" : "Needs review";
-                    const query = `Priority insight: "${task.title}" (${confidenceLabel}).\n\nSource: ${task.source ?? "Security analysis"} | Asset: ${task.affectedAsset ?? "—"} | Owner: ${task.owner ?? "Security Operations"}\n\nPlease explain:\n1. Why this recommendation exists and what evidence supports it\n2. What happens if authorized — expected outcome: ${task.expectedOutcome ?? "remediation completes"}\n3. What risk remains or grows if deferred — ${task.riskIfDeferred ?? "risk persists"}\n4. How confident the system is and why`;
-                    window.dispatchEvent(new CustomEvent("aibox-inject-query", { detail: { query } }));
-                  }}
-                >
-                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff" opacity="0.8"/></svg>
-                  <p className="font-['Inter:Semi_Bold',sans-serif] leading-[12px] not-italic relative shrink-0 text-[#57b1ff] text-[9px] text-center tracking-[0.2px]">Ask why</p>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+    <TaskCard task={task} onViewDetails={onViewDetails} onAction={onAction} />
   );
 }
 

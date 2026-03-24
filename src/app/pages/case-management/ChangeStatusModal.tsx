@@ -45,7 +45,7 @@ export function ChangeStatusModal({
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center z-50"
+      className="fixed inset-0 flex items-center justify-center z-[100]"
       style={{ backgroundColor: "rgba(0, 0, 0, 0.7)" }}
       onClick={onClose}
     >

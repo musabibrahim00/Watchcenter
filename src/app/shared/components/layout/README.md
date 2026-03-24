@@ -176,8 +176,9 @@ import { ButtonGroup } from "@/shared/components";
 
 ```
 z-index hierarchy:
-├── Sidebar Navigation: z-[50] (highest)
-├── Top Header: z-[40] (second)
+├── Modals / Overlays: z-[100] (above everything)
+├── Sidebar Navigation: z-[50]
+├── Top Header: z-[40]
 └── Main Content: z-[0] (base)
 ```
 
