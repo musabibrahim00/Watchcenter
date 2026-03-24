@@ -2842,7 +2842,7 @@ function InsightRow({
 export default function AttackPathDetailPage() {
   const { pathId } = useParams<{ pathId: string }>();
   const navigate = useNavigate();
-  const { setPageContext } = useAiBox();
+  const { openWithContext } = useAiBox();
   const { persona } = usePersona();
   const resolvedPathId = pathId || "";
   const knownPath = resolvedPathId in ATTACK_PATHS;
@@ -2858,7 +2858,7 @@ export default function AttackPathDetailPage() {
       ? contributingGaps.map(g => `${g.control} (${g.framework}): ${g.title}`).join("; ")
       : "No mapped compliance gaps for this path.";
 
-    setPageContext({
+    openWithContext({
       type: "general" as const,
       label: pathData.name,
       sublabel: "Attack Path Graph",
@@ -2880,7 +2880,7 @@ export default function AttackPathDetailPage() {
         blastRadiusAssets: pathData.blastRadius.totalAssets,
       },
     });
-  }, [setPageContext, pathData.name, pathData.priority, pathData.blastRadius.totalAssets, resolvedPathId]);
+  }, [openWithContext, pathData.name, pathData.priority, pathData.blastRadius.totalAssets, resolvedPathId]);
 
   const handleSelectNode = useCallback((nodeId: string | null, _node?: PathNode) => {
     setSelectedNodeId(nodeId);

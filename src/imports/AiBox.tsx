@@ -40,10 +40,11 @@ function _loadWcSession(): ChatMessage[] | null {
 function _saveWcSession(msgs: ChatMessage[]) {
   try {
     const data = msgs.slice(-60)
+      .filter(m => m.text || !m.renderedUI)
       .map(m => ({
         id: m.id,
         role: m.role,
-        text: m.renderedUI && !m.text ? "[Analysis complete — ask a follow-up to re-run]" : m.text,
+        text: m.text,
         timestamp: m.timestamp.toISOString(),
       }));
     sessionStorage.setItem(_WC_SESSION_KEY, JSON.stringify(data));

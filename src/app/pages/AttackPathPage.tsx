@@ -165,10 +165,10 @@ function ChartTooltip({ active, payload, label }: {
 
 export default function AttackPathPage() {
   const navigate = useNavigate();
-  const { setPageContext } = useAiBox();
+  const { openWithContext } = useAiBox();
 
   useEffect(() => {
-    setPageContext({
+    openWithContext({
       type: "general",
       label: "Attack Paths",
       sublabel: "Overview",
@@ -188,7 +188,7 @@ export default function AttackPathPage() {
         low: KPI.low,
       },
     });
-  }, [setPageContext]);
+  }, [openWithContext]);
 
   return (
     <div style={{
