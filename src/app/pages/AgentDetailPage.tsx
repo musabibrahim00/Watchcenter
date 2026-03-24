@@ -6,7 +6,7 @@ import { Check, ChevronDown } from "lucide-react";
 import type { AgentId } from "../shared/types/agent-types";
 import { SLUG_TO_AGENT_ID, AGENT_ROLE_LABELS } from "../shared/types/agent-types";
 import { colors } from "../shared/design-system/tokens";
-import { AGENT_TASKS } from "../../imports/agent-tasks-data";
+import { AGENT_TASKS, type AgentTaskData } from "../../imports/agent-tasks-data";
 import {
   MODULE_DATA,
   HIDDEN_MODULES_BY_AGENT,
@@ -19,7 +19,7 @@ import {
 import svgPaths from "../../imports/svg-a1mpxm4s4x";
 import watchBgPaths from "../../imports/svg-kxe7qom7bz";
 import { useAiBox } from "../features/ai-box";
-import { getPersonaDefaultSkills, getPersonaAiBoxSuggestions, renderSkillSuggestion } from "../shared/skills";
+import { getPersonaDefaultSkills, getPersonaAiBoxSuggestions, renderSkillSuggestion, getSkillById } from "../shared/skills";
 import { usePersona } from "../features/persona";
 import { TaskInvestigationBridgeProvider, useTaskInvestigation, buildTaskRequest, TASK_ANALYST_MAP } from "../features/investigation";
 
@@ -374,7 +374,7 @@ function InterventionCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -6 }}
       transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
-      className="relative rounded-[10px] p-[7px] flex flex-col gap-[3px]"
+      className="relative rounded-[10px] p-[7px] flex flex-col gap-[8px]"
     >
       <div aria-hidden="true" className="absolute inset-0 mix-blend-screen pointer-events-none rounded-[10px]" style={{ backgroundImage: "linear-gradient(112.026deg, rgb(8, 3, 3) 0%, rgb(0, 0, 0) 35.132%, rgb(0, 0, 0) 65.097%, rgb(8, 3, 3) 90.93%)" }} />
       <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[10px] overflow-hidden" style={{ WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude", padding: "1px" }}>
@@ -399,23 +399,15 @@ function InterventionCard({
             </p>
             {/* Assessment — why it matters, business impact */}
             {data.status !== "completed" && data.businessImpact && (
-              <div className="flex items-start justify-between gap-[8px] mt-[1px]">
-                <p className="font-['Inter',sans-serif] text-[10px] text-[#89949e] leading-[12px] flex-1">
-                  <span className="text-[#6a7a86]">Impact: </span>
-                  {data.businessImpact}
-                </p>
-                <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px] shrink-0 mt-[1px]" style={{ color: "#2a4a5a" }}>
-                  Assessment
-                </span>
-              </div>
+              <p className="font-['Inter',sans-serif] text-[10px] text-[#89949e] leading-[12px] mt-[8px]">
+                <span className="text-[#6a7a86]">Impact: </span>
+                {data.businessImpact}
+              </p>
             )}
           </div>
         </div>
         <div className="flex flex-col items-end gap-[4px] shrink-0">
           <SeverityBadge severity={displaySeverity} />
-          <span className="font-['Inter:Semi_Bold',sans-serif] text-[7px] uppercase tracking-[0.5px]" style={{ color: "#2a4a5a" }}>
-            Identification
-          </span>
         </div>
       </div>
 
@@ -424,7 +416,7 @@ function InterventionCard({
         <VerticalPipelineStatus steps={data.pipelineSteps} activeStep={displayStep} animating={data.status === "executing"} />
       </div>
 
-      <div className="flex flex-col gap-[4px] ml-[18px]">
+      <div className="flex flex-col ml-[18px] mt-[8px]">
         {/* Confidence + Owner row */}
         <div className="flex items-center gap-[6px]">
           <div className="flex items-center gap-[4px]">
@@ -457,15 +449,45 @@ function InterventionCard({
         {/* Awaiting authorization — status label + action buttons */}
         {data.status === "awaiting" && (
           <>
-            <div className="flex items-center gap-[3px]">
+            <div className="flex items-center gap-[3px] mt-4">
               <div className="size-[4px] rounded-full shrink-0" style={{ backgroundColor: "#d97706", opacity: 0.85 }} />
               <span className="font-['Inter',sans-serif] text-[9px] leading-[12px]" style={{ color: "#b87a20" }}>
                 Awaiting authorization
               </span>
             </div>
-            {/* Action buttons — all normalized to h-[24px] baseline */}
-            <div className="flex items-center flex-wrap gap-[5px]">
-              {/* Ask why — opens AIBox and injects intervention context */}
+            {/* Action buttons — order: Authorize · Defer · Investigate      Ask why */}
+            <div className="flex items-center justify-between mt-3">
+              {/* Action group */}
+              <div className="flex items-center gap-[5px]">
+                <button
+                  onClick={() => onAuthorize(data.id)}
+                  className="inline-flex items-center rounded-[5px] px-[10px] py-[5px] font-['Inter',sans-serif] text-[11px] text-white leading-[14px] transition-all cursor-pointer whitespace-nowrap"
+                  style={{ backgroundColor: colors.buttonPrimary }}
+                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = colors.buttonPrimaryHover; }}
+                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = colors.buttonPrimary; }}
+                >
+                  Authorize
+                </button>
+                <button
+                  onClick={() => onDefer(data.id)}
+                  className="inline-flex items-center font-['Inter',sans-serif] text-[11px] text-[#f1f3ff] leading-[14px] px-[8px] py-[5px] rounded-[5px] transition-all cursor-pointer whitespace-nowrap"
+                  onMouseEnter={e => { e.currentTarget.style.background = "#1e2a34"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+                >
+                  Defer
+                </button>
+                {onInvestigate && (
+                  <button
+                    onClick={() => onInvestigate(data)}
+                    className="inline-flex items-center font-['Inter',sans-serif] text-[11px] text-[#f1f3ff] leading-[14px] px-[8px] py-[5px] rounded-[5px] transition-all cursor-pointer whitespace-nowrap"
+                    onMouseEnter={e => { e.currentTarget.style.background = "#1e2a34"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+                  >
+                    Investigate
+                  </button>
+                )}
+              </div>
+              {/* Ask why — separated from action group */}
               <button
                 onClick={() => handleAskWhy(
                   `Required intervention: "${data.title}"\nStage: ${data.pipelineSteps[data.activeStep] ?? "Awaiting authorization"} | Confidence: ${data.confidence}%${data.owner ? ` | Owner: ${data.owner}` : ""}\n\nBusiness impact: ${data.businessImpact}\n\nPlease explain:\n1. Why this intervention is required and what evidence exists\n2. What the system is ${data.confidence >= 92 ? "highly confident" : data.confidence >= 80 ? "moderately confident" : "flagging for review"} about and why\n3. What happens if authorized — expected outcome\n4. What risk grows or persists if this is deferred${data.deferRisk ? `: ${data.deferRisk}` : ""}`
@@ -478,38 +500,11 @@ function InterventionCard({
                 <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1C2.34 1 1 2.34 1 4s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm.5 4.5h-1v-2h1v2zm0-3h-1V2h1v.5z" fill="#57b1ff"/></svg>
                 Ask why
               </button>
-              <button
-                onClick={() => onAuthorize(data.id)}
-                className="inline-flex items-center rounded-[5px] px-[10px] py-[5px] font-['Inter',sans-serif] text-[11px] text-white leading-[14px] transition-all cursor-pointer whitespace-nowrap"
-                style={{ backgroundColor: colors.buttonPrimary }}
-                onMouseEnter={e => { e.currentTarget.style.backgroundColor = colors.buttonPrimaryHover; }}
-                onMouseLeave={e => { e.currentTarget.style.backgroundColor = colors.buttonPrimary; }}
-              >
-                Authorize
-              </button>
-              <button
-                onClick={() => onDefer(data.id)}
-                className="inline-flex items-center font-['Inter',sans-serif] text-[11px] text-[#62707D] leading-[14px] px-[8px] py-[5px] rounded-[5px] transition-all cursor-pointer whitespace-nowrap"
-                onMouseEnter={e => { e.currentTarget.style.background = "rgba(98,112,125,0.10)"; (e.currentTarget as HTMLButtonElement).style.color = "#89949e"; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "#62707D"; }}
-              >
-                Defer
-              </button>
-              {onInvestigate && (
-                <button
-                  onClick={() => onInvestigate(data)}
-                  className="inline-flex items-center font-['Inter',sans-serif] text-[11px] text-[#1eb2c2] leading-[14px] px-[8px] py-[5px] rounded-[5px] transition-all cursor-pointer whitespace-nowrap"
-                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(30,178,194,0.08)"; (e.currentTarget as HTMLButtonElement).style.color = "#3dd4e4"; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "#1eb2c2"; }}
-                >
-                  Investigate
-                </button>
-              )}
             </div>
           </>
         )}
         {data.status === "executing" && (
-          <div className="flex items-center gap-[6px]">
+          <div className="flex items-center gap-[6px] mt-3">
             <motion.div
               className="size-[12px] rounded-full border-2 border-[#3b82f6] border-t-transparent"
               animate={{ rotate: 360 }}
@@ -521,7 +516,7 @@ function InterventionCard({
           </div>
         )}
         {data.status === "completed" && (
-          <span className="font-['Inter',sans-serif] text-[10px] text-[#2fd897] leading-[13px]">
+          <span className="font-['Inter',sans-serif] text-[10px] text-[#2fd897] leading-[13px] mt-3 block">
             Completed just now
           </span>
         )}
@@ -1501,7 +1496,7 @@ function AgentDetailInner({
 }: {
   id: AgentId;
   meta: { label: string; status: string; color: string };
-  taskData: any;
+  taskData: AgentTaskData;
   isActive: boolean;
   visibleModuleKeys: string[];
   navigate: ReturnType<typeof useNavigate>;
@@ -1557,8 +1552,8 @@ function AgentDetailInner({
       greeting: `**${agentRole}** is running.${countLine}${insightLine} Ask me to **explain the top finding**, **show what's pending action**, or **walk through the evidence chain**.`,
       suggestions: getPersonaAiBoxSuggestions("agent", persona, agentRole, id as AgentId),
     });
-    return () => { closeAiBox(); };
-  }, [id, meta.label, persona, openWithContext, closeAiBox]);
+    // No cleanup close — let conversation persist when navigating between pages
+  }, [id, persona, openWithContext]);
 
   const handleInvestigateIntervention = useCallback((data: InterventionData) => {
     const query = `Investigation: "${data.title}"\nAgent: ${AGENT_ROLE[id]} | Confidence: ${data.confidence}%${data.owner ? ` | Owner: ${data.owner}` : ""}\n\nBusiness impact: ${data.businessImpact || data.description}\n\nPlease:\n1. Explain the root cause and supporting evidence\n2. Map the affected systems and blast radius\n3. Outline recommended investigation steps\n4. Assess urgency and escalation path`;
@@ -1644,14 +1639,16 @@ function AgentDetailInner({
                 </div>
               )}
               <button
-                onClick={() => openWithContext({
-                  type: "agent",
-                  label: agentRole,
-                  sublabel: "Analyst Context",
-                  contextKey: `agent:${id}`,
-                  greeting: `**${agentRole}** is running. Ask me to **explain the top finding**, **show what's pending action**, or **walk through the evidence chain**.`,
-                  suggestions: getPersonaAiBoxSuggestions("agent", persona, agentRole, id as AgentId),
-                })}
+                onClick={() => {
+                  openWithContext({
+                    type: "agent",
+                    label: agentRole,
+                    sublabel: "Analyst Context",
+                    contextKey: `agent:${id}`,
+                    greeting: `**${agentRole}** is running. Ask me to **explain the top finding**, **show what's pending action**, or **walk through the evidence chain**.`,
+                    suggestions: getPersonaAiBoxSuggestions("agent", persona, agentRole, id as AgentId),
+                  });
+                }}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -1692,20 +1689,36 @@ function AgentDetailInner({
         <div className="relative rounded-[12px] px-[20px] py-[16px]">
           <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[12px]" style={{ background: "rgba(6,14,26,0.6)", border: "1px solid rgba(40,65,90,0.5)" }} />
           <div className="flex flex-col gap-[12px] relative">
-            {/* Section header with intent label */}
+            {/* Section header */}
             <div className="flex flex-col gap-[2px]">
               <div className="flex items-center justify-between">
-                <span className="font-['Inter',sans-serif] text-[10px] text-[#7e97b0] leading-[14px] uppercase tracking-[0.5px]">Investigate</span>
-                <span className="font-['Inter',sans-serif] text-[9px] text-[#3a5060] leading-[12px]">Opens in AIBox →</span>
+                <span className="font-['Inter',sans-serif] text-[10px] text-[#7e97b0] leading-[14px] uppercase tracking-[0.5px]">Ask this analyst</span>
+                <span className="font-['Inter',sans-serif] text-[9px] text-[#4a6a7a] leading-[12px]">Replies in AIBox</span>
               </div>
-              <p className="font-['Inter',sans-serif] text-[9px] text-[#3a5060] leading-[13px]">Pick a starting point — analyst context loads automatically.</p>
+              <p className="font-['Inter',sans-serif] text-[9px] text-[#4a6a7a] leading-[13px]">Ask anything, or pick a starting point — analyst context is already loaded.</p>
             </div>
 
-            {/* Primary actions — 2 prominent call-to-action buttons */}
+            {/* Skill actions — primary buttons + secondary chips + re-evaluate row */}
             {(() => {
+              // Re-evaluate skills are pinned to their own row — exclude from regular slots
+              const reEvalIds = new Set(["agent-rerun-analysis", "agent-change-assumptions"]);
               const allSkills = getPersonaDefaultSkills("agent", persona, id as AgentId);
-              const primarySkills = allSkills.slice(0, 2).map(s => renderSkillSuggestion(s, agentRole, id));
-              const secondarySkills = allSkills.slice(2, 5).map(s => renderSkillSuggestion(s, agentRole, id));
+              // Deduplicate: suppress generic "Explain findings" when an agent-specific explain skill is present
+              const hasAgentSpecificExplain = allSkills.some(s => s.agentIds?.length && s.intent === "explain");
+              const excludeIds = new Set([
+                ...reEvalIds,
+                ...(hasAgentSpecificExplain ? ["agent-explain-findings"] : []),
+              ]);
+              const regularSkills = allSkills.filter(s => !excludeIds.has(s.id));
+              const primarySkills = regularSkills.slice(0, 2).map(s => renderSkillSuggestion(s, agentRole, id));
+              const secondarySkills = regularSkills.slice(2, 5).map(s => renderSkillSuggestion(s, agentRole, id));
+
+              // Re-evaluate row — always pinned, sourced from registry
+              const rerunSkill = getSkillById("agent-rerun-analysis");
+              const changeSkill = getSkillById("agent-change-assumptions");
+              const reEvalChips = [rerunSkill, changeSkill]
+                .filter(Boolean)
+                .map(s => renderSkillSuggestion(s!, agentRole, id));
 
               const handleSkillClick = (prompt: string) => {
                 if (isAiBoxOpen) {
@@ -1718,11 +1731,12 @@ function AgentDetailInner({
 
               return (
                 <>
+                  {/* Primary — 2 prominent blue buttons */}
                   <div className="flex gap-[8px]">
                     {primarySkills.map(cap => (
                       <button
                         key={cap.label}
-                        title={cap.label}
+                        title={cap.description || cap.label}
                         onClick={() => handleSkillClick(cap.prompt)}
                         className="h-[36px] flex-1 relative rounded-[7px] cursor-pointer border-none transition-all flex items-center justify-center"
                         style={{ backgroundColor: "#076498", border: "1px solid rgba(87,177,255,0.20)" }}
@@ -1740,13 +1754,13 @@ function AgentDetailInner({
                     ))}
                   </div>
 
-                  {/* Secondary actions — smaller outline chips */}
+                  {/* Secondary — explore / explain chips */}
                   {secondarySkills.length > 0 && (
                     <div className="flex flex-wrap gap-[5px]">
                       {secondarySkills.map(cap => (
                         <button
                           key={cap.label}
-                          title={cap.label}
+                          title={cap.description || cap.label}
                           onClick={() => handleSkillClick(cap.prompt)}
                           className="h-[26px] px-[10px] relative rounded-[5px] cursor-pointer transition-all"
                           style={{
@@ -1764,6 +1778,47 @@ function AgentDetailInner({
                             e.currentTarget.style.backgroundColor = "rgba(87,177,255,0.04)";
                             e.currentTarget.style.borderColor = "rgba(87,177,255,0.14)";
                             e.currentTarget.style.color = "#7a8e9e";
+                          }}
+                        >
+                          <span className="font-['Inter:Medium',sans-serif] font-medium leading-[12px] text-[10px]">{cap.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Re-evaluate row — always visible, clearly labeled */}
+                  {reEvalChips.length > 0 && (
+                    <div
+                      className="flex items-center gap-[6px] pt-[8px]"
+                      style={{ borderTop: "1px solid rgba(40,65,90,0.3)" }}
+                    >
+                      <span
+                        className="font-['Inter:Regular',sans-serif] text-[9px] leading-[12px] shrink-0"
+                        style={{ color: "#3d5060" }}
+                      >
+                        Re-evaluate:
+                      </span>
+                      {reEvalChips.map(cap => (
+                        <button
+                          key={cap.label}
+                          title={cap.description || cap.label}
+                          onClick={() => handleSkillClick(cap.prompt)}
+                          className="h-[24px] px-[9px] relative rounded-[5px] cursor-pointer transition-all"
+                          style={{
+                            backgroundColor: "rgba(245,158,11,0.04)",
+                            border: "1px solid rgba(245,158,11,0.14)",
+                            color: "#8a7040",
+                            whiteSpace: "nowrap",
+                          }}
+                          onMouseEnter={e => {
+                            e.currentTarget.style.backgroundColor = "rgba(245,158,11,0.09)";
+                            e.currentTarget.style.borderColor = "rgba(245,158,11,0.28)";
+                            e.currentTarget.style.color = "#b8962a";
+                          }}
+                          onMouseLeave={e => {
+                            e.currentTarget.style.backgroundColor = "rgba(245,158,11,0.04)";
+                            e.currentTarget.style.borderColor = "rgba(245,158,11,0.14)";
+                            e.currentTarget.style.color = "#8a7040";
                           }}
                         >
                           <span className="font-['Inter:Medium',sans-serif] font-medium leading-[12px] text-[10px]">{cap.label}</span>
