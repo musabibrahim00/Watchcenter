@@ -52,31 +52,29 @@ src/
       Layout.tsx        # Root shell (sidebar + header + content canvas)
       GlobalAIBox.tsx   # AIBox shown on all non-Watch-Center pages
       CommandPalette.tsx
-      ui/               # Shared UI primitives
+      AgentActivityIndicator.tsx
+      ui/               # Shared UI primitives (shadcn/radix components)
     features/           # Domain feature modules
-      agent-detail/     # Agent detail page logic
-      ai-box/           # AIBox shared state, context, deep-link resolver
+      agent-detail/     # Agent detail barrel export
+      ai-box/           # AIBox context, deep-link resolver, multi-agent engine
       charts/           # Recharts wrappers
-      investigation/    # Investigation context, timeline, task bridge
-      persona/          # Persona-aware skill resolution
-      watch-center/     # Watch Center domain logic
-                        #   StatusContext.tsx, InvestigationContext.tsx,
-                        #   AgentNarratives.ts + barrel re-exports from imports/
+      investigation/    # TimeTravelContext + barrel export
+      persona/          # PersonaContext + barrel export
+      watch-center/     # StatusContext, InvestigationContext, AgentNarratives
     pages/              # Route-level page components
       AgentDetailPage.tsx
-      AttackPathPage.tsx
-      AttackPathDetailPage.tsx
-      IntegrationsPage.tsx
-      CompliancePage.tsx
+      AttackPathPage.tsx / AttackPathDetailPage.tsx
       AssetDetailPage.tsx
-      asset-register/   # Asset Register pages
-      case-management/  # Case Management pages (dashboard, list, detail)
-      workflows/        # Workflows pages + modals
+      CompliancePage.tsx
+      IntegrationsPage.tsx
+      asset-register/   # Asset Register page + data
+      case-management/  # Dashboard, list, detail, modals, case data
+      workflows/        # Workflows index, builder, engine, tabs, modals
     shared/
       components/       # Shared design system components
         layout/           # PageContainer, ChartContainer, DashboardGrid
       contexts/         # React contexts
-      data/             # Static mock data (agent-tasks-data, intervention-data-types, …)
+      data/             # Static mock data (agent-tasks, interventions, hub, workflows…)
       design-system/    # Design tokens and system helpers
       graph/            # Entity graph store, nodes, edges, adapters, perf utils
       services/         # Service layer utilities
@@ -88,8 +86,7 @@ src/
       utils/            # Utility functions
       entity-graph.ts   # Entity relationship graph
 
-  imports/            # Figma-scaffold origin — actively-used components live here;
-                      # also contains ~100 legacy scaffold variant files (unused)
+  imports/            # Figma-scaffold origin. Actively-used Watch Center components:
     WatchDst.tsx        # Watch Center main layout
     AiBox.tsx           # AIBox embedded in Watch Center
     AiBoxModules.tsx    # AIBox response module renderers
@@ -98,21 +95,20 @@ src/
     Working.tsx         # Globe + agent visualization
     ActivityFeed.tsx    # Live activity feed
     KpiWidget.tsx       # KPI / Insights widget
-    InvestigationTimeline.tsx  # Investigation timeline panel
-    InvestigationContext.tsx   # Investigation context (also in features/watch-center/)
+    InvestigationTimeline.tsx
+    InvestigationContext.tsx
     TaskInvestigationBridge.tsx
-    StatusContext.tsx    # Agent status reactive store (also in features/watch-center/)
-    AgentNarratives.ts  # Narrative generation for investigation scenarios
-    agent-tasks-data.ts # Per-agent task data and types
-    intervention-data-types.ts # Intervention / module data definitions
-    SidebarNavigation.tsx
-    Header.tsx
+    StatusContext.tsx
+    AgentNarratives.ts
+    agent-tasks-data.ts
+    intervention-data-types.ts
     svg-*.ts/tsx         # SVG path data (Figma export, ~80 files)
-    ...
+                        # + ~100 unused legacy Figma variant files
 
 cli/                # secops CLI utility (secops.mjs)
 guidelines/         # Product design and development guidelines
 skills/             # Claude Code skill definitions
+vercel.json         # SPA rewrite rule for Vercel deployment
 dist/               # Production build output (git-ignored)
 ```
 
