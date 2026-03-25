@@ -8,6 +8,8 @@ import {
 import { colors } from "../shared/design-system/tokens";
 import { PageHeader, SectionLabel } from "../shared/components/ui";
 import { useAiBox } from "../features/ai-box";
+import { useEvidenceStore } from "../features/compliance/evidence-store";
+import { ActionableEvidenceRow } from "../features/compliance/ActionableEvidenceRow";
 import {
   getPathsForGap,
   getAssetsForGap,
@@ -58,16 +60,8 @@ const UPCOMING_AUDITS = [
   },
 ];
 
-type EvidenceStatus = "collected" | "pending" | "overdue";
-
-const EVIDENCE_ITEMS = [
-  { id: "e1", name: "Access Review Q1 2026",        framework: "SOC 2",     control: "CC6.2",    status: "collected" as EvidenceStatus, collector: "Identity Team",    lastUpdated: "Mar 15", dueDate: "Mar 31" },
-  { id: "e2", name: "Pen Test Report 2026",          framework: "ISO 27001", control: "A.14.2",   status: "collected" as EvidenceStatus, collector: "Security Ops",     lastUpdated: "Feb 28", dueDate: "Mar 31" },
-  { id: "e3", name: "MFA Enforcement Logs",          framework: "SOC 2",     control: "CC6.1",    status: "pending"   as EvidenceStatus, collector: "Platform Eng",     lastUpdated: "Mar 10", dueDate: "Mar 28" },
-  { id: "e4", name: "Encryption Key Audit Trail",    framework: "ISO 27001", control: "A.10.1",   status: "overdue"   as EvidenceStatus, collector: "Security Ops",     lastUpdated: "Feb 15", dueDate: "Mar 10" },
-  { id: "e5", name: "Vendor Risk Assessments",       framework: "ISO 27001", control: "A.15.2",   status: "pending"   as EvidenceStatus, collector: "Procurement",      lastUpdated: "Mar 01", dueDate: "Apr 01" },
-  { id: "e6", name: "Cardholder Scope Map",          framework: "PCI-DSS",   control: "Req 12.5", status: "collected" as EvidenceStatus, collector: "Payment Security", lastUpdated: "Mar 09", dueDate: "Apr 15" },
-];
+// EVIDENCE_ITEMS and EvidenceStatus removed — live data now comes from useEvidenceStore()
+// which merges compliance-data.ts seed data with any localStorage overrides.
 
 type MonitorStatus = "passing" | "failing" | "warning";
 
@@ -79,12 +73,6 @@ const MONITORING_CHECKS = [
   { id: "m5", name: "Access Log Integrity",       control: "AU-3",   framework: "NIST CSF",  status: "passing" as MonitorStatus, lastRun: "30m ago", frequency: "Continuous", anomalies: 0  },
   { id: "m6", name: "Data Classification Sweep",  control: "A.8.2",  framework: "ISO 27001", status: "passing" as MonitorStatus, lastRun: "4h ago",  frequency: "Daily",      anomalies: 0  },
 ];
-
-/* ── Sorted display orders (urgency-first) ── */
-const EVIDENCE_SORTED = [...EVIDENCE_ITEMS].sort((a, b) => {
-  const order: Record<EvidenceStatus, number> = { overdue: 0, pending: 1, collected: 2 };
-  return order[a.status] - order[b.status];
-});
 
 const MONITORING_SORTED = [...MONITORING_CHECKS].sort((a, b) => {
   const order: Record<MonitorStatus, number> = { failing: 0, warning: 1, passing: 2 };
@@ -157,11 +145,7 @@ const PRIORITY_COLORS: Record<string, string> = {
   low: colors.success,
 };
 
-const EVIDENCE_STATUS_COLOR: Record<EvidenceStatus, string> = {
-  collected: colors.success,
-  pending: colors.medium,
-  overdue: colors.critical,
-};
+// EVIDENCE_STATUS_COLOR removed — EvidenceRow replaced by ActionableEvidenceRow from compliance feature
 
 const MONITOR_STATUS_COLOR: Record<MonitorStatus, string> = {
   passing: colors.success,
@@ -520,43 +504,6 @@ function AuditCard({ audit, onAskAI }: { audit: typeof UPCOMING_AUDITS[number]; 
   );
 }
 
-/* ── Evidence Row ── */
-
-function EvidenceRow({ item }: { item: typeof EVIDENCE_ITEMS[number] }) {
-  const statusColor = EVIDENCE_STATUS_COLOR[item.status];
-  const StatusIcon  = item.status === "collected"
-    ? <CheckCircle2 size={11} color={statusColor} />
-    : item.status === "overdue"
-    ? <XCircle      size={11} color={statusColor} />
-    : <AlertCircle  size={11} color={statusColor} />;
-
-  return (
-    <div
-      className="flex items-center gap-[10px] px-[12px] py-[9px] rounded-[8px]"
-      style={{
-        background: item.status === "overdue" ? `${colors.critical}0a` : colors.bgCard,
-        border: `1px solid ${item.status === "overdue" ? colors.critical + "28" : colors.border}`,
-      }}
-    >
-      <div className="shrink-0">{StatusIcon}</div>
-      <div className="flex-1 min-w-0">
-        <p style={{ fontSize: 11, fontWeight: 500, color: colors.textPrimary, lineHeight: 1.3 }} className="truncate">{item.name}</p>
-        <p style={{ fontSize: 10, color: colors.textDim }}>{item.framework} · {item.control} · {item.collector}</p>
-      </div>
-      <div className="shrink-0 text-right">
-        <span
-          className="px-[6px] py-[2px] rounded-[4px] text-[9px] font-semibold capitalize"
-          style={{ background: `${statusColor}18`, color: statusColor }}
-        >
-          {item.status}
-        </span>
-        <p style={{ fontSize: 9, color: item.status === "overdue" ? colors.critical : colors.textDim, marginTop: 2 }}>
-          Due {item.dueDate}
-        </p>
-      </div>
-    </div>
-  );
-}
 
 /* ── Monitoring Row ── */
 
@@ -615,6 +562,7 @@ function KpiCard({
 
 export default function CompliancePage() {
   const { setPageContext, openWithContext } = useAiBox();
+  const { items: evidenceItems, update: updateEvidence } = useEvidenceStore();
 
   useEffect(() => {
     setPageContext(buildPageContext());
@@ -624,11 +572,16 @@ export default function CompliancePage() {
   const avgScore          = Math.round(FRAMEWORKS.reduce((s, f) => s + f.score, 0) / FRAMEWORKS.length);
   const totalControls     = FRAMEWORKS.reduce((s, f) => s + f.controls, 0);
   const passingControls   = FRAMEWORKS.reduce((s, f) => s + f.passing, 0);
-  const evidenceCollected = EVIDENCE_ITEMS.filter(e => e.status === "collected").length;
-  const evidenceOverdue   = EVIDENCE_ITEMS.filter(e => e.status === "overdue").length;
+  const evidenceCollected = evidenceItems.filter(e => e.status === "collected").length;
+  const evidenceOverdue   = evidenceItems.filter(e => e.status === "overdue").length;
   const monitorFailing    = MONITORING_CHECKS.filter(m => m.status === "failing").length;
   const nextAuditDays     = Math.min(...UPCOMING_AUDITS.map(a => a.daysUntil));
   const nextAudit         = UPCOMING_AUDITS.find(a => a.daysUntil === nextAuditDays)!;
+
+  const evidenceSorted = [...evidenceItems].sort((a, b) => {
+    const o = { overdue: 0, pending: 1, collected: 2 } as const;
+    return o[a.status] - o[b.status];
+  });;
 
   function handleReviewGaps() {
     openWithContext({
@@ -685,7 +638,7 @@ export default function CompliancePage() {
           <KpiCard label="Critical Gaps"   value={criticalGaps}                  sub="need immediate fix"     color={colors.critical}  highlight />
           <KpiCard label="Next Audit"      value={`${nextAuditDays}d`}           sub={nextAudit.framework}    color={nextAuditDays <= 60 ? colors.medium : colors.textPrimary} highlight />
           <KpiCard label="Controls"        value={`${passingControls}/${totalControls}`} sub="passing"       color={colors.success} />
-          <KpiCard label="Evidence"        value={`${evidenceCollected}/${EVIDENCE_ITEMS.length}`} sub={evidenceOverdue > 0 ? `${evidenceOverdue} overdue` : "collected"} color={evidenceOverdue > 0 ? colors.critical : colors.success} />
+          <KpiCard label="Evidence"        value={`${evidenceCollected}/${evidenceItems.length}`} sub={evidenceOverdue > 0 ? `${evidenceOverdue} overdue` : "collected"} color={evidenceOverdue > 0 ? colors.critical : colors.success} />
           <KpiCard label="Live Monitors"   value={monitorFailing > 0 ? monitorFailing : "All clear"} sub={monitorFailing > 0 ? "checks failing" : "no failures"} color={monitorFailing > 0 ? colors.critical : colors.success} />
         </div>
       </div>
@@ -792,22 +745,24 @@ export default function CompliancePage() {
               <SectionLabel
                 icon={<FolderOpen size={13} color={colors.textMuted} />}
                 label="Evidence Tracker"
-                count={EVIDENCE_ITEMS.length}
+                count={evidenceItems.length}
               />
               <div style={{ fontSize: 10, color: colors.textDim, marginBottom: 12 }}>
-                <span style={{ color: colors.success, fontWeight: 600 }}>{evidenceCollected}</span>/{EVIDENCE_ITEMS.length} collected
+                <span style={{ color: colors.success, fontWeight: 600 }}>{evidenceCollected}</span>/{evidenceItems.length} collected
                 {evidenceOverdue > 0 && (
                   <span style={{ color: colors.critical, fontWeight: 600, marginLeft: 8 }}>· {evidenceOverdue} overdue</span>
                 )}
               </div>
             </div>
             <div className="mb-[10px] flex h-[3px] rounded-full overflow-hidden w-full" style={{ background: "rgba(255,255,255,0.06)" }}>
-              <div style={{ width: `${(evidenceCollected / EVIDENCE_ITEMS.length) * 100}%`, background: colors.success }} />
-              <div style={{ width: `${(EVIDENCE_ITEMS.filter(e => e.status === "pending").length / EVIDENCE_ITEMS.length) * 100}%`, background: colors.medium }} />
-              <div style={{ width: `${(EVIDENCE_ITEMS.filter(e => e.status === "overdue").length / EVIDENCE_ITEMS.length) * 100}%`, background: colors.critical }} />
+              <div style={{ width: `${(evidenceCollected / evidenceItems.length) * 100}%`, background: colors.success }} />
+              <div style={{ width: `${(evidenceItems.filter(e => e.status === "pending").length / evidenceItems.length) * 100}%`, background: colors.medium }} />
+              <div style={{ width: `${(evidenceOverdue / evidenceItems.length) * 100}%`, background: colors.critical }} />
             </div>
             <div className="flex flex-col gap-[6px]">
-              {EVIDENCE_SORTED.map(item => <EvidenceRow key={item.id} item={item} />)}
+              {evidenceSorted.map(ev => (
+                <ActionableEvidenceRow key={ev.id} ev={ev} onUpdate={updateEvidence} />
+              ))}
             </div>
           </section>
 

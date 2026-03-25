@@ -36,13 +36,43 @@ export const GAPS = [
 /* ── Evidence Items ── */
 
 export const EVIDENCE_ITEMS = [
-  { id: "e1", name: "Access Review Q1 2026",        fwId: "soc2",     control: "CC6.2",    status: "collected" as EvidenceStatus, collector: "Identity Team",    lastUpdated: "Mar 15", dueDate: "Mar 31" },
-  { id: "e2", name: "Pen Test Report 2026",          fwId: "iso27001", control: "A.14.2",   status: "collected" as EvidenceStatus, collector: "Security Ops",     lastUpdated: "Feb 28", dueDate: "Mar 31" },
-  { id: "e3", name: "MFA Enforcement Logs",          fwId: "soc2",     control: "CC6.1",    status: "pending"   as EvidenceStatus, collector: "Platform Eng",     lastUpdated: "Mar 10", dueDate: "Mar 28" },
-  { id: "e4", name: "Encryption Key Audit Trail",    fwId: "iso27001", control: "A.10.1",   status: "overdue"   as EvidenceStatus, collector: "Security Ops",     lastUpdated: "Feb 15", dueDate: "Mar 10" },
-  { id: "e5", name: "Vendor Risk Assessments",       fwId: "iso27001", control: "A.15.2",   status: "pending"   as EvidenceStatus, collector: "Procurement",      lastUpdated: "Mar 01", dueDate: "Apr 01" },
-  { id: "e6", name: "Cardholder Scope Map",          fwId: "pci-dss",  control: "Req 12.5", status: "collected" as EvidenceStatus, collector: "Payment Security", lastUpdated: "Mar 09", dueDate: "Apr 15" },
-];
+  {
+    id: "e1", name: "Access Review Q1 2026", fwId: "soc2", control: "CC6.2",
+    status: "collected" as EvidenceStatus, collector: "Identity Team", lastUpdated: "Mar 15", dueDate: "Mar 31",
+    description: "Quarterly report showing all user accounts reviewed, access confirmed appropriate, and stale accounts deprovisioned.",
+    suggestedSource: "Identity Provider admin console → export quarterly access review report as PDF or CSV.",
+  },
+  {
+    id: "e2", name: "Pen Test Report 2026", fwId: "iso27001", control: "A.14.2",
+    status: "collected" as EvidenceStatus, collector: "Security Ops", lastUpdated: "Feb 28", dueDate: "Mar 31",
+    description: "Formal penetration test report from an approved external vendor covering all in-scope systems.",
+    suggestedSource: "External pentest vendor → request final report PDF. Confirm scope includes all production systems.",
+  },
+  {
+    id: "e3", name: "MFA Enforcement Logs", fwId: "soc2", control: "CC6.1",
+    status: "pending" as EvidenceStatus, collector: "Platform Eng", lastUpdated: "Mar 10", dueDate: "Mar 28",
+    description: "Logs demonstrating MFA is enforced for all 12 non-compliant service accounts. Must show 100% enforcement rate.",
+    suggestedSource: "AWS CloudTrail or Okta → filter authentication events by MFA method for all service account principals.",
+  },
+  {
+    id: "e4", name: "Encryption Key Audit Trail", fwId: "iso27001", control: "A.10.1",
+    status: "overdue" as EvidenceStatus, collector: "Security Ops", lastUpdated: "Feb 15", dueDate: "Mar 10",
+    description: "Audit log showing all encryption keys, their last rotation date, and confirmation that rotation policy was followed.",
+    suggestedSource: "AWS KMS or HashiCorp Vault → export key rotation history for all active keys. Filter last 12 months.",
+  },
+  {
+    id: "e5", name: "Vendor Risk Assessments", fwId: "iso27001", control: "A.15.2",
+    status: "pending" as EvidenceStatus, collector: "Procurement", lastUpdated: "Mar 01", dueDate: "Apr 01",
+    description: "Completed risk assessments for all active third-party vendors with access to company data or systems.",
+    suggestedSource: "Vendor management system → export completed assessment records. Escalate any overdue assessments to vendor owners.",
+  },
+  {
+    id: "e6", name: "Cardholder Scope Map", fwId: "pci-dss", control: "Req 12.5",
+    status: "collected" as EvidenceStatus, collector: "Payment Security", lastUpdated: "Mar 09", dueDate: "Apr 15",
+    description: "Current data flow diagram showing all systems, networks, and components within the cardholder data environment.",
+    suggestedSource: "Network team → export current CDE topology diagram. Include all data flows and system boundaries.",
+  },
+] as const;
 
 /* ── Monitoring Checks ── */
 

@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    /* ── Target ─────────────────────────────────────── */
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+
+    /* ── Module resolution ───────────────────────────── */
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+
+    /* ── JSX ─────────────────────────────────────────── */
+    "jsx": "react-jsx",
+
+    /* ── Emit ────────────────────────────────────────── */
+    "noEmit": true,           // Vite/esbuild handles emit; tsc is type-check only
+    "skipLibCheck": true,
+
+    /* ── Strict (not enabled globally — code predates strict mode) */
+    "strict": false,
+    "noUnusedLocals": false,  // enforce via ESLint, not tsc
+    "noUnusedParameters": false,
+
+    /* ── Paths ───────────────────────────────────────── */
+    /* Mirrors the alias in vite.config.ts so IDEs resolve @/ correctly */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}
