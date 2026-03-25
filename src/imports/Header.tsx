@@ -1,7 +1,8 @@
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import svgPaths from "./svg-vlugkcafyl";
 import { useTimeTravel } from "../app/shared/contexts/TimeTravelContext";
+import { getStoredExperience, setStoredExperience, type Experience } from "../app/pages/ExperienceChooser";
 
 /**
  * Global Application Header
@@ -134,6 +135,89 @@ function TimeTravelButton() {
   );
 }
 
+function ExperienceSwitcher() {
+  const navigate = useNavigate();
+  const [current, setCurrent] = useState<Experience | null>(getStoredExperience());
+  const [open, setOpen] = useState(false);
+
+  function switchTo(exp: Experience) {
+    setStoredExperience(exp);
+    setCurrent(exp);
+    setOpen(false);
+    if (exp === "ali") navigate("/compliance");
+    else navigate("/");
+  }
+
+  const label = current === "ali" ? "Ali" : current === "musab" ? "Musab" : "Choose";
+  const color = current === "ali" ? "#2FD897" : "#57B1FF";
+
+  return (
+    <div className="relative shrink-0">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-[5px] rounded-[7px] px-[8px] py-[4px] text-[11px] font-medium transition-colors cursor-pointer"
+        style={{ backgroundColor: "rgba(255,255,255,0.04)", border: `1px solid rgba(255,255,255,0.08)`, color }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(255,255,255,0.07)"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(255,255,255,0.04)"; }}
+        title="Switch experience"
+      >
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
+        </svg>
+        {label}
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-[60]" onClick={() => setOpen(false)} />
+          <div
+            className="absolute top-[32px] right-0 z-[70] rounded-[10px] p-[6px] min-w-[160px]"
+            style={{ backgroundColor: "#0b1520", border: "1px solid #0E1C26", boxShadow: "0 8px 24px rgba(0,0,0,0.5)" }}
+          >
+            <p className="px-[8px] py-[4px] text-[10px] mb-[2px]" style={{ color: "#89949e" }}>Switch experience</p>
+            {(["musab", "ali"] as Experience[]).map((exp) => (
+              <button
+                key={exp}
+                onClick={() => switchTo(exp)}
+                className="w-full text-left flex items-center gap-[8px] px-[8px] py-[7px] rounded-[7px] text-[12px] cursor-pointer transition-colors"
+                style={{
+                  color: exp === current ? (exp === "ali" ? "#2FD897" : "#57B1FF") : "#a8b6c4",
+                  backgroundColor: exp === current ? (exp === "ali" ? "rgba(47,216,151,0.08)" : "rgba(87,177,255,0.08)") : "transparent",
+                  fontWeight: exp === current ? 600 : 400,
+                }}
+                onMouseEnter={(e) => { if (exp !== current) (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(255,255,255,0.04)"; }}
+                onMouseLeave={(e) => { if (exp !== current) (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent"; }}
+              >
+                <span
+                  className="size-[6px] rounded-full shrink-0"
+                  style={{ backgroundColor: exp === "ali" ? "#2FD897" : "#57B1FF" }}
+                />
+                <span className="capitalize">{exp}</span>
+                {exp === "ali" && <span className="ml-auto text-[10px]" style={{ color: "#2FD897", opacity: 0.7 }}>Compliance</span>}
+                {exp === "musab" && <span className="ml-auto text-[10px]" style={{ color: "#57B1FF", opacity: 0.7 }}>SecOps</span>}
+              </button>
+            ))}
+            <div className="mt-[4px] pt-[4px]" style={{ borderTop: "1px solid #0E1C26" }}>
+              <button
+                onClick={() => { localStorage.removeItem("wc:experience"); navigate("/choose"); setOpen(false); }}
+                className="w-full text-left px-[8px] py-[6px] rounded-[7px] text-[11px] cursor-pointer transition-colors"
+                style={{ color: "#62707D" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#a8b6c4"; (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(255,255,255,0.04)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#62707D"; (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent"; }}
+              >
+                Back to chooser
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function Header() {
   const { pathname } = useLocation();
   const pageTitle = getPageTitle(pathname);
@@ -156,6 +240,9 @@ export default function Header() {
       <div aria-hidden="true" className="absolute border-[#0E1C26] border-b border-solid inset-0 pointer-events-none" />
       <p className="flex-1 font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic relative text-[#dadfe3] text-[20px] tracking-[-0.5px] whitespace-pre-wrap">{pageTitle}</p>
       <div className="content-stretch flex gap-[12px] items-center relative shrink-0">
+        {/* Experience Switcher */}
+        <ExperienceSwitcher />
+
         {/* UTC Clock */}
         <p className="font-['Inter:Regular',sans-serif] font-normal leading-[normal] not-italic relative shrink-0 text-[#89949e] text-[14px] whitespace-nowrap">{utcTime}</p>
 

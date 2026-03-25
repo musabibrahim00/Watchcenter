@@ -3,6 +3,7 @@ import svgPaths from "./svg-63n4fkkbae";
 const img5 = "";
 import { imgGroup } from "./svg-0cfqo";
 import { useNavigate, useLocation } from "react-router";
+import { getStoredExperience } from "../app/pages/ExperienceChooser";
 
 /* ================================================================
    GLOBAL SIDEBAR NAVIGATION
@@ -551,6 +552,7 @@ function IconSettings() {
    ================================================================ */
 
 function TopItems() {
+  const isAli = getStoredExperience() === "ali";
   return (
     <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0" data-name="Top items">
       {/* Watch Center */}
@@ -595,9 +597,17 @@ function TopItems() {
         <IconCaseManagement />
       </NavItem>
       {/* Compliance */}
-      <NavItem to="/compliance" label="Compliance">
-        <IconCompliance />
-      </NavItem>
+      <div className="relative">
+        <NavItem to="/compliance" label="Compliance">
+          <IconCompliance />
+        </NavItem>
+        {isAli && (
+          <span
+            className="absolute top-[2px] right-[2px] size-[5px] rounded-full pointer-events-none"
+            style={{ backgroundColor: "#2FD897", boxShadow: "0 0 4px #2FD897" }}
+          />
+        )}
+      </div>
       <Separator />
       {/* Integrations */}
       <NavItem to="/integrations" label="Integrations">

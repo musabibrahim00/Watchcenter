@@ -1,16 +1,37 @@
-import { createBrowserRouter } from "react-router";
+import React from "react";
+import { createBrowserRouter, Navigate } from "react-router";
 import Layout from "./components/Layout";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import { getStoredExperience } from "./pages/ExperienceChooser";
+
+const WatchDst = React.lazy(() => import("../imports/WatchDst"));
+
+/**
+ * Rendered at `/` — routes to the right place based on stored experience:
+ * - No experience chosen → /choose
+ * - Ali               → /compliance
+ * - Musab             → renders WatchDst (keeps URL as /)
+ */
+function RootGuard() {
+  const exp = getStoredExperience();
+  if (!exp) return <Navigate to="/choose" replace />;
+  if (exp === "ali") return <Navigate to="/compliance" replace />;
+  return (
+    <React.Suspense fallback={null}>
+      <WatchDst />
+    </React.Suspense>
+  );
+}
 
 // Fallback component for loading errors
 function LoadingError() {
   return (
-    <div style={{ 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      minHeight: '100vh', 
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
       backgroundColor: '#0a0e14',
       color: '#8899aa',
       flexDirection: 'column',
@@ -24,12 +45,16 @@ function LoadingError() {
 export const router = createBrowserRouter(
   [
     {
+      path: "/choose",
+      lazy: () => import("./pages/ExperienceChooser").then(m => ({ Component: m.default })),
+    },
+    {
       path: "/",
       Component: Layout,
       HydrateFallback: () => <div style={{ background: '#0a0e1a', width: '100vw', height: '100vh' }} />,
       ErrorBoundary: LoadingError,
       children: [
-        { index: true, lazy: () => import("../imports/WatchDst").then(m => ({ Component: m.default })) },
+        { index: true, Component: RootGuard },
         { path: "sub/:moduleId", lazy: () => import("./pages/SubPage").then(m => ({ Component: m.default })) },
         { path: "agent/:agentSlug", lazy: () => import("./pages/AgentDetailPage").then(m => ({ Component: m.default })) },
         { path: "attack-paths", lazy: () => import("./pages/AttackPathPage").then(m => ({ Component: m.default })) },
