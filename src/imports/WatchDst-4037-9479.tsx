@@ -1826,7 +1826,7 @@ function Icon() {
 
 function Container4() {
   return (
-    <div className="absolute bg-[#050C14] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
       <div aria-hidden="true" className="absolute border border-[#121e27] border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)]" />
       <Icon />
     </div>
@@ -1918,7 +1918,7 @@ function Icon1() {
 
 function Container5() {
   return (
-    <div className="-translate-x-1/2 -translate-y-1/2 absolute bg-[#050C14] content-stretch flex items-center left-1/2 p-[20px] rounded-[34px] top-1/2" data-name="Container">
+    <div className="-translate-x-1/2 -translate-y-1/2 absolute bg-[#050F18] content-stretch flex items-center left-1/2 p-[20px] rounded-[34px] top-1/2" data-name="Container">
       <div aria-hidden="true" className="absolute border border-[#121e27] border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)]" />
       <Icon1 />
     </div>
@@ -1996,7 +1996,7 @@ function Icon2() {
 
 function Container6() {
   return (
-    <div className="absolute bg-[#050C14] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
       <div aria-hidden="true" className="absolute border border-[#121e27] border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)]" />
       <Icon2 />
     </div>
@@ -2089,7 +2089,7 @@ function Icon3() {
 
 function Container7() {
   return (
-    <div className="absolute bg-[#050C14] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
       <div aria-hidden="true" className="absolute border border-[#121e27] border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_13.995px_0px_rgba(228,108,18,0.22),0px_0px_31.99px_0px_rgba(228,108,18,0.1),0px_0px_4.484px_0px_rgba(137,148,158,0.04)]" />
       <Icon3 />
     </div>
@@ -2186,7 +2186,7 @@ function Icon4() {
 
 function Container8() {
   return (
-    <div className="-translate-x-1/2 -translate-y-1/2 absolute bg-[#050C14] content-stretch flex items-center left-1/2 p-[20px] rounded-[34px] top-1/2" data-name="Container">
+    <div className="-translate-x-1/2 -translate-y-1/2 absolute bg-[#050F18] content-stretch flex items-center left-1/2 p-[20px] rounded-[34px] top-1/2" data-name="Container">
       <div aria-hidden="true" className="absolute border border-[#121e27] border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)]" />
       <Icon4 />
     </div>
@@ -2244,13 +2244,13 @@ function Agents() {
           <g id="outer-ring">
             <path d={svgPaths.p38dd2400} fill="var(--fill-0, #030609)" />
             <path d={svgPaths.p38dd2400} fill="url(#paint0_radial_4037_8921)" />
-            <path d={svgPaths.p38dd2400} stroke="var(--stroke-0, #122C4A)" strokeOpacity="0.6" />
+            <path d={svgPaths.p38dd2400} stroke="var(--stroke-0, #122C4A)" strokeOpacity="1" />
           </g>
           <defs>
             <radialGradient cx="0" cy="0" gradientTransform="translate(300.5 270.5) scale(330)" gradientUnits="userSpaceOnUse" id="paint0_radial_4037_8921" r="1">
-              <stop stopColor="#0C1D31" />
-              <stop offset="0.7" stopColor="#050C14" />
-              <stop offset="1" stopColor="#030609" />
+              <stop stopColor="#202B35" />
+              <stop offset="0.7" stopColor="#030D16" />
+              <stop offset="0.9" stopColor="#030609" />
             </radialGradient>
           </defs>
         </svg>
@@ -2288,7 +2288,7 @@ function Agents() {
       <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.5px)] size-[260px] top-1/2" data-name="ring-inner">
         <div className="absolute inset-[-0.19%]">
           <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 261 261">
-            <path d={svgPaths.p19768300} fill="var(--fill-0, #07111D)" fillOpacity="1" id="Vector" stroke="var(--stroke-0, #0781C2)" strokeDasharray="100 20" strokeOpacity="0.2" />
+            <path d={svgPaths.p19768300} fill="var(--fill-0, #061019)" fillOpacity="0.6" id="Vector" stroke="var(--stroke-0, #0781C2)" strokeDasharray="100 20" strokeOpacity="0.2" />
           </svg>
         </div>
       </div>

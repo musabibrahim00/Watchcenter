@@ -476,13 +476,13 @@ function Base() {
         <g id="outer-ring">
           <path d={svgPaths.p38dd2400} fill="var(--fill-0, #030609)" />
           <path d={svgPaths.p38dd2400} fill="url(#paint0_radial_2_641)" />
-          <path d={svgPaths.p38dd2400} stroke="var(--stroke-0, #122C4A)" strokeOpacity="0.6" />
+          <path d={svgPaths.p38dd2400} stroke="var(--stroke-0, #122C4A)" strokeOpacity="1" />
         </g>
         <defs>
           <radialGradient cx="0" cy="0" gradientTransform="translate(300.5 270.5) scale(330)" gradientUnits="userSpaceOnUse" id="paint0_radial_2_641" r="1">
-            <stop stopColor="#0C1D31" />
-            <stop offset="0.7" stopColor="#050C14" />
-            <stop offset="1" stopColor="#030609" />
+            <stop stopColor="#202B35" />
+            <stop offset="0.7" stopColor="#030D16" />
+            <stop offset="0.9" stopColor="#030609" />
           </radialGradient>
         </defs>
       </svg>
@@ -519,7 +519,7 @@ function Base() {
       <div className="-translate-x-1/2 absolute aspect-square left-1/2 top-1/2 -translate-y-1/2" data-name="ring-inner" style={{ width: 268, height: 268 }}>
         <div className="absolute inset-[-0.19%]">
           <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 268 268">
-            <circle cx="134" cy="134" r="133" fill="var(--fill-0, #07111D)" fillOpacity="0.6" stroke="var(--stroke-0, #0781C2)" strokeDasharray="100 20" strokeOpacity="0.2" />
+            <circle cx="134" cy="134" r="133" fill="var(--fill-0, #061019)" fillOpacity="0.6" stroke="var(--stroke-0, #0781C2)" strokeDasharray="100 20" strokeOpacity="0.2" />
           </svg>
         </div>
       </div>
@@ -572,7 +572,7 @@ function Icon() {
 
 function Container({ selected }: { selected?: boolean }) {
   return (
-    <div className="absolute bg-[#050C14] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
       <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)] ${selected ? 'border-[#0781c2]' : 'border-[#121e27]'}`} />
       <Icon />
     </div>
@@ -671,7 +671,7 @@ function Icon1() {
 
 function Container1({ selected }: { selected?: boolean }) {
   return (
-    <div className="absolute bg-[#050C14] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
       <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)] ${selected ? 'border-[#0781c2]' : 'border-[#121e27]'}`} />
       <Icon1 />
     </div>
@@ -770,7 +770,7 @@ function Icon2() {
 
 function Container2({ selected }: { selected?: boolean }) {
   return (
-    <div className="absolute bg-[#050C14] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
       <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)] ${selected ? 'border-[#0781c2]' : 'border-[#121e27]'}`} />
       <Icon2 />
     </div>
@@ -869,7 +869,7 @@ function Icon3() {
 
 function Container3({ selected }: { selected?: boolean }) {
   return (
-    <div className="absolute bg-[#050C14] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
       <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[34px] ${selected ? 'border-[#0781c2] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)]' : 'border-[#121e27] shadow-[0px_0px_13.995px_0px_rgba(228,108,18,0.22),0px_0px_31.99px_0px_rgba(228,108,18,0.1),0px_0px_4.484px_0px_rgba(137,148,158,0.04)]'}`} />
       <Icon3 />
     </div>
@@ -968,7 +968,7 @@ function Icon4() {
 
 function Container4({ selected }: { selected?: boolean }) {
   return (
-    <div className="absolute bg-[#050C14] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
       <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)] ${selected ? 'border-[#0781c2]' : 'border-[#121e27]'}`} />
       <Icon4 />
     </div>
@@ -1105,7 +1105,7 @@ function Icon6() {
 
 function Container6({ selected }: { selected?: boolean }) {
   return (
-    <div className="absolute bg-[#050C14] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
       <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)] ${selected ? 'border-[#0781c2]' : 'border-[#121e27]'}`} />
       <Icon6 />
     </div>
@@ -1204,7 +1204,7 @@ function Icon7() {
 
 function Container7({ selected }: { selected?: boolean }) {
   return (
-    <div className="absolute bg-[#050C14] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
       <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)] ${selected ? 'border-[#0781c2]' : 'border-[#121e27]'}`} />
       <Icon7 />
     </div>
@@ -1303,7 +1303,7 @@ function Icon8() {
 
 function Container8({ selected }: { selected?: boolean }) {
   return (
-    <div className="absolute bg-[#050C14] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
       <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)] ${selected ? 'border-[#0781c2]' : 'border-[#121e27]'}`} />
       <Icon8 />
     </div>
