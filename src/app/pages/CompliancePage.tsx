@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import {
   AlertTriangle, TrendingUp, Shield, FileText,
   GitBranch, Server, Sparkles, CheckCircle2, XCircle,
-  AlertCircle, Activity, FolderOpen, Calendar, ChevronRight,
+  AlertCircle, Activity, FolderOpen, Calendar, ArrowRight,
 } from "lucide-react";
 import { colors } from "../shared/design-system/tokens";
 import { PageHeader, SectionLabel } from "../shared/components/ui";
@@ -19,40 +19,40 @@ import {
    ================================================================ */
 
 const FRAMEWORKS = [
-  { id: "soc2", name: "SOC 2 Type II", controls: 64, passing: 58, failing: 4, inProgress: 2, score: 91, trend: "+3" },
-  { id: "iso27001", name: "ISO 27001", controls: 114, passing: 99, failing: 8, inProgress: 7, score: 87, trend: "+1" },
-  { id: "nist-csf", name: "NIST CSF", controls: 108, passing: 91, failing: 9, inProgress: 8, score: 84, trend: "-2" },
-  { id: "pci-dss", name: "PCI-DSS v4.0", controls: 78, passing: 72, failing: 3, inProgress: 3, score: 92, trend: "+4" },
-  { id: "hipaa", name: "HIPAA", controls: 45, passing: 40, failing: 2, inProgress: 3, score: 89, trend: "0" },
+  { id: "soc2",     name: "SOC 2 Type II",  controls: 64,  passing: 58, failing: 4, inProgress: 2, score: 91, trend: "+3" },
+  { id: "iso27001", name: "ISO 27001",       controls: 114, passing: 99, failing: 8, inProgress: 7, score: 87, trend: "+1" },
+  { id: "nist-csf", name: "NIST CSF",        controls: 108, passing: 91, failing: 9, inProgress: 8, score: 84, trend: "-2" },
+  { id: "pci-dss",  name: "PCI-DSS v4.0",   controls: 78,  passing: 72, failing: 3, inProgress: 3, score: 92, trend: "+4" },
+  { id: "hipaa",    name: "HIPAA",           controls: 45,  passing: 40, failing: 2, inProgress: 3, score: 89, trend: "0"  },
 ];
 
 const GAPS = [
-  { id: "g1", severity: "critical" as const, control: "AC-2", framework: "NIST CSF", title: "Privileged account lifecycle not enforced", daysOpen: 14, owner: "Identity Team" },
-  { id: "g2", severity: "critical" as const, control: "CC6.1", framework: "SOC 2", title: "MFA not required on 12 service accounts", daysOpen: 8, owner: "Platform Engineering" },
-  { id: "g3", severity: "high" as const, control: "A.9.4", framework: "ISO 27001", title: "Encryption key rotation policy not enforced", daysOpen: 22, owner: "Security Operations" },
-  { id: "g4", severity: "high" as const, control: "Req 6.3", framework: "PCI-DSS", title: "Vulnerability scan overdue on cardholder segment", daysOpen: 5, owner: "Vulnerability Team" },
-  { id: "g5", severity: "medium" as const, control: "PR.IP-1", framework: "NIST CSF", title: "Configuration baseline not documented for 3 asset classes", daysOpen: 31, owner: "Configuration Team" },
+  { id: "g1", severity: "critical" as const, control: "AC-2",    framework: "NIST CSF",  title: "Privileged account lifecycle not enforced",                    daysOpen: 14, owner: "Identity Team" },
+  { id: "g2", severity: "critical" as const, control: "CC6.1",   framework: "SOC 2",     title: "MFA not required on 12 service accounts",                      daysOpen: 8,  owner: "Platform Engineering" },
+  { id: "g3", severity: "high"     as const, control: "A.9.4",   framework: "ISO 27001", title: "Encryption key rotation policy not enforced",                  daysOpen: 22, owner: "Security Operations" },
+  { id: "g4", severity: "high"     as const, control: "Req 6.3", framework: "PCI-DSS",   title: "Vulnerability scan overdue on cardholder segment",             daysOpen: 5,  owner: "Vulnerability Team" },
+  { id: "g5", severity: "medium"   as const, control: "PR.IP-1", framework: "NIST CSF",  title: "Configuration baseline not documented for 3 asset classes",    daysOpen: 31, owner: "Configuration Team" },
 ];
 
 const RECENT_POLICY_CHANGES = [
-  { id: "p1", date: "Mar 14", change: "Updated MFA policy to require FIDO2 for all admin accounts", impact: "high" as const },
-  { id: "p2", date: "Mar 11", change: "Extended vulnerability SLA for medium severity from 30 to 45 days", impact: "medium" as const },
-  { id: "p3", date: "Mar 09", change: "Added cardholder data scope to PCI-DSS quarterly review", impact: "high" as const },
+  { id: "p1", date: "Mar 14", change: "Updated MFA policy to require FIDO2 for all admin accounts",              impact: "high"   as const },
+  { id: "p2", date: "Mar 11", change: "Extended vulnerability SLA for medium severity from 30 to 45 days",       impact: "medium" as const },
+  { id: "p3", date: "Mar 09", change: "Added cardholder data scope to PCI-DSS quarterly review",                 impact: "high"   as const },
 ];
 
 const UPCOMING_AUDITS = [
   {
-    id: "a1", name: "SOC 2 Type II Annual", framework: "SOC 2", color: "#57B1FF",
-    date: "Jun 15, 2026", daysUntil: 82, readiness: 87, owner: "Compliance Team",
+    id: "a1", name: "SOC 2 Type II Annual",   framework: "SOC 2",     color: "#57B1FF",
+    date: "Jun 15, 2026", daysUntil: 82,  readiness: 87, owner: "Compliance Team",
     keyRisks: ["MFA gap on 12 service accounts", "Incomplete access reviews for Q1"],
   },
   {
     id: "a2", name: "ISO 27001 Surveillance", framework: "ISO 27001", color: "#7988FF",
-    date: "May 20, 2026", daysUntil: 56, readiness: 72, owner: "CISO Office",
+    date: "May 20, 2026", daysUntil: 56,  readiness: 72, owner: "CISO Office",
     keyRisks: ["Key rotation policy gap", "Vendor risk backlog (8 overdue)"],
   },
   {
-    id: "a3", name: "PCI-DSS QSA Assessment", framework: "PCI-DSS", color: "#2FD897",
+    id: "a3", name: "PCI-DSS QSA Assessment", framework: "PCI-DSS",   color: "#2FD897",
     date: "Jul 30, 2026", daysUntil: 127, readiness: 93, owner: "Payment Security",
     keyRisks: ["Vulnerability scan overdue on CDE"],
   },
@@ -61,24 +61,35 @@ const UPCOMING_AUDITS = [
 type EvidenceStatus = "collected" | "pending" | "overdue";
 
 const EVIDENCE_ITEMS = [
-  { id: "e1", name: "Access Review Q1 2026", framework: "SOC 2", control: "CC6.2", status: "collected" as EvidenceStatus, collector: "Identity Team", lastUpdated: "Mar 15", dueDate: "Mar 31" },
-  { id: "e2", name: "Pen Test Report 2026", framework: "ISO 27001", control: "A.14.2", status: "collected" as EvidenceStatus, collector: "Security Ops", lastUpdated: "Feb 28", dueDate: "Mar 31" },
-  { id: "e3", name: "MFA Enforcement Logs", framework: "SOC 2", control: "CC6.1", status: "pending" as EvidenceStatus, collector: "Platform Eng", lastUpdated: "Mar 10", dueDate: "Mar 28" },
-  { id: "e4", name: "Encryption Key Audit Trail", framework: "ISO 27001", control: "A.10.1", status: "overdue" as EvidenceStatus, collector: "Security Ops", lastUpdated: "Feb 15", dueDate: "Mar 10" },
-  { id: "e5", name: "Vendor Risk Assessments", framework: "ISO 27001", control: "A.15.2", status: "pending" as EvidenceStatus, collector: "Procurement", lastUpdated: "Mar 01", dueDate: "Apr 01" },
-  { id: "e6", name: "Cardholder Scope Map", framework: "PCI-DSS", control: "Req 12.5", status: "collected" as EvidenceStatus, collector: "Payment Security", lastUpdated: "Mar 09", dueDate: "Apr 15" },
+  { id: "e1", name: "Access Review Q1 2026",        framework: "SOC 2",     control: "CC6.2",    status: "collected" as EvidenceStatus, collector: "Identity Team",    lastUpdated: "Mar 15", dueDate: "Mar 31" },
+  { id: "e2", name: "Pen Test Report 2026",          framework: "ISO 27001", control: "A.14.2",   status: "collected" as EvidenceStatus, collector: "Security Ops",     lastUpdated: "Feb 28", dueDate: "Mar 31" },
+  { id: "e3", name: "MFA Enforcement Logs",          framework: "SOC 2",     control: "CC6.1",    status: "pending"   as EvidenceStatus, collector: "Platform Eng",     lastUpdated: "Mar 10", dueDate: "Mar 28" },
+  { id: "e4", name: "Encryption Key Audit Trail",    framework: "ISO 27001", control: "A.10.1",   status: "overdue"   as EvidenceStatus, collector: "Security Ops",     lastUpdated: "Feb 15", dueDate: "Mar 10" },
+  { id: "e5", name: "Vendor Risk Assessments",       framework: "ISO 27001", control: "A.15.2",   status: "pending"   as EvidenceStatus, collector: "Procurement",      lastUpdated: "Mar 01", dueDate: "Apr 01" },
+  { id: "e6", name: "Cardholder Scope Map",          framework: "PCI-DSS",   control: "Req 12.5", status: "collected" as EvidenceStatus, collector: "Payment Security", lastUpdated: "Mar 09", dueDate: "Apr 15" },
 ];
 
 type MonitorStatus = "passing" | "failing" | "warning";
 
 const MONITORING_CHECKS = [
-  { id: "m1", name: "Privileged Access Review", control: "CC6.3", framework: "SOC 2", status: "passing" as MonitorStatus, lastRun: "2h ago", frequency: "Daily", anomalies: 0 },
-  { id: "m2", name: "MFA Coverage Scan", control: "CC6.1", framework: "SOC 2", status: "failing" as MonitorStatus, lastRun: "1h ago", frequency: "Hourly", anomalies: 12 },
-  { id: "m3", name: "Encryption At-Rest Audit", control: "A.10.1", framework: "ISO 27001", status: "warning" as MonitorStatus, lastRun: "6h ago", frequency: "Daily", anomalies: 3 },
-  { id: "m4", name: "Vulnerability Scan Coverage", control: "Req 6.3", framework: "PCI-DSS", status: "failing" as MonitorStatus, lastRun: "3d ago", frequency: "Weekly", anomalies: 1 },
-  { id: "m5", name: "Access Log Integrity", control: "AU-3", framework: "NIST CSF", status: "passing" as MonitorStatus, lastRun: "30m ago", frequency: "Continuous", anomalies: 0 },
-  { id: "m6", name: "Data Classification Sweep", control: "A.8.2", framework: "ISO 27001", status: "passing" as MonitorStatus, lastRun: "4h ago", frequency: "Daily", anomalies: 0 },
+  { id: "m1", name: "Privileged Access Review",  control: "CC6.3",  framework: "SOC 2",     status: "passing" as MonitorStatus, lastRun: "2h ago",  frequency: "Daily",      anomalies: 0  },
+  { id: "m2", name: "MFA Coverage Scan",          control: "CC6.1",  framework: "SOC 2",     status: "failing" as MonitorStatus, lastRun: "1h ago",  frequency: "Hourly",     anomalies: 12 },
+  { id: "m3", name: "Encryption At-Rest Audit",   control: "A.10.1", framework: "ISO 27001", status: "warning" as MonitorStatus, lastRun: "6h ago",  frequency: "Daily",      anomalies: 3  },
+  { id: "m4", name: "Vulnerability Scan Coverage",control: "Req 6.3",framework: "PCI-DSS",   status: "failing" as MonitorStatus, lastRun: "3d ago",  frequency: "Weekly",     anomalies: 1  },
+  { id: "m5", name: "Access Log Integrity",       control: "AU-3",   framework: "NIST CSF",  status: "passing" as MonitorStatus, lastRun: "30m ago", frequency: "Continuous", anomalies: 0  },
+  { id: "m6", name: "Data Classification Sweep",  control: "A.8.2",  framework: "ISO 27001", status: "passing" as MonitorStatus, lastRun: "4h ago",  frequency: "Daily",      anomalies: 0  },
 ];
+
+/* ── Sorted display orders (urgency-first) ── */
+const EVIDENCE_SORTED = [...EVIDENCE_ITEMS].sort((a, b) => {
+  const order: Record<EvidenceStatus, number> = { overdue: 0, pending: 1, collected: 2 };
+  return order[a.status] - order[b.status];
+});
+
+const MONITORING_SORTED = [...MONITORING_CHECKS].sort((a, b) => {
+  const order: Record<MonitorStatus, number> = { failing: 0, warning: 1, passing: 2 };
+  return order[a.status] - order[b.status];
+});
 
 /* ================================================================
    AIBOX CONTEXT
@@ -98,23 +109,20 @@ function buildPageContext() {
     sublabel: "Posture Overview",
     contextKey: "compliance",
     suggestions: [
-      { label: "What changed since my last visit?", prompt: "What changed in compliance since my last visit?" },
-      { label: "Show critical gaps", prompt: "Show me the critical compliance gaps that need immediate attention" },
-      { label: "Audit readiness briefing", prompt: "Give me a readiness briefing for the upcoming SOC 2 and ISO 27001 audits" },
-      { label: "Evidence gaps before audit", prompt: "Which evidence items are overdue or pending before upcoming audits?" },
-      { label: "Which attack paths does CC6.1 worsen?", prompt: "Which attack paths are made worse by the MFA gap (CC6.1)?" },
-      { label: "Remediation blast radius impact", prompt: "If we fix all open compliance gaps, how would it reduce attack path blast radius?" },
-      { label: "Recommend remediation steps", prompt: "Recommend remediation steps for the open compliance gaps" },
-      { label: "Generate compliance report", prompt: "Generate a summary compliance report across all active frameworks" },
+      { label: "What should I focus on today?",        prompt: "Given the current compliance posture, what should I prioritize today?" },
+      { label: "ISO 27001 audit prep briefing",        prompt: "Give me a readiness briefing for the ISO 27001 surveillance audit in 56 days — what needs to happen before then?" },
+      { label: "Fix the critical gaps first",          prompt: "Walk me through a remediation plan for the 2 critical compliance gaps (AC-2 and CC6.1)" },
+      { label: "Which evidence is overdue?",           prompt: "Which evidence items are overdue or at risk before upcoming audits, and who owns them?" },
+      { label: "How do these gaps affect our attack surface?", prompt: "How do the open compliance gaps worsen our attack paths and blast radius?" },
+      { label: "Generate a compliance summary report", prompt: "Generate a compliance summary report across all active frameworks suitable for a leadership review" },
+      { label: "What changed this week?",              prompt: "What compliance changes, policy updates, or new gaps appeared this week?" },
     ],
-    greeting: `I'm monitoring compliance posture across your active frameworks. 2 critical gaps are worsening ${totalPathsExposed} attack paths affecting ${totalAssetsAffected} assets, and the ISO 27001 audit is in 56 days with 72% readiness — want to start there?`,
+    greeting: `Compliance overview loaded. ISO 27001 audit is in 56 days with readiness at 72% — that's your most time-sensitive issue. 2 critical gaps (AC-2, CC6.1) are worsening ${totalPathsExposed} attack path${totalPathsExposed !== 1 ? "s" : ""} affecting ${totalAssetsAffected} asset${totalAssetsAffected !== 1 ? "s" : ""}. Want me to walk you through the highest priorities?`,
     graphContext: {
       totalPathsExposed,
       totalAssetsAffected,
       criticalGaps: GAPS.filter(g => g.severity === "critical").map(g => ({
-        id: g.id,
-        control: g.control,
-        title: g.title,
+        id: g.id, control: g.control, title: g.title,
         affectedPaths: getPathsForGap(g.id).map(p => p.name),
         affectedAssets: getAssetsForGap(g.id).map(a => a.name),
       })),
@@ -163,9 +171,77 @@ const MONITOR_STATUS_COLOR: Record<MonitorStatus, string> = {
 
 const MONITOR_STATUS_ICON: Record<MonitorStatus, React.ReactNode> = {
   passing: <CheckCircle2 size={11} color={colors.success} />,
-  failing: <XCircle size={11} color={colors.critical} />,
-  warning: <AlertCircle size={11} color={colors.medium} />,
+  failing: <XCircle       size={11} color={colors.critical} />,
+  warning: <AlertCircle   size={11} color={colors.medium}   />,
 };
+
+/* ================================================================
+   FOCUS BANNER — surfaces the #1 priority near the top
+   ================================================================ */
+
+function FocusBanner({ onReviewGaps, onAuditPrep }: {
+  onReviewGaps: () => void;
+  onAuditPrep: () => void;
+}) {
+  const criticalCount = GAPS.filter(g => g.severity === "critical").length;
+  const urgentAudit = [...UPCOMING_AUDITS].sort((a, b) => a.daysUntil - b.daysUntil)[0];
+  const isAuditRisk = urgentAudit.readiness < 80;
+
+  return (
+    <div
+      className="flex-none mx-[32px] mt-[20px] rounded-[12px] p-[16px] flex items-start gap-[14px]"
+      style={{
+        background: `linear-gradient(135deg, rgba(255,87,87,0.07) 0%, rgba(245,179,1,0.06) 100%)`,
+        border: `1px solid rgba(255,87,87,0.22)`,
+      }}
+    >
+      {/* Icon */}
+      <div
+        className="shrink-0 flex items-center justify-center rounded-[8px] size-[36px] mt-[1px]"
+        style={{ background: `${colors.critical}18`, border: `1px solid ${colors.critical}2a` }}
+      >
+        <AlertTriangle size={16} color={colors.critical} />
+      </div>
+
+      {/* Text */}
+      <div className="flex-1 min-w-0">
+        <p style={{ fontSize: 13, fontWeight: 700, color: colors.textPrimary, lineHeight: 1.3 }}>
+          {criticalCount} critical gap{criticalCount !== 1 ? "s" : ""} require immediate action
+        </p>
+        <p style={{ fontSize: 12, color: colors.textMuted, marginTop: 4, lineHeight: 1.5 }}>
+          {isAuditRisk
+            ? `${urgentAudit.name} is in ${urgentAudit.daysUntil} days with readiness at ${urgentAudit.readiness}% — below the safe threshold. The MFA and key rotation gaps are the main blockers.`
+            : `Your next audit (${urgentAudit.name}) is in ${urgentAudit.daysUntil} days. Review open gaps to stay on track.`
+          }
+        </p>
+      </div>
+
+      {/* Actions */}
+      <div className="shrink-0 flex items-center gap-[8px]">
+        <button
+          onClick={onReviewGaps}
+          className="flex items-center gap-[5px] px-[11px] py-[7px] rounded-[7px] text-[11px] font-semibold cursor-pointer transition-colors"
+          style={{ background: `${colors.critical}18`, color: colors.critical, border: `1px solid ${colors.critical}2a` }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${colors.critical}28`; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${colors.critical}18`; }}
+        >
+          <AlertTriangle size={10} />
+          Review critical gaps
+        </button>
+        <button
+          onClick={onAuditPrep}
+          className="flex items-center gap-[5px] px-[11px] py-[7px] rounded-[7px] text-[11px] font-semibold cursor-pointer transition-colors"
+          style={{ background: `${colors.medium}14`, color: colors.medium, border: `1px solid ${colors.medium}28` }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${colors.medium}24`; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${colors.medium}14`; }}
+        >
+          <Calendar size={10} />
+          Check audit prep
+        </button>
+      </div>
+    </div>
+  );
+}
 
 /* ================================================================
    SUB-COMPONENTS
@@ -173,11 +249,10 @@ const MONITOR_STATUS_ICON: Record<MonitorStatus, React.ReactNode> = {
 
 function ScoreBadge({ score, trend }: { score: number; trend: string }) {
   const trendNum = parseInt(trend);
+  const scoreColor = score >= 90 ? colors.success : score >= 80 ? colors.medium : colors.critical;
   return (
     <div className="flex items-center gap-[6px]">
-      <span style={{ fontSize: 20, fontWeight: 700, color: score >= 90 ? colors.success : score >= 80 ? colors.medium : colors.critical }}>
-        {score}%
-      </span>
+      <span style={{ fontSize: 20, fontWeight: 700, color: scoreColor }}>{score}%</span>
       {trendNum !== 0 && (
         <span style={{ fontSize: 11, color: trendNum > 0 ? colors.success : colors.critical }}>
           {trendNum > 0 ? "+" : ""}{trend}
@@ -188,30 +263,37 @@ function ScoreBadge({ score, trend }: { score: number; trend: string }) {
 }
 
 function FrameworkRow({ fw }: { fw: typeof FRAMEWORKS[number] }) {
-  const passWidth = `${(fw.passing / fw.controls) * 100}%`;
-  const failWidth = `${(fw.failing / fw.controls) * 100}%`;
-  const inProgressWidth = `${(fw.inProgress / fw.controls) * 100}%`;
+  const passWidth      = `${(fw.passing    / fw.controls) * 100}%`;
+  const failWidth      = `${(fw.failing    / fw.controls) * 100}%`;
+  const inProgressWidth= `${(fw.inProgress / fw.controls) * 100}%`;
+  const isTrending     = parseInt(fw.trend) < 0;
+
   return (
     <div
       className="flex flex-col gap-[10px] p-[16px] rounded-[10px]"
-      style={{ background: colors.bgCard, border: `1px solid ${colors.border}` }}
+      style={{
+        background: colors.bgCard,
+        border: `1px solid ${isTrending ? colors.medium + "44" : colors.border}`,
+      }}
     >
       <div className="flex items-start justify-between gap-[8px]">
         <div>
           <p style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>{fw.name}</p>
-          <p style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>{fw.controls} controls</p>
+          <p style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>
+            {fw.controls} controls · {fw.failing} failing
+          </p>
         </div>
         <ScoreBadge score={fw.score} trend={fw.trend} />
       </div>
       <div className="flex h-[5px] rounded-full overflow-hidden w-full" style={{ background: "rgba(255,255,255,0.06)" }}>
-        <div style={{ width: passWidth, background: colors.success }} />
+        <div style={{ width: passWidth,       background: colors.success }} />
         <div style={{ width: inProgressWidth, background: colors.medium }} />
-        <div style={{ width: failWidth, background: colors.critical }} />
+        <div style={{ width: failWidth,       background: colors.critical }} />
       </div>
       <div className="flex gap-[14px]">
-        <span style={{ fontSize: 10, color: colors.success }}>{fw.passing} passing</span>
-        <span style={{ fontSize: 10, color: colors.medium }}>{fw.inProgress} in progress</span>
-        <span style={{ fontSize: 10, color: colors.critical }}>{fw.failing} failing</span>
+        <span style={{ fontSize: 10, color: colors.success  }}>{fw.passing}    passing</span>
+        <span style={{ fontSize: 10, color: colors.medium   }}>{fw.inProgress} in progress</span>
+        <span style={{ fontSize: 10, color: colors.critical }}>{fw.failing}    failing</span>
       </div>
     </div>
   );
@@ -228,18 +310,13 @@ function EntityChip({ label, color, onClick }: { label: string; color: string; o
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        display: "inline-flex",
-        alignItems: "center",
-        padding: "2px 8px",
-        borderRadius: 999,
-        fontSize: 10,
-        fontWeight: 500,
+        display: "inline-flex", alignItems: "center",
+        padding: "2px 8px", borderRadius: 999,
+        fontSize: 10, fontWeight: 500,
         background: hovered && onClick ? `${color}28` : `${color}14`,
-        color,
-        border: `1px solid ${color}30`,
+        color, border: `1px solid ${color}30`,
         cursor: onClick ? "pointer" : "default",
-        transition: "background 0.12s ease",
-        whiteSpace: "nowrap",
+        transition: "background 0.12s ease", whiteSpace: "nowrap",
       }}
     >
       {label}
@@ -250,9 +327,12 @@ function EntityChip({ label, color, onClick }: { label: string; color: string; o
 function GapRow({ gap }: { gap: typeof GAPS[number] }) {
   const navigate = useNavigate();
   const { openWithContext } = useAiBox();
-  const relatedPaths = getPathsForGap(gap.id);
-  const affectedAssets = getAssetsForGap(gap.id);
-  const blastImpact = getBlastRadiusImpactForGap(gap.id);
+  const relatedPaths  = getPathsForGap(gap.id);
+  const affectedAssets= getAssetsForGap(gap.id);
+  const blastImpact   = getBlastRadiusImpactForGap(gap.id);
+
+  const registeredAssets = affectedAssets.filter(a => a.type === "registered");
+  const blastAssets      = affectedAssets.filter(a => a.type === "blast-radius");
 
   function handleAskAI(e: React.MouseEvent) {
     e.stopPropagation();
@@ -264,54 +344,53 @@ function GapRow({ gap }: { gap: typeof GAPS[number] }) {
       contextKey: `compliance-gap:${gap.id}`,
       greeting: `I have the **${gap.control}** compliance gap loaded (${gap.framework}). This is a **${gap.severity}** severity issue: "${gap.title}"${relatedPaths.length > 0 ? ` — it worsens ${relatedPaths.length} attack path${relatedPaths.length > 1 ? "s" : ""} (${pathNames})` : ""}. How can I help?`,
       suggestions: [
-        { label: "Explain the impact of this gap", prompt: `Explain the impact of the ${gap.control} compliance gap: "${gap.title}"` },
-        { label: "What attack paths does this worsen?", prompt: `Which attack paths are worsened by the ${gap.control} gap (${gap.framework})?` },
-        { label: "Suggest remediation steps", prompt: `Suggest remediation steps for fixing the ${gap.control} gap: "${gap.title}"` },
-        { label: "Estimate remediation effort", prompt: `Estimate the effort to fix the ${gap.control} gap and reduce its blast radius` },
+        { label: "Explain the impact",         prompt: `Explain the business impact of the ${gap.control} compliance gap: "${gap.title}"` },
+        { label: "Show remediation steps",     prompt: `Give me step-by-step remediation for the ${gap.control} gap (${gap.framework}): "${gap.title}"` },
+        { label: "Who should fix this?",       prompt: `Who should own the remediation of ${gap.control} (${gap.framework}) and what's a realistic timeline?` },
+        { label: "Impact on attack paths",     prompt: `Which attack paths are worsened by the ${gap.control} gap and by how much?` },
       ],
     });
   }
-
-  const registeredAssets = affectedAssets.filter(a => a.type === "registered");
-  const blastAssets = affectedAssets.filter(a => a.type === "blast-radius");
 
   return (
     <div
       className="flex flex-col gap-[10px] p-[12px] rounded-[8px]"
       style={{ background: SEVERITY_BG[gap.severity], border: `1px solid ${SEVERITY_COLOR[gap.severity]}22` }}
     >
-      <div className="flex items-start gap-[12px]">
+      {/* Main row */}
+      <div className="flex items-start gap-[10px]">
         <div
-          className="shrink-0 mt-[2px] px-[6px] py-[2px] rounded-[4px] text-[10px] font-semibold uppercase tracking-wide"
+          className="shrink-0 mt-[1px] px-[6px] py-[2px] rounded-[4px] text-[10px] font-semibold uppercase tracking-wide"
           style={{ background: SEVERITY_COLOR[gap.severity] + "22", color: SEVERITY_COLOR[gap.severity] }}
         >
           {gap.severity}
         </div>
         <div className="flex-1 min-w-0">
-          <span style={{ fontSize: 11, fontWeight: 600, color: colors.textPrimary }}>{gap.title}</span>
+          <p style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary, lineHeight: 1.35 }}>{gap.title}</p>
           <div className="flex items-center gap-[10px] mt-[4px] flex-wrap">
             <span style={{ fontSize: 10, color: colors.textMuted }}>{gap.framework} · {gap.control}</span>
-            <span style={{ fontSize: 10, color: colors.textDim }}>Open {gap.daysOpen}d</span>
-            <span style={{ fontSize: 10, color: colors.textDim }}>Owner: {gap.owner}</span>
+            <span style={{ fontSize: 10, color: colors.textDim   }}>Open {gap.daysOpen} days</span>
+            <span style={{ fontSize: 10, color: colors.textDim   }}>Owner: {gap.owner}</span>
           </div>
         </div>
-        <div className="shrink-0 flex items-center gap-[8px]">
-          <button
-            onClick={handleAskAI}
-            title={`Ask AI about ${gap.control}`}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 4,
-              padding: "2px 7px", borderRadius: 99, fontSize: 10, fontWeight: 600,
-              background: `${SEVERITY_COLOR[gap.severity]}10`, color: SEVERITY_COLOR[gap.severity],
-              border: `1px solid ${SEVERITY_COLOR[gap.severity]}2a`, cursor: "pointer", whiteSpace: "nowrap",
-            }}
-          >
-            <Sparkles size={9} />
-            Ask AI
-          </button>
-        </div>
+        <button
+          onClick={handleAskAI}
+          title={`Get remediation help for ${gap.control}`}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 4,
+            padding: "4px 9px", borderRadius: 99, fontSize: 10, fontWeight: 600,
+            background: `${SEVERITY_COLOR[gap.severity]}10`,
+            color: SEVERITY_COLOR[gap.severity],
+            border: `1px solid ${SEVERITY_COLOR[gap.severity]}2a`,
+            cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
+          }}
+        >
+          <Sparkles size={9} />
+          Remediate
+        </button>
       </div>
 
+      {/* Cross-entity context */}
       {(relatedPaths.length > 0 || affectedAssets.length > 0) && (
         <div className="flex flex-col gap-[6px] pt-[8px]" style={{ borderTop: `1px solid ${SEVERITY_COLOR[gap.severity]}18` }}>
           {relatedPaths.length > 0 && (
@@ -327,7 +406,7 @@ function GapRow({ gap }: { gap: typeof GAPS[number] }) {
           {affectedAssets.length > 0 && (
             <div className="flex items-center gap-[6px] flex-wrap">
               <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: colors.textDim, flexShrink: 0 }}>
-                <Server size={10} />{affectedAssets.length} asset{affectedAssets.length > 1 ? "s" : ""} affected:
+                <Server size={10} />{affectedAssets.length} asset{affectedAssets.length > 1 ? "s" : ""} at risk:
               </span>
               {registeredAssets.map(a => (
                 <EntityChip key={a.assetId} label={a.name} color={colors.accent} onClick={() => navigate(`/asset-register/${a.assetId}`)} />
@@ -338,8 +417,8 @@ function GapRow({ gap }: { gap: typeof GAPS[number] }) {
             </div>
           )}
           {blastImpact && (
-            <p style={{ fontSize: 10, color: colors.textDim, lineHeight: "1.5", marginTop: 2 }}>
-              <span style={{ color: colors.success, fontWeight: 600 }}>↓ Remediation impact: </span>{blastImpact}
+            <p style={{ fontSize: 10, color: colors.textDim, lineHeight: 1.5, marginTop: 2 }}>
+              <span style={{ color: colors.success, fontWeight: 600 }}>↓ Fix this to: </span>{blastImpact}
             </p>
           )}
         </div>
@@ -350,14 +429,18 @@ function GapRow({ gap }: { gap: typeof GAPS[number] }) {
 
 /* ── Audit Readiness Card ── */
 
-function AuditCard({ audit }: { audit: typeof UPCOMING_AUDITS[number] }) {
-  const urgency = audit.daysUntil <= 60 ? colors.medium : colors.textDim;
+function AuditCard({ audit, onAskAI }: { audit: typeof UPCOMING_AUDITS[number]; onAskAI: () => void }) {
+  const isUrgent    = audit.daysUntil <= 60;
+  const isAtRisk    = audit.readiness < 80;
+  const urgentColor = isAtRisk ? colors.critical : isUrgent ? colors.medium : colors.textDim;
+  const borderColor = isUrgent && isAtRisk ? `${colors.medium}44` : colors.border;
+
   return (
     <div
-      className="flex flex-col gap-[10px] p-[14px] rounded-[10px]"
-      style={{ background: colors.bgCard, border: `1px solid ${colors.border}` }}
+      className="flex flex-col gap-[12px] p-[14px] rounded-[10px]"
+      style={{ background: colors.bgCard, border: `1px solid ${borderColor}` }}
     >
-      {/* Top row */}
+      {/* Header */}
       <div className="flex items-start justify-between gap-[8px]">
         <div className="flex-1 min-w-0">
           <p style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary, lineHeight: 1.3 }}>{audit.name}</p>
@@ -372,13 +455,13 @@ function AuditCard({ audit }: { audit: typeof UPCOMING_AUDITS[number] }) {
           </div>
         </div>
         <div className="text-right shrink-0">
-          <p style={{ fontSize: 16, fontWeight: 700, color: urgency }}>{audit.daysUntil}d</p>
-          <p style={{ fontSize: 9, color: colors.textDim }}>{audit.date}</p>
+          <p style={{ fontSize: 17, fontWeight: 700, color: urgentColor, lineHeight: 1 }}>{audit.daysUntil}d</p>
+          <p style={{ fontSize: 9, color: colors.textDim, marginTop: 2 }}>{audit.date}</p>
         </div>
       </div>
 
       {/* Readiness bar */}
-      <div className="flex flex-col gap-[4px]">
+      <div className="flex flex-col gap-[5px]">
         <div className="flex items-center justify-between">
           <span style={{ fontSize: 10, color: colors.textMuted }}>Readiness</span>
           <span style={{ fontSize: 11, fontWeight: 700, color: audit.readiness >= 85 ? colors.success : audit.readiness >= 70 ? colors.medium : colors.critical }}>
@@ -386,27 +469,45 @@ function AuditCard({ audit }: { audit: typeof UPCOMING_AUDITS[number] }) {
           </span>
         </div>
         <div className="flex h-[4px] rounded-full overflow-hidden w-full" style={{ background: "rgba(255,255,255,0.06)" }}>
-          <div
-            style={{
-              width: `${audit.readiness}%`,
-              background: audit.readiness >= 85 ? colors.success : audit.readiness >= 70 ? colors.medium : colors.critical,
-              borderRadius: 999,
-              transition: "width 0.4s ease",
-            }}
-          />
+          <div style={{ width: `${audit.readiness}%`, background: audit.readiness >= 85 ? colors.success : audit.readiness >= 70 ? colors.medium : colors.critical, borderRadius: 999, transition: "width 0.4s ease" }} />
         </div>
+        {isAtRisk && (
+          <p style={{ fontSize: 10, color: colors.medium, marginTop: 1 }}>
+            Below 80% — needs attention before audit
+          </p>
+        )}
       </div>
 
-      {/* Key risks */}
+      {/* Blocking risks */}
       {audit.keyRisks.length > 0 && (
-        <div className="flex flex-col gap-[3px]">
+        <div
+          className="flex flex-col gap-[4px] rounded-[6px] p-[8px]"
+          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
+        >
+          <p style={{ fontSize: 9, fontWeight: 600, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 2 }}>
+            Blocking issues
+          </p>
           {audit.keyRisks.map((r, i) => (
-            <div key={i} className="flex items-start gap-[5px]">
-              <span className="mt-[5px] shrink-0 size-[4px] rounded-full" style={{ background: colors.medium }} />
+            <div key={i} className="flex items-start gap-[6px]">
+              <AlertCircle size={10} color={colors.medium} style={{ marginTop: 2, flexShrink: 0 }} />
               <span style={{ fontSize: 10, color: colors.textDim, lineHeight: 1.5 }}>{r}</span>
             </div>
           ))}
         </div>
+      )}
+
+      {/* Action */}
+      {(isUrgent || isAtRisk) && (
+        <button
+          onClick={onAskAI}
+          className="flex items-center justify-center gap-[5px] w-full py-[7px] rounded-[7px] text-[11px] font-semibold cursor-pointer transition-colors"
+          style={{ background: `${colors.medium}14`, color: colors.medium, border: `1px solid ${colors.medium}28` }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${colors.medium}24`; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${colors.medium}14`; }}
+        >
+          <Sparkles size={10} />
+          Get audit preparation checklist
+        </button>
       )}
     </div>
   );
@@ -416,16 +517,19 @@ function AuditCard({ audit }: { audit: typeof UPCOMING_AUDITS[number] }) {
 
 function EvidenceRow({ item }: { item: typeof EVIDENCE_ITEMS[number] }) {
   const statusColor = EVIDENCE_STATUS_COLOR[item.status];
-  const StatusIcon = item.status === "collected"
+  const StatusIcon  = item.status === "collected"
     ? <CheckCircle2 size={11} color={statusColor} />
     : item.status === "overdue"
-    ? <XCircle size={11} color={statusColor} />
-    : <AlertCircle size={11} color={statusColor} />;
+    ? <XCircle      size={11} color={statusColor} />
+    : <AlertCircle  size={11} color={statusColor} />;
 
   return (
     <div
       className="flex items-center gap-[10px] px-[12px] py-[9px] rounded-[8px]"
-      style={{ background: colors.bgCard, border: `1px solid ${colors.border}` }}
+      style={{
+        background: item.status === "overdue" ? `${colors.critical}0a` : colors.bgCard,
+        border: `1px solid ${item.status === "overdue" ? colors.critical + "28" : colors.border}`,
+      }}
     >
       <div className="shrink-0">{StatusIcon}</div>
       <div className="flex-1 min-w-0">
@@ -439,7 +543,9 @@ function EvidenceRow({ item }: { item: typeof EVIDENCE_ITEMS[number] }) {
         >
           {item.status}
         </span>
-        <p style={{ fontSize: 9, color: colors.textDim, marginTop: 2 }}>Due {item.dueDate}</p>
+        <p style={{ fontSize: 9, color: item.status === "overdue" ? colors.critical : colors.textDim, marginTop: 2 }}>
+          Due {item.dueDate}
+        </p>
       </div>
     </div>
   );
@@ -452,7 +558,10 @@ function MonitorRow({ check }: { check: typeof MONITORING_CHECKS[number] }) {
   return (
     <div
       className="flex items-center gap-[10px] px-[12px] py-[9px] rounded-[8px]"
-      style={{ background: colors.bgCard, border: `1px solid ${colors.border}` }}
+      style={{
+        background: check.status === "failing" ? `${colors.critical}0a` : colors.bgCard,
+        border: `1px solid ${check.status === "failing" ? colors.critical + "28" : colors.border}`,
+      }}
     >
       <div className="shrink-0">{MONITOR_STATUS_ICON[check.status]}</div>
       <div className="flex-1 min-w-0">
@@ -461,14 +570,11 @@ function MonitorRow({ check }: { check: typeof MONITORING_CHECKS[number] }) {
       </div>
       <div className="shrink-0 text-right">
         {check.anomalies > 0 && (
-          <span
-            className="px-[6px] py-[2px] rounded-[4px] text-[9px] font-semibold"
-            style={{ background: `${statusColor}18`, color: statusColor }}
-          >
+          <span className="px-[6px] py-[2px] rounded-[4px] text-[9px] font-semibold" style={{ background: `${statusColor}18`, color: statusColor }}>
             {check.anomalies} anomal{check.anomalies === 1 ? "y" : "ies"}
           </span>
         )}
-        <p style={{ fontSize: 9, color: colors.textDim, marginTop: 2 }}>{check.lastRun}</p>
+        <p style={{ fontSize: 9, color: colors.textDim, marginTop: check.anomalies > 0 ? 2 : 0 }}>{check.lastRun}</p>
       </div>
     </div>
   );
@@ -476,11 +582,18 @@ function MonitorRow({ check }: { check: typeof MONITORING_CHECKS[number] }) {
 
 /* ── KPI Strip ── */
 
-function KpiCard({ label, value, sub, color }: { label: string; value: string | number; sub?: string; color?: string }) {
+function KpiCard({
+  label, value, sub, color, highlight,
+}: {
+  label: string; value: string | number; sub?: string; color?: string; highlight?: boolean;
+}) {
   return (
     <div
       className="flex flex-col gap-[2px] px-[16px] py-[12px] rounded-[10px] flex-1"
-      style={{ background: colors.bgCard, border: `1px solid ${colors.border}` }}
+      style={{
+        background: highlight ? `rgba(255,255,255,0.04)` : colors.bgCard,
+        border: `1px solid ${highlight ? "rgba(255,255,255,0.1)" : colors.border}`,
+      }}
     >
       <p style={{ fontSize: 10, color: colors.textDim }}>{label}</p>
       <p style={{ fontSize: 20, fontWeight: 700, color: color || colors.textPrimary, lineHeight: 1.2 }}>{value}</p>
@@ -494,20 +607,53 @@ function KpiCard({ label, value, sub, color }: { label: string; value: string | 
    ================================================================ */
 
 export default function CompliancePage() {
-  const { setPageContext } = useAiBox();
+  const { setPageContext, openWithContext } = useAiBox();
 
   useEffect(() => {
     setPageContext(buildPageContext());
   }, [setPageContext]);
 
-  const criticalGaps = GAPS.filter(g => g.severity === "critical").length;
-  const highGaps = GAPS.filter(g => g.severity === "high").length;
-  const avgScore = Math.round(FRAMEWORKS.reduce((s, f) => s + f.score, 0) / FRAMEWORKS.length);
-  const totalControls = FRAMEWORKS.reduce((s, f) => s + f.controls, 0);
-  const passingControls = FRAMEWORKS.reduce((s, f) => s + f.passing, 0);
+  const criticalGaps      = GAPS.filter(g => g.severity === "critical").length;
+  const avgScore          = Math.round(FRAMEWORKS.reduce((s, f) => s + f.score, 0) / FRAMEWORKS.length);
+  const totalControls     = FRAMEWORKS.reduce((s, f) => s + f.controls, 0);
+  const passingControls   = FRAMEWORKS.reduce((s, f) => s + f.passing, 0);
   const evidenceCollected = EVIDENCE_ITEMS.filter(e => e.status === "collected").length;
-  const monitorFailing = MONITORING_CHECKS.filter(m => m.status === "failing").length;
-  const nextAuditDays = Math.min(...UPCOMING_AUDITS.map(a => a.daysUntil));
+  const evidenceOverdue   = EVIDENCE_ITEMS.filter(e => e.status === "overdue").length;
+  const monitorFailing    = MONITORING_CHECKS.filter(m => m.status === "failing").length;
+  const nextAuditDays     = Math.min(...UPCOMING_AUDITS.map(a => a.daysUntil));
+  const nextAudit         = UPCOMING_AUDITS.find(a => a.daysUntil === nextAuditDays)!;
+
+  function handleReviewGaps() {
+    openWithContext({
+      type: "general",
+      label: "Critical Gaps",
+      sublabel: "Remediation Priority",
+      contextKey: "compliance-critical-gaps",
+      greeting: `You have 2 critical compliance gaps open right now:\n\n1. **AC-2** (NIST CSF) — Privileged account lifecycle not enforced — open 14 days\n2. **CC6.1** (SOC 2) — MFA not required on 12 service accounts — open 8 days\n\nBoth are blocking your upcoming audits. Where would you like to start?`,
+      suggestions: [
+        { label: "Remediation plan for AC-2",         prompt: "Give me a step-by-step remediation plan for AC-2 (Privileged account lifecycle not enforced)" },
+        { label: "Remediation plan for CC6.1",        prompt: "Give me a step-by-step remediation plan for CC6.1 (MFA not required on service accounts)" },
+        { label: "Which is faster to fix?",           prompt: "Which of the two critical gaps (AC-2 vs CC6.1) is faster to remediate and what's the risk of waiting?" },
+        { label: "Who should own these?",             prompt: "Who should own the remediation of AC-2 and CC6.1, and what's a realistic timeline for each?" },
+      ],
+    });
+  }
+
+  function handleAuditPrep() {
+    openWithContext({
+      type: "general",
+      label: "ISO 27001 Prep",
+      sublabel: "56 days until audit",
+      contextKey: "compliance-audit-iso27001",
+      greeting: `ISO 27001 Surveillance audit is in 56 days with readiness at **72%** — below the recommended 80% threshold.\n\nThe two main blockers are:\n- Key rotation policy not enforced (A.9.4)\n- Vendor risk backlog (8 overdue assessments)\n\nWant me to create a preparation plan?`,
+      suggestions: [
+        { label: "Create a 56-day prep plan",         prompt: "Create a week-by-week preparation plan to get ISO 27001 readiness from 72% to 90%+ before the audit in 56 days" },
+        { label: "Fix the key rotation gap first",    prompt: "What needs to happen to close the encryption key rotation gap (A.9.4) before the ISO 27001 audit?" },
+        { label: "Clear the vendor risk backlog",     prompt: "How do we clear 8 overdue vendor risk assessments before the ISO 27001 surveillance audit?" },
+        { label: "What if we go in at 72% readiness?",prompt: "What's the risk of entering the ISO 27001 surveillance audit at 72% readiness? What are auditors likely to flag?" },
+      ],
+    });
+  }
 
   return (
     <div className="flex-1 flex flex-col overflow-y-auto" style={{ backgroundColor: colors.bgApp }}>
@@ -517,59 +663,64 @@ export default function CompliancePage() {
         <PageHeader
           icon={<Shield size={18} style={{ color: colors.accent }} />}
           title="Compliance"
-          subtitle="Posture, audit readiness, evidence, and continuous controls monitoring"
+          subtitle="Track your certification posture, close gaps, collect evidence, and prepare for audits"
           actions={undefined}
         />
       </div>
 
+      {/* ── Focus Banner — highest priority at the top ── */}
+      <FocusBanner onReviewGaps={handleReviewGaps} onAuditPrep={handleAuditPrep} />
+
       {/* ── KPI Strip ── */}
-      <div className="flex-none px-[32px] pt-[20px] pb-[4px]">
+      <div className="flex-none px-[32px] pt-[16px] pb-[4px]">
         <div className="flex gap-[10px]">
-          <KpiCard label="Avg Score" value={`${avgScore}%`} sub="across 5 frameworks" color={avgScore >= 90 ? colors.success : colors.medium} />
-          <KpiCard label="Critical Gaps" value={criticalGaps} sub="need immediate action" color={colors.critical} />
-          <KpiCard label="High Gaps" value={highGaps} sub="open" color={colors.high} />
-          <KpiCard label="Controls" value={`${passingControls}/${totalControls}`} sub="passing" color={colors.success} />
-          <KpiCard label="Evidence" value={`${evidenceCollected}/${EVIDENCE_ITEMS.length}`} sub="items collected" color={evidenceCollected === EVIDENCE_ITEMS.length ? colors.success : colors.medium} />
-          <KpiCard label="Next Audit" value={`${nextAuditDays}d`} sub="ISO 27001" color={nextAuditDays <= 60 ? colors.medium : colors.textPrimary} />
-          <KpiCard label="Monitor Alerts" value={monitorFailing} sub="checks failing" color={monitorFailing > 0 ? colors.critical : colors.success} />
+          <KpiCard label="Avg Score"       value={`${avgScore}%`}                sub="5 frameworks"           color={avgScore >= 90 ? colors.success : colors.medium} />
+          <KpiCard label="Critical Gaps"   value={criticalGaps}                  sub="need immediate fix"     color={colors.critical}  highlight />
+          <KpiCard label="Next Audit"      value={`${nextAuditDays}d`}           sub={nextAudit.framework}    color={nextAuditDays <= 60 ? colors.medium : colors.textPrimary} highlight />
+          <KpiCard label="Controls"        value={`${passingControls}/${totalControls}`} sub="passing"       color={colors.success} />
+          <KpiCard label="Evidence"        value={`${evidenceCollected}/${EVIDENCE_ITEMS.length}`} sub={evidenceOverdue > 0 ? `${evidenceOverdue} overdue` : "collected"} color={evidenceOverdue > 0 ? colors.critical : colors.success} />
+          <KpiCard label="Live Monitors"   value={monitorFailing > 0 ? monitorFailing : "All clear"} sub={monitorFailing > 0 ? "checks failing" : "no failures"} color={monitorFailing > 0 ? colors.critical : colors.success} />
         </div>
       </div>
 
       {/* ── Body: two-column layout ── */}
       <div className="flex-1 px-[32px] py-[24px] flex gap-[24px] min-h-0">
 
-        {/* Left column — Frameworks + Gaps + Policy */}
+        {/* Left column — sorted by urgency: Gaps → Frameworks → Policy */}
         <div className="flex-1 min-w-0 flex flex-col gap-[28px]">
 
-          {/* Frameworks */}
-          <section>
-            <SectionLabel
-              icon={<TrendingUp size={13} color={colors.textMuted} />}
-              label="Active Frameworks"
-              count={FRAMEWORKS.length}
-            />
-            <div className="grid gap-[12px]" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}>
-              {FRAMEWORKS.map(fw => <FrameworkRow key={fw.id} fw={fw} />)}
-            </div>
-          </section>
-
-          {/* Open Gaps */}
+          {/* Open Gaps — first, most actionable */}
           <section>
             <SectionLabel
               icon={<AlertTriangle size={13} color={colors.medium} />}
-              label="Open Gaps"
+              label="Open Control Gaps"
               count={GAPS.length}
+              description="Issues that are blocking your certifications and need to be fixed"
             />
             <div className="flex flex-col gap-[8px]">
               {GAPS.map(gap => <GapRow key={gap.id} gap={gap} />)}
             </div>
           </section>
 
-          {/* Recent Policy Changes */}
+          {/* Frameworks — context, not action */}
+          <section>
+            <SectionLabel
+              icon={<TrendingUp size={13} color={colors.textMuted} />}
+              label="Framework Status"
+              count={FRAMEWORKS.length}
+              description="How you're scoring across each active compliance framework"
+            />
+            <div className="grid gap-[12px]" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}>
+              {FRAMEWORKS.map(fw => <FrameworkRow key={fw.id} fw={fw} />)}
+            </div>
+          </section>
+
+          {/* Policy Changes — lowest urgency */}
           <section>
             <SectionLabel
               icon={<FileText size={13} color={colors.textMuted} />}
               label="Recent Policy Changes"
+              description="Control policies updated in the last 30 days"
             />
             <div className="flex flex-col gap-[8px]">
               {RECENT_POLICY_CHANGES.map(p => (
@@ -592,64 +743,88 @@ export default function CompliancePage() {
           </section>
         </div>
 
-        {/* Right column — Audit Readiness + Evidence + Monitoring */}
+        {/* Right column — Upcoming Audits → Evidence → Monitoring */}
         <div className="w-[340px] shrink-0 flex flex-col gap-[28px]">
 
-          {/* Audit Readiness */}
+          {/* Upcoming Audits */}
           <section>
             <SectionLabel
               icon={<Calendar size={13} color={colors.textMuted} />}
-              label="Audit Readiness"
+              label="Upcoming Audits"
               count={UPCOMING_AUDITS.length}
+              description="Preparation status for scheduled assessments"
             />
             <div className="flex flex-col gap-[10px]">
-              {UPCOMING_AUDITS.map(audit => <AuditCard key={audit.id} audit={audit} />)}
+              {[...UPCOMING_AUDITS]
+                .sort((a, b) => a.daysUntil - b.daysUntil)
+                .map(audit => (
+                  <AuditCard
+                    key={audit.id}
+                    audit={audit}
+                    onAskAI={() => openWithContext({
+                      type: "general",
+                      label: audit.name,
+                      sublabel: `${audit.daysUntil} days until audit`,
+                      contextKey: `compliance-audit:${audit.id}`,
+                      greeting: `${audit.name} is in ${audit.daysUntil} days. Readiness is at ${audit.readiness}%. Blocking issues: ${audit.keyRisks.join("; ")}. How can I help you prepare?`,
+                      suggestions: [
+                        { label: "Build a preparation checklist", prompt: `Create a preparation checklist for the ${audit.name} audit in ${audit.daysUntil} days` },
+                        { label: "Fix blocking issues",           prompt: `How do I resolve these blocking issues before ${audit.name}: ${audit.keyRisks.join(", ")}?` },
+                        { label: "What will auditors check?",     prompt: `What are auditors most likely to focus on in a ${audit.framework} ${audit.name.includes("Surveillance") ? "surveillance" : ""} audit?` },
+                      ],
+                    })}
+                  />
+                ))
+              }
             </div>
           </section>
 
-          {/* Evidence Collection */}
+          {/* Evidence Tracker */}
           <section>
-            <div className="flex items-center justify-between mb-[10px]">
+            <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
               <SectionLabel
                 icon={<FolderOpen size={13} color={colors.textMuted} />}
-                label="Evidence Collection"
+                label="Evidence Tracker"
                 count={EVIDENCE_ITEMS.length}
               />
-              <div className="flex items-center gap-[4px]" style={{ fontSize: 10, color: colors.textDim }}>
+              <div style={{ fontSize: 10, color: colors.textDim, marginBottom: 12 }}>
                 <span style={{ color: colors.success, fontWeight: 600 }}>{evidenceCollected}</span>/{EVIDENCE_ITEMS.length} collected
+                {evidenceOverdue > 0 && (
+                  <span style={{ color: colors.critical, fontWeight: 600, marginLeft: 8 }}>· {evidenceOverdue} overdue</span>
+                )}
               </div>
             </div>
-            {/* Progress bar */}
             <div className="mb-[10px] flex h-[3px] rounded-full overflow-hidden w-full" style={{ background: "rgba(255,255,255,0.06)" }}>
               <div style={{ width: `${(evidenceCollected / EVIDENCE_ITEMS.length) * 100}%`, background: colors.success }} />
               <div style={{ width: `${(EVIDENCE_ITEMS.filter(e => e.status === "pending").length / EVIDENCE_ITEMS.length) * 100}%`, background: colors.medium }} />
               <div style={{ width: `${(EVIDENCE_ITEMS.filter(e => e.status === "overdue").length / EVIDENCE_ITEMS.length) * 100}%`, background: colors.critical }} />
             </div>
             <div className="flex flex-col gap-[6px]">
-              {EVIDENCE_ITEMS.map(item => <EvidenceRow key={item.id} item={item} />)}
+              {EVIDENCE_SORTED.map(item => <EvidenceRow key={item.id} item={item} />)}
             </div>
           </section>
 
-          {/* Continuous Monitoring */}
+          {/* Live Controls Monitor */}
           <section>
-            <div className="flex items-center justify-between mb-[10px]">
+            <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
               <SectionLabel
                 icon={<Activity size={13} color={colors.textMuted} />}
-                label="Continuous Monitoring"
+                label="Live Controls Monitor"
                 count={MONITORING_CHECKS.length}
               />
-              {monitorFailing > 0 && (
+              {monitorFailing > 0 ? (
                 <span
                   className="flex items-center gap-[4px] px-[6px] py-[2px] rounded-[4px] text-[10px] font-semibold"
-                  style={{ background: `${colors.critical}18`, color: colors.critical }}
+                  style={{ background: `${colors.critical}18`, color: colors.critical, marginBottom: 12 }}
                 >
-                  <XCircle size={9} />
-                  {monitorFailing} failing
+                  <XCircle size={9} />{monitorFailing} failing
                 </span>
+              ) : (
+                <span style={{ fontSize: 10, color: colors.success, marginBottom: 12 }}>All passing</span>
               )}
             </div>
             <div className="flex flex-col gap-[6px]">
-              {MONITORING_CHECKS.map(check => <MonitorRow key={check.id} check={check} />)}
+              {MONITORING_SORTED.map(check => <MonitorRow key={check.id} check={check} />)}
             </div>
           </section>
         </div>
