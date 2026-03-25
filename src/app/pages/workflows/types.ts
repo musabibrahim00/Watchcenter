@@ -175,3 +175,19 @@ export interface RunStatistics {
   avgDuration: string;
   successRate: string;
 }
+/* ================================================================
+   UI TYPES — Workflows Index Page
+   ================================================================ */
+
+export type WorkflowStatus = "running" | "completed" | "approval_required" | "disabled";
+
+export interface WorkflowCard {
+  id: string;
+  title: string;
+  description: string;
+  tags: string[];
+  status: WorkflowStatus;
+  runCount?: number;
+  lastRun?: string;
+  actions?: string[];
+}

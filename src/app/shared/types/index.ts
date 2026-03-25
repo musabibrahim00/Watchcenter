@@ -38,7 +38,7 @@ export type { ChatMessage, TaskNode, TaskGraph } from "../../../imports/AiBoxSha
 
 /* ── Investigation types ── */
 export type { InvestigationScenario } from "../../features/watch-center/InvestigationContext";
-export type { TaskInvestigationRequest } from "../../../imports/TaskInvestigationBridge";
+export type { TaskInvestigationRequest } from "../../features/investigation/TaskInvestigationBridge";
 
 /* ── Data types ── */
 export type {

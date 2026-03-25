@@ -56,11 +56,22 @@ src/
       ui/               # Shared UI primitives (shadcn/radix components)
     features/           # Domain feature modules
       agent-detail/     # Agent detail barrel export
-      ai-box/           # AIBox context, deep-link resolver, multi-agent engine
+      ai-box/           # AIBox feature — canonical home for all AI assistant logic
+        AiBoxContext.tsx    # open/close context + page context API
+        workflowAiEngine.ts # workflow plan/canvas dispatch
+        multiAgentEngine.ts # analyst routing + multi-agent intent
+        deepLink*.ts        # URL-based context resolution
+        components/         # Presentational chat components (ActionCard, MessageBubble, …)
+        data/               # Static action catalog + matchAction
+        types/              # Pure TypeScript type definitions (no React)
+        utils/              # Pure helper functions (classifiers, result derivation)
+        index.ts            # Public barrel export for the feature
       charts/           # Recharts wrappers
-      investigation/    # TimeTravelContext + barrel export
+      compliance/       # ActionableEvidenceRow + evidence store
+      investigation/    # InvestigationTimeline, TaskInvestigationBridge + barrel export
       persona/          # PersonaContext + barrel export
-      watch-center/     # StatusContext, InvestigationContext, AgentNarratives
+      watch-center/     # StatusContext, InvestigationContext, AgentNarratives,
+                        # ActivityFeed, KpiWidget
     pages/              # Route-level page components
       AgentDetailPage.tsx
       AttackPathPage.tsx
@@ -68,17 +79,19 @@ src/
       AssetDetailPage.tsx
       CompliancePage.tsx
       IntegrationsPage.tsx
+      attack-path/      # Attack path graph data, layout utils, InsightsPanel
       asset-register/   # Asset Register page + data
       case-management/  # Dashboard, list, detail, modals, case data
       workflows/        # Workflows index, builder, engine, tabs, modals
+                        # StepFormComponents.tsx, WorkflowUIHelpers.tsx (extracted)
     shared/
       components/       # Shared design system components
         layout/           # PageContainer, ChartContainer, DashboardGrid
-      contexts/         # React contexts
+      contexts/         # React contexts (TimeTravelContext)
       data/             # Static mock data (agent-tasks, interventions, hub, workflows…)
       design-system/    # Design tokens and system helpers
       graph/            # Entity graph store, nodes, edges, adapters, perf utils
-      services/         # Service layer utilities
+      services/         # Service layer (SessionAwareness, ChangeDetection, ApprovalQueue, …)
       skills/           # Skill registry — single source of truth for all agent skills
         registry.ts       # All skill definitions + getSkillsForContext helpers
         persona.ts        # Persona-aware scoring and getPersonaDefaultSkills
@@ -87,24 +100,25 @@ src/
       utils/            # Utility functions
       entity-graph.ts   # Entity relationship graph
 
-  imports/            # Figma-scaffold origin. Actively-used Watch Center components:
+  imports/            # Figma-scaffold origin. Large components still live here:
     WatchDst.tsx        # Watch Center main layout
     AiBox.tsx           # AIBox embedded in Watch Center
     AiBoxModules.tsx    # AIBox response module renderers
-    AiBoxShared.tsx     # Shared AIBox message state (sessionStorage bridge)
+    AiBoxRenderer.tsx   # AIBox response rendering engine
+    AiBoxLiveData.ts    # Live data integration bridge
+    AiBoxShared.tsx     # Compatibility re-export surface — thin shim to features/ai-box/
     Tasks.tsx           # Risk Tracker task cards
     Working.tsx         # Globe + agent visualization
-    ActivityFeed.tsx    # Live activity feed
-    KpiWidget.tsx       # KPI / Insights widget
-    InvestigationTimeline.tsx
-    InvestigationContext.tsx
-    TaskInvestigationBridge.tsx
-    StatusContext.tsx
-    AgentNarratives.ts
-    agent-tasks-data.ts
-    intervention-data-types.ts
+    Container.tsx       # Scroll container wrapper
+    Secure.tsx          # Clearance/security gate component
+    # The following are shims — canonical source is in src/app/features/:
+    ActivityFeed.tsx    → features/watch-center/ActivityFeed
+    KpiWidget.tsx       → features/watch-center/KpiWidget
+    InvestigationTimeline.tsx → features/investigation/InvestigationTimeline
+    InvestigationContext.tsx  → features/watch-center/InvestigationContext
+    TaskInvestigationBridge.tsx → features/investigation/TaskInvestigationBridge
+    StatusContext.tsx    → features/watch-center/StatusContext
     svg-*.ts/tsx         # SVG path data (Figma export, ~80 files)
-                         # ~100 unused legacy Figma variant files also present
 
 cli/                # secops CLI utility (secops.mjs)
 guidelines/         # Product design and development guidelines

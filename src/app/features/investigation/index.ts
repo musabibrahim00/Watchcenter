@@ -23,7 +23,7 @@ export type {
 } from "../watch-center/InvestigationContext";
 
 /* ── Investigation timeline component ── */
-export { default as InvestigationTimeline } from "../../../imports/InvestigationTimeline";
+export { default as InvestigationTimeline } from "./InvestigationTimeline";
 
 /* ── Task-to-AiBox investigation bridge ── */
 export {
@@ -31,8 +31,8 @@ export {
   useTaskInvestigation,
   buildTaskRequest,
   TASK_ANALYST_MAP,
-} from "../../../imports/TaskInvestigationBridge";
-export type { TaskInvestigationRequest } from "../../../imports/TaskInvestigationBridge";
+} from "./TaskInvestigationBridge";
+export type { TaskInvestigationRequest } from "./TaskInvestigationBridge";
 
 /* ── Agent narrative system ── */
 export { buildInvestigationNarrative } from "../watch-center/AgentNarratives";

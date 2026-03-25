@@ -34,10 +34,10 @@ export { StatusProvider, useStatus, STATUS_ENTRIES } from "./StatusContext";
 export type { StatusEntry } from "./StatusContext";
 
 /* ── Activity feed ── */
-export { default as ActivityFeed } from "../../../imports/ActivityFeed";
+export { default as ActivityFeed } from "./ActivityFeed";
 
 /* ── KPI widget ── */
-export { default as KpiWidget } from "../../../imports/KpiWidget";
+export { default as KpiWidget } from "./KpiWidget";
 
 /* ── Task carousel ── */
 export { default as Tasks } from "../../../imports/Tasks";
