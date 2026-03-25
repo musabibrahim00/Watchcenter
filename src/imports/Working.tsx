@@ -71,14 +71,14 @@ const AgentStatusIndicator = React.memo(function AgentStatusIndicator({ agentId 
 
 const AGENT_POSITIONS: Record<AgentId, { x: number; y: number; side: "left" | "right" | "center"; ring: "outer" | "inner" }> = {
   // Single ring (r=225) — 8 agents at 45° intervals, clockwise from top
-  alpha:   { x: 300, y: 33,  side: "center", ring: "outer" },  // 0°
-  bravo:   { x: 459, y: 99,  side: "right",  ring: "outer" },  // 45°
-  charlie: { x: 525, y: 258, side: "right",  ring: "outer" },  // 90°
-  delta:   { x: 459, y: 417, side: "right",  ring: "outer" },  // 135°
-  echo:    { x: 300, y: 483, side: "center", ring: "outer" },  // 180°
-  foxtrot: { x: 141, y: 417, side: "left",   ring: "outer" },  // 225°
-  golf:    { x: 75,  y: 258, side: "left",   ring: "outer" },  // 270°
-  hotel:   { x: 141, y: 99,  side: "left",   ring: "outer" },  // 315°
+  alpha:   { x: 300, y: 37,  side: "center", ring: "outer" },  // 0°
+  bravo:   { x: 459, y: 103, side: "right",  ring: "outer" },  // 45°
+  charlie: { x: 525, y: 262, side: "right",  ring: "outer" },  // 90°
+  delta:   { x: 459, y: 421, side: "right",  ring: "outer" },  // 135°
+  echo:    { x: 300, y: 487, side: "center", ring: "outer" },  // 180°
+  foxtrot: { x: 141, y: 421, side: "left",   ring: "outer" },  // 225°
+  golf:    { x: 75,  y: 262, side: "left",   ring: "outer" },  // 270°
+  hotel:   { x: 141, y: 103, side: "left",   ring: "outer" },  // 315°
 };
 
 function useActivityCycler(tasks: string[], interval: number) {
@@ -564,7 +564,7 @@ function Alpha() {
 
 function Icon() {
   return (
-    <div className="overflow-clip relative shrink-0 size-[28px]" data-name="Icon">
+    <div className="overflow-clip relative shrink-0 size-[25px]" data-name="Icon">
       <Alpha />
     </div>
   );
@@ -572,7 +572,7 @@ function Icon() {
 
 function Container({ selected }: { selected?: boolean }) {
   return (
-    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[7px] p-[18px] rounded-[30px] top-[7px]" data-name="Container">
       <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)] ${selected ? 'border-[#0781c2]' : 'border-[#121e27]'}`} />
       <Icon />
     </div>
@@ -581,10 +581,10 @@ function Container({ selected }: { selected?: boolean }) {
 
 function Frame1({ selected }: { selected?: boolean }) {
   return (
-    <div className="bg-[#030609] overflow-hidden relative rounded-[99px] shrink-0 size-[84px]">
+    <div className="bg-[#030609] overflow-hidden relative rounded-[99px] shrink-0 size-[76px]">
       <div aria-hidden="true" className="absolute border border-[rgba(18,30,39,0.4)] border-solid inset-0 pointer-events-none rounded-[99px]" />
-      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.5px)] size-[84px] top-1/2" data-name="agent-ring" style={{ animationDelay: '-3s' }}>
-        <div className="absolute left-0 size-[84px] top-0">
+      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.5px)] size-[76px] top-1/2" data-name="agent-ring" style={{ animationDelay: '-3s' }}>
+        <div className="absolute left-0 size-[76px] top-0">
           <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 84 84">
             <g id="Ellipse 6">
               <circle cx="42" cy="42" fill="var(--fill-0, #D9D9D9)" r="41.5" />
@@ -593,7 +593,7 @@ function Frame1({ selected }: { selected?: boolean }) {
             </g>
           </svg>
         </div>
-        <div className="absolute left-0 size-[84px] top-0">
+        <div className="absolute left-0 size-[76px] top-0">
           {selected ? (
             <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 84 84">
               <circle cx="42" cy="42" r="41" stroke="#0781C2" strokeWidth="2" fill="none" />
@@ -608,7 +608,7 @@ function Frame1({ selected }: { selected?: boolean }) {
         </div>
       </div>
       <Container selected={selected} />
-      <div className="-translate-x-1/2 absolute bottom-[20px] left-1/2 size-[4px]" data-name="StatusActive">
+      <div className="-translate-x-1/2 absolute bottom-[18px] left-1/2 size-[4px]" data-name="StatusActive">
         <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 4 4">
           <circle cx="2" cy="2" fill="#00A46E" r="2" />
         </svg>
@@ -619,7 +619,7 @@ function Frame1({ selected }: { selected?: boolean }) {
 
 function AgentAlpha({ onClick, selected, onHover }: { onClick?: () => void; selected?: boolean; onHover?: (hovered: boolean) => void }) {
   return (
-    <div className={`-translate-x-1/2 absolute content-stretch flex flex-col gap-[2px] items-center left-1/2 top-[33px] w-[110px] cursor-pointer ${selected ? "z-[999]" : ""}`} data-name="AgentAlpha" onClick={onClick} onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
+    <div className={`-translate-x-1/2 absolute content-stretch flex flex-col gap-[2px] items-center left-1/2 top-[37px] w-[110px] cursor-pointer ${selected ? "z-[999]" : ""}`} data-name="AgentAlpha" onClick={onClick} onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
       <Frame1 selected={selected} />
       <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#89949e] text-[10px] text-center w-full whitespace-pre-wrap">{"Asset Intelligence\nAnalyst"}</p>
     </div>
@@ -663,7 +663,7 @@ function Foxtrot() {
 
 function Icon1() {
   return (
-    <div className="overflow-clip relative shrink-0 size-[28px]" data-name="Icon">
+    <div className="overflow-clip relative shrink-0 size-[25px]" data-name="Icon">
       <Foxtrot />
     </div>
   );
@@ -671,7 +671,7 @@ function Icon1() {
 
 function Container1({ selected }: { selected?: boolean }) {
   return (
-    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[7px] p-[18px] rounded-[30px] top-[7px]" data-name="Container">
       <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)] ${selected ? 'border-[#0781c2]' : 'border-[#121e27]'}`} />
       <Icon1 />
     </div>
@@ -680,10 +680,10 @@ function Container1({ selected }: { selected?: boolean }) {
 
 function Frame({ selected }: { selected?: boolean }) {
   return (
-    <div className="bg-[#030609] overflow-hidden relative rounded-[99px] shrink-0 size-[84px]">
+    <div className="bg-[#030609] overflow-hidden relative rounded-[99px] shrink-0 size-[76px]">
       <div aria-hidden="true" className="absolute border border-[rgba(18,30,39,0.4)] border-solid inset-0 pointer-events-none rounded-[99px]" />
-      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.5px)] size-[84px] top-1/2" data-name="agent-ring" style={{ animationDelay: '-17s' }}>
-        <div className="absolute left-0 size-[84px] top-0">
+      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.5px)] size-[76px] top-1/2" data-name="agent-ring" style={{ animationDelay: '-17s' }}>
+        <div className="absolute left-0 size-[76px] top-0">
           <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 84 84">
             <g id="Ellipse 6">
               <circle cx="42" cy="42" fill="var(--fill-0, #D9D9D9)" r="41.5" />
@@ -692,7 +692,7 @@ function Frame({ selected }: { selected?: boolean }) {
             </g>
           </svg>
         </div>
-        <div className="absolute left-0 size-[84px] top-0">
+        <div className="absolute left-0 size-[76px] top-0">
           {selected ? (
             <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 84 84">
               <circle cx="42" cy="42" r="41" stroke="#0781C2" strokeWidth="2" fill="none" />
@@ -707,7 +707,7 @@ function Frame({ selected }: { selected?: boolean }) {
         </div>
       </div>
       <Container1 selected={selected} />
-      <div className="-translate-x-1/2 absolute bottom-[20px] left-1/2 size-[4px]" data-name="StatusActive">
+      <div className="-translate-x-1/2 absolute bottom-[18px] left-1/2 size-[4px]" data-name="StatusActive">
         <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 4 4">
           <circle cx="2" cy="2" fill="#00A46E" r="2" />
         </svg>
@@ -718,7 +718,7 @@ function Frame({ selected }: { selected?: boolean }) {
 
 function AgentBravo({ onClick, selected, onHover }: { onClick?: () => void; selected?: boolean; onHover?: (hovered: boolean) => void }) {
   return (
-    <div className={`-translate-x-1/2 absolute content-stretch flex flex-col gap-[2px] items-center left-[calc(50%+159px)] top-[99px] w-[110px] cursor-pointer ${selected ? "z-[999]" : ""}`} data-name="AgentBravo" onClick={onClick} onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
+    <div className={`-translate-x-1/2 absolute content-stretch flex flex-col gap-[2px] items-center left-[calc(50%+159px)] top-[103px] w-[110px] cursor-pointer ${selected ? "z-[999]" : ""}`} data-name="AgentBravo" onClick={onClick} onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
       <Frame selected={selected} />
       <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#89949e] text-[10px] text-center w-full whitespace-pre-wrap">{"Configuration\nSecurity Analyst"}</p>
     </div>
@@ -762,7 +762,7 @@ function Charlie() {
 
 function Icon2() {
   return (
-    <div className="overflow-clip relative shrink-0 size-[28px]" data-name="Icon">
+    <div className="overflow-clip relative shrink-0 size-[25px]" data-name="Icon">
       <Charlie />
     </div>
   );
@@ -770,7 +770,7 @@ function Icon2() {
 
 function Container2({ selected }: { selected?: boolean }) {
   return (
-    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[7px] p-[18px] rounded-[30px] top-[7px]" data-name="Container">
       <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)] ${selected ? 'border-[#0781c2]' : 'border-[#121e27]'}`} />
       <Icon2 />
     </div>
@@ -779,10 +779,10 @@ function Container2({ selected }: { selected?: boolean }) {
 
 function Frame2({ selected }: { selected?: boolean }) {
   return (
-    <div className="bg-[#030609] overflow-hidden relative rounded-[99px] shrink-0 size-[84px]">
+    <div className="bg-[#030609] overflow-hidden relative rounded-[99px] shrink-0 size-[76px]">
       <div aria-hidden="true" className="absolute border border-[rgba(18,30,39,0.4)] border-solid inset-0 pointer-events-none rounded-[99px]" />
-      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.5px)] size-[84px] top-1/2" data-name="agent-ring" style={{ animationDelay: '-8s' }}>
-        <div className="absolute left-0 size-[84px] top-0">
+      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.5px)] size-[76px] top-1/2" data-name="agent-ring" style={{ animationDelay: '-8s' }}>
+        <div className="absolute left-0 size-[76px] top-0">
           <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 84 84">
             <g id="Ellipse 6">
               <circle cx="42" cy="42" fill="var(--fill-0, #D9D9D9)" r="41.5" />
@@ -791,7 +791,7 @@ function Frame2({ selected }: { selected?: boolean }) {
             </g>
           </svg>
         </div>
-        <div className="absolute left-0 size-[84px] top-0">
+        <div className="absolute left-0 size-[76px] top-0">
           {selected ? (
             <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 84 84">
               <circle cx="42" cy="42" r="41" stroke="#0781C2" strokeWidth="2" fill="none" />
@@ -806,7 +806,7 @@ function Frame2({ selected }: { selected?: boolean }) {
         </div>
       </div>
       <Container2 selected={selected} />
-      <div className="-translate-x-1/2 absolute bottom-[20px] left-1/2 size-[4px]" data-name="StatusActive">
+      <div className="-translate-x-1/2 absolute bottom-[18px] left-1/2 size-[4px]" data-name="StatusActive">
         <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 4 4">
           <circle cx="2" cy="2" fill="#00A46E" r="2" />
         </svg>
@@ -817,7 +817,7 @@ function Frame2({ selected }: { selected?: boolean }) {
 
 function AgentCharlie({ onClick, selected, onHover }: { onClick?: () => void; selected?: boolean; onHover?: (hovered: boolean) => void }) {
   return (
-    <div className={`-translate-x-1/2 absolute content-stretch flex flex-col gap-[2px] items-center left-[calc(50%+225px)] top-[258px] w-[110px] cursor-pointer ${selected ? "z-[999]" : ""}`} data-name="AgentCharlie" onClick={onClick} onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
+    <div className={`-translate-x-1/2 absolute content-stretch flex flex-col gap-[2px] items-center left-[calc(50%+225px)] top-[262px] w-[110px] cursor-pointer ${selected ? "z-[999]" : ""}`} data-name="AgentCharlie" onClick={onClick} onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
       <Frame2 selected={selected} />
       <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#89949e] text-[10px] text-center w-full whitespace-pre-wrap">{"Application\nSecurity Analyst"}</p>
     </div>
@@ -861,7 +861,7 @@ function Delta() {
 
 function Icon3() {
   return (
-    <div className="overflow-clip relative shrink-0 size-[28px]" data-name="Icon">
+    <div className="overflow-clip relative shrink-0 size-[25px]" data-name="Icon">
       <Delta />
     </div>
   );
@@ -869,7 +869,7 @@ function Icon3() {
 
 function Container3({ selected }: { selected?: boolean }) {
   return (
-    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[7px] p-[18px] rounded-[30px] top-[7px]" data-name="Container">
       <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[34px] ${selected ? 'border-[#0781c2] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)]' : 'border-[#121e27] shadow-[0px_0px_13.995px_0px_rgba(228,108,18,0.22),0px_0px_31.99px_0px_rgba(228,108,18,0.1),0px_0px_4.484px_0px_rgba(137,148,158,0.04)]'}`} />
       <Icon3 />
     </div>
@@ -878,10 +878,10 @@ function Container3({ selected }: { selected?: boolean }) {
 
 function Frame3({ selected }: { selected?: boolean }) {
   return (
-    <div className="bg-[#030609] overflow-hidden relative rounded-[99px] shrink-0 size-[84px]">
+    <div className="bg-[#030609] overflow-hidden relative rounded-[99px] shrink-0 size-[76px]">
       <div aria-hidden="true" className="absolute border border-[rgba(18,30,39,0.4)] border-solid inset-0 pointer-events-none rounded-[99px]" />
-      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[84px] top-1/2" data-name="agent-ring" style={{ animationDelay: '-22s' }}>
-        <div className="absolute left-0 size-[84px] top-0">
+      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-1/2 size-[76px] top-1/2" data-name="agent-ring" style={{ animationDelay: '-22s' }}>
+        <div className="absolute left-0 size-[76px] top-0">
           <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 84 84">
             <g id="Ellipse 6">
               <circle cx="42" cy="42" fill="var(--fill-0, #D9D9D9)" r="41.5" />
@@ -890,7 +890,7 @@ function Frame3({ selected }: { selected?: boolean }) {
             </g>
           </svg>
         </div>
-        <div className="absolute left-0 size-[84px] top-0">
+        <div className="absolute left-0 size-[76px] top-0">
           {selected ? (
             <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 84 84">
               <circle cx="42" cy="42" r="41" stroke="#0781C2" strokeWidth="2" fill="none" />
@@ -905,7 +905,7 @@ function Frame3({ selected }: { selected?: boolean }) {
         </div>
       </div>
       <Container3 selected={selected} />
-      <div className="-translate-x-1/2 absolute bottom-[20px] left-1/2 size-[4px]" data-name="StatusActive">
+      <div className="-translate-x-1/2 absolute bottom-[18px] left-1/2 size-[4px]" data-name="StatusActive">
         <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 4 4">
           <circle cx="2" cy="2" fill="#00A46E" r="2" />
         </svg>
@@ -916,7 +916,7 @@ function Frame3({ selected }: { selected?: boolean }) {
 
 function AgentDelta({ onClick, selected, onHover }: { onClick?: () => void; selected?: boolean; onHover?: (hovered: boolean) => void }) {
   return (
-    <div className={`-translate-x-1/2 absolute content-stretch flex flex-col gap-[2px] items-center left-[calc(50%+159px)] top-[417px] w-[110px] cursor-pointer ${selected ? "z-[999]" : ""}`} data-name="AgentDelta" onClick={onClick} onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
+    <div className={`-translate-x-1/2 absolute content-stretch flex flex-col gap-[2px] items-center left-[calc(50%+159px)] top-[421px] w-[110px] cursor-pointer ${selected ? "z-[999]" : ""}`} data-name="AgentDelta" onClick={onClick} onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
       <Frame3 selected={selected} />
       <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#89949e] text-[10px] text-center w-full whitespace-pre-wrap">{"Governance &\nCompliance Analyst"}</p>
     </div>
@@ -960,7 +960,7 @@ function Echo() {
 
 function Icon4() {
   return (
-    <div className="overflow-clip relative shrink-0 size-[28px]" data-name="Icon">
+    <div className="overflow-clip relative shrink-0 size-[25px]" data-name="Icon">
       <Echo />
     </div>
   );
@@ -968,7 +968,7 @@ function Icon4() {
 
 function Container4({ selected }: { selected?: boolean }) {
   return (
-    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[7px] p-[18px] rounded-[30px] top-[7px]" data-name="Container">
       <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)] ${selected ? 'border-[#0781c2]' : 'border-[#121e27]'}`} />
       <Icon4 />
     </div>
@@ -977,10 +977,10 @@ function Container4({ selected }: { selected?: boolean }) {
 
 function Frame4({ selected }: { selected?: boolean }) {
   return (
-    <div className="bg-[#030609] overflow-hidden relative rounded-[99px] shrink-0 size-[84px]">
+    <div className="bg-[#030609] overflow-hidden relative rounded-[99px] shrink-0 size-[76px]">
       <div aria-hidden="true" className="absolute border border-[rgba(18,30,39,0.4)] border-solid inset-0 pointer-events-none rounded-[99px]" />
-      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.5px)] size-[84px] top-1/2" data-name="agent-ring" style={{ animationDelay: '-12s' }}>
-        <div className="absolute left-0 size-[84px] top-0">
+      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.5px)] size-[76px] top-1/2" data-name="agent-ring" style={{ animationDelay: '-12s' }}>
+        <div className="absolute left-0 size-[76px] top-0">
           <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 84 84">
             <g id="Ellipse 6">
               <circle cx="42" cy="42" fill="var(--fill-0, #D9D9D9)" r="41.5" />
@@ -989,7 +989,7 @@ function Frame4({ selected }: { selected?: boolean }) {
             </g>
           </svg>
         </div>
-        <div className="absolute left-0 size-[84px] top-0">
+        <div className="absolute left-0 size-[76px] top-0">
           {selected ? (
             <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 84 84">
               <circle cx="42" cy="42" r="41" stroke="#0781C2" strokeWidth="2" fill="none" />
@@ -1004,7 +1004,7 @@ function Frame4({ selected }: { selected?: boolean }) {
         </div>
       </div>
       <Container4 selected={selected} />
-      <div className="-translate-x-1/2 absolute bottom-[20px] left-1/2 size-[4px]" data-name="StatusActive">
+      <div className="-translate-x-1/2 absolute bottom-[18px] left-1/2 size-[4px]" data-name="StatusActive">
         <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 4 4">
           <circle cx="2" cy="2" fill="#00A46E" r="2" />
         </svg>
@@ -1015,7 +1015,7 @@ function Frame4({ selected }: { selected?: boolean }) {
 
 function AgentEcho({ onClick, selected, onHover }: { onClick?: () => void; selected?: boolean; onHover?: (hovered: boolean) => void }) {
   return (
-    <div className={`-translate-x-1/2 absolute content-stretch flex flex-col gap-[2px] items-center left-1/2 top-[483px] w-[110px] cursor-pointer ${selected ? "z-[999]" : ""}`} data-name="AgentEcho" onClick={onClick} onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
+    <div className={`-translate-x-1/2 absolute content-stretch flex flex-col gap-[2px] items-center left-1/2 top-[487px] w-[110px] cursor-pointer ${selected ? "z-[999]" : ""}`} data-name="AgentEcho" onClick={onClick} onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
       <Frame4 selected={selected} />
       <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#89949e] text-[10px] text-center w-full whitespace-pre-wrap">{"Risk Intelligence\nAnalyst"}</p>
     </div>
@@ -1097,7 +1097,7 @@ function Golf() {
 
 function Icon6() {
   return (
-    <div className="overflow-clip relative shrink-0 size-[28px]" data-name="Icon">
+    <div className="overflow-clip relative shrink-0 size-[25px]" data-name="Icon">
       <Golf />
     </div>
   );
@@ -1105,7 +1105,7 @@ function Icon6() {
 
 function Container6({ selected }: { selected?: boolean }) {
   return (
-    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[7px] p-[18px] rounded-[30px] top-[7px]" data-name="Container">
       <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)] ${selected ? 'border-[#0781c2]' : 'border-[#121e27]'}`} />
       <Icon6 />
     </div>
@@ -1114,10 +1114,10 @@ function Container6({ selected }: { selected?: boolean }) {
 
 function Frame6({ selected }: { selected?: boolean }) {
   return (
-    <div className="bg-[#030609] overflow-hidden relative rounded-[99px] shrink-0 size-[84px]">
+    <div className="bg-[#030609] overflow-hidden relative rounded-[99px] shrink-0 size-[76px]">
       <div aria-hidden="true" className="absolute border border-[rgba(18,30,39,0.4)] border-solid inset-0 pointer-events-none rounded-[99px]" />
-      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.5px)] size-[84px] top-1/2" data-name="agent-ring" style={{ animationDelay: '-26s' }}>
-        <div className="absolute left-0 size-[84px] top-0">
+      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.5px)] size-[76px] top-1/2" data-name="agent-ring" style={{ animationDelay: '-26s' }}>
+        <div className="absolute left-0 size-[76px] top-0">
           <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 84 84">
             <g id="Ellipse 6">
               <circle cx="42" cy="42" fill="var(--fill-0, #D9D9D9)" r="41.5" />
@@ -1126,7 +1126,7 @@ function Frame6({ selected }: { selected?: boolean }) {
             </g>
           </svg>
         </div>
-        <div className="absolute left-0 size-[84px] top-0">
+        <div className="absolute left-0 size-[76px] top-0">
           {selected ? (
             <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 84 84">
               <circle cx="42" cy="42" r="41" stroke="#0781C2" strokeWidth="2" fill="none" />
@@ -1141,7 +1141,7 @@ function Frame6({ selected }: { selected?: boolean }) {
         </div>
       </div>
       <Container6 selected={selected} />
-      <div className="-translate-x-1/2 absolute bottom-[20px] left-1/2 size-[4px]" data-name="StatusActive">
+      <div className="-translate-x-1/2 absolute bottom-[18px] left-1/2 size-[4px]" data-name="StatusActive">
         <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 4 4">
           <circle cx="2" cy="2" fill="#00A46E" r="2" />
         </svg>
@@ -1152,7 +1152,7 @@ function Frame6({ selected }: { selected?: boolean }) {
 
 function AgentGolf({ onClick, selected, onHover }: { onClick?: () => void; selected?: boolean; onHover?: (hovered: boolean) => void }) {
   return (
-    <div className={`-translate-x-1/2 absolute content-stretch flex flex-col gap-[2px] items-center left-[calc(50%-225px)] top-[258px] w-[110px] cursor-pointer ${selected ? "z-[999]" : ""}`} data-name="AgentGolf" onClick={onClick} onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
+    <div className={`-translate-x-1/2 absolute content-stretch flex flex-col gap-[2px] items-center left-[calc(50%-225px)] top-[262px] w-[110px] cursor-pointer ${selected ? "z-[999]" : ""}`} data-name="AgentGolf" onClick={onClick} onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
       <Frame6 selected={selected} />
       <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#89949e] text-[10px] text-center w-full whitespace-pre-wrap">{"Identity\nSecurity Analyst"}</p>
     </div>
@@ -1196,7 +1196,7 @@ function Hotel() {
 
 function Icon7() {
   return (
-    <div className="overflow-clip relative shrink-0 size-[28px]" data-name="Icon">
+    <div className="overflow-clip relative shrink-0 size-[25px]" data-name="Icon">
       <Hotel />
     </div>
   );
@@ -1204,7 +1204,7 @@ function Icon7() {
 
 function Container7({ selected }: { selected?: boolean }) {
   return (
-    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[7px] p-[18px] rounded-[30px] top-[7px]" data-name="Container">
       <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)] ${selected ? 'border-[#0781c2]' : 'border-[#121e27]'}`} />
       <Icon7 />
     </div>
@@ -1213,10 +1213,10 @@ function Container7({ selected }: { selected?: boolean }) {
 
 function Frame7({ selected }: { selected?: boolean }) {
   return (
-    <div className="bg-[#030609] overflow-hidden relative rounded-[99px] shrink-0 size-[84px]">
+    <div className="bg-[#030609] overflow-hidden relative rounded-[99px] shrink-0 size-[76px]">
       <div aria-hidden="true" className="absolute border border-[rgba(18,30,39,0.4)] border-solid inset-0 pointer-events-none rounded-[99px]" />
-      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.5px)] size-[84px] top-1/2" data-name="agent-ring" style={{ animationDelay: '-5s' }}>
-        <div className="absolute left-0 size-[84px] top-0">
+      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.5px)] size-[76px] top-1/2" data-name="agent-ring" style={{ animationDelay: '-5s' }}>
+        <div className="absolute left-0 size-[76px] top-0">
           <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 84 84">
             <g id="Ellipse 6">
               <circle cx="42" cy="42" fill="var(--fill-0, #D9D9D9)" r="41.5" />
@@ -1225,7 +1225,7 @@ function Frame7({ selected }: { selected?: boolean }) {
             </g>
           </svg>
         </div>
-        <div className="absolute left-0 size-[84px] top-0">
+        <div className="absolute left-0 size-[76px] top-0">
           {selected ? (
             <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 84 84">
               <circle cx="42" cy="42" r="41" stroke="#0781C2" strokeWidth="2" fill="none" />
@@ -1240,7 +1240,7 @@ function Frame7({ selected }: { selected?: boolean }) {
         </div>
       </div>
       <Container7 selected={selected} />
-      <div className="-translate-x-1/2 absolute bottom-[20px] left-1/2 size-[4px]" data-name="StatusActive">
+      <div className="-translate-x-1/2 absolute bottom-[18px] left-1/2 size-[4px]" data-name="StatusActive">
         <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 4 4">
           <circle cx="2" cy="2" fill="#00A46E" r="2" />
         </svg>
@@ -1251,7 +1251,7 @@ function Frame7({ selected }: { selected?: boolean }) {
 
 function AgentHotel({ onClick, selected, onHover }: { onClick?: () => void; selected?: boolean; onHover?: (hovered: boolean) => void }) {
   return (
-    <div className={`-translate-x-1/2 absolute content-stretch flex flex-col gap-[2px] items-center left-[calc(50%-159px)] top-[99px] w-[110px] cursor-pointer ${selected ? "z-[999]" : ""}`} data-name="AgentHotel" onClick={onClick} onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
+    <div className={`-translate-x-1/2 absolute content-stretch flex flex-col gap-[2px] items-center left-[calc(50%-159px)] top-[103px] w-[110px] cursor-pointer ${selected ? "z-[999]" : ""}`} data-name="AgentHotel" onClick={onClick} onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
       <Frame7 selected={selected} />
       <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#89949e] text-[10px] text-center w-full whitespace-pre-wrap">{"Vulnerability\nAnalyst"}</p>
     </div>
@@ -1295,7 +1295,7 @@ function India() {
 
 function Icon8() {
   return (
-    <div className="overflow-clip relative shrink-0 size-[28px]" data-name="Icon">
+    <div className="overflow-clip relative shrink-0 size-[25px]" data-name="Icon">
       <India />
     </div>
   );
@@ -1303,7 +1303,7 @@ function Icon8() {
 
 function Container8({ selected }: { selected?: boolean }) {
   return (
-    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050F18] content-stretch flex items-center left-[7px] p-[18px] rounded-[30px] top-[7px]" data-name="Container">
       <div aria-hidden="true" className={`absolute border border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)] ${selected ? 'border-[#0781c2]' : 'border-[#121e27]'}`} />
       <Icon8 />
     </div>
@@ -1312,10 +1312,10 @@ function Container8({ selected }: { selected?: boolean }) {
 
 function Frame8({ selected }: { selected?: boolean }) {
   return (
-    <div className="bg-[#030609] overflow-hidden relative rounded-[99px] shrink-0 size-[84px]">
+    <div className="bg-[#030609] overflow-hidden relative rounded-[99px] shrink-0 size-[76px]">
       <div aria-hidden="true" className="absolute border border-[rgba(18,30,39,0.4)] border-solid inset-0 pointer-events-none rounded-[99px]" />
-      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.5px)] size-[84px] top-1/2" data-name="agent-ring" style={{ animationDelay: '-19s' }}>
-        <div className="absolute left-0 size-[84px] top-0">
+      <div className="-translate-x-1/2 -translate-y-1/2 absolute left-[calc(50%+0.5px)] size-[76px] top-1/2" data-name="agent-ring" style={{ animationDelay: '-19s' }}>
+        <div className="absolute left-0 size-[76px] top-0">
           <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 84 84">
             <g id="Ellipse 6">
               <circle cx="42" cy="42" fill="var(--fill-0, #D9D9D9)" r="41.5" />
@@ -1324,7 +1324,7 @@ function Frame8({ selected }: { selected?: boolean }) {
             </g>
           </svg>
         </div>
-        <div className="absolute left-0 size-[84px] top-0">
+        <div className="absolute left-0 size-[76px] top-0">
           {selected ? (
             <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 84 84">
               <circle cx="42" cy="42" r="41" stroke="#0781C2" strokeWidth="2" fill="none" />
@@ -1339,7 +1339,7 @@ function Frame8({ selected }: { selected?: boolean }) {
         </div>
       </div>
       <Container8 selected={selected} />
-      <div className="-translate-x-1/2 absolute bottom-[20px] left-1/2 size-[4px]" data-name="StatusActive">
+      <div className="-translate-x-1/2 absolute bottom-[18px] left-1/2 size-[4px]" data-name="StatusActive">
         <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 4 4">
           <circle cx="2" cy="2" fill="#00A46E" r="2" />
         </svg>
@@ -1350,7 +1350,7 @@ function Frame8({ selected }: { selected?: boolean }) {
 
 function AgentFoxtrot({ onClick, selected, onHover }: { onClick?: () => void; selected?: boolean; onHover?: (hovered: boolean) => void }) {
   return (
-    <div className={`-translate-x-1/2 absolute content-stretch flex flex-col gap-[2px] items-center left-[calc(50%-159px)] top-[417px] w-[110px] cursor-pointer ${selected ? "z-[999]" : ""}`} data-name="AgentFoxtrot" onClick={onClick} onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
+    <div className={`-translate-x-1/2 absolute content-stretch flex flex-col gap-[2px] items-center left-[calc(50%-159px)] top-[421px] w-[110px] cursor-pointer ${selected ? "z-[999]" : ""}`} data-name="AgentFoxtrot" onClick={onClick} onMouseEnter={() => onHover?.(true)} onMouseLeave={() => onHover?.(false)}>
       <Frame8 selected={selected} />
       <p className="font-['Inter:Medium',sans-serif] font-medium leading-[normal] not-italic relative shrink-0 text-[#89949e] text-[10px] text-center w-full whitespace-pre-wrap">{"Exposure\nAnalyst"}</p>
     </div>
@@ -1847,8 +1847,8 @@ function RingLabels() {
 function getAgentCenter(id: AgentId): { cx: number; cy: number } {
   const pos = AGENT_POSITIONS[id];
   // x is the horizontal center (agent wrappers use -translate-x-1/2)
-  // y is the top of the wrapper; +42 reaches center of the 84px Frame circle
-  return { cx: pos.x, cy: pos.y + 42 };
+  // y is the top of the wrapper; +38 reaches center of the 76px Frame circle
+  return { cx: pos.x, cy: pos.y + 38 };
 }
 
 // Geometric center of the agent ring circle (R=225 centered here)

@@ -113,7 +113,7 @@ export const MessageBubble = React.memo(function MessageBubble({
   if (message.role === "user") {
     return (
       <div className="flex flex-col items-end px-[16px] py-[3px]">
-        <div className="bg-[#076498] rounded-[10px] rounded-tr-[4px] px-[10px] py-[8px] max-w-[80%]">
+        <div className="rounded-[10px] rounded-tr-[4px] px-[10px] py-[8px] max-w-[80%]" style={{ background: "rgba(7,100,152,0.32)" }}>
           <p className="font-['Inter:Regular',sans-serif] font-normal leading-[17px] text-[#f1f3ff] text-[11px] whitespace-pre-wrap break-words">{message.text}</p>
         </div>
         {message.actionMeta && (

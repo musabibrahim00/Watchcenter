@@ -265,7 +265,7 @@ const Teammate = React.memo(function Teammate() {
         <div className="overflow-clip relative rounded-[inherit] size-full">
           <div className="absolute inset-[-2.94%]"><div className="absolute inset-0 overflow-hidden pointer-events-none"><img alt="" className="absolute left-0 max-w-none size-full top-0" src={imgOld} /></div></div>
         </div>
-        <div aria-hidden="true" className="absolute border-0 border-[#1e2a34] border-solid inset-0 pointer-events-none rounded-[96px]" />
+        <div aria-hidden="true" className="absolute border-0 border-[#122C4A] border-solid inset-0 pointer-events-none rounded-[96px]" />
       </div>
       <div className="flex flex-col">
         <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[14px] not-italic relative shrink-0 text-[#dadfe3] text-[12px] whitespace-nowrap">Alex</p>
@@ -305,7 +305,7 @@ const StatusIndicator = React.memo(function StatusIndicator({ hasProactive }: { 
 const AiBoxHeader = React.memo(function AiBoxHeader({ hasProactive }: { hasProactive?: boolean }) {
   return (
     <div className="relative shrink-0 w-full z-[3]">
-      <div aria-hidden="true" className="absolute border-[#121e27] border-b border-solid inset-0 pointer-events-none" />
+      <div aria-hidden="true" className="absolute border-[#122C4A] border-b border-solid inset-0 pointer-events-none" />
       <div className="flex flex-row items-center size-full">
         <div className="content-stretch flex items-center justify-between p-[16px] relative size-full">
           <Teammate />
@@ -1106,7 +1106,7 @@ export default function AiBox() {
         className="bg-[#050C14] relative rounded-[16px] size-full min-h-0"
         data-name="AiBox"
         style={{
-          border: "1px solid #091829",
+          border: "1px solid #122C4A",
           boxShadow: "0px 24px 48px 0px rgba(0,0,0,0.48)",
         }}
       >
