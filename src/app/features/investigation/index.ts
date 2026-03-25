@@ -15,12 +15,12 @@ export {
   AGENT_CONTRIBUTIONS,
   INVESTIGATION_CENTER_MESSAGES,
   PASSIVE_MESSAGES,
-} from "../../../imports/InvestigationContext";
+} from "../watch-center/InvestigationContext";
 export type {
   InvestigationScenario,
   InvestigationPhase,
   TimelineStep,
-} from "../../../imports/InvestigationContext";
+} from "../watch-center/InvestigationContext";
 
 /* ── Investigation timeline component ── */
 export { default as InvestigationTimeline } from "../../../imports/InvestigationTimeline";
@@ -35,9 +35,9 @@ export {
 export type { TaskInvestigationRequest } from "../../../imports/TaskInvestigationBridge";
 
 /* ── Agent narrative system ── */
-export { buildInvestigationNarrative } from "../../../imports/AgentNarratives";
+export { buildInvestigationNarrative } from "../watch-center/AgentNarratives";
 export type {
   NarrativeStep,
   AgentNarrative,
   InvestigationNarrative,
-} from "../../../imports/AgentNarratives";
+} from "../watch-center/AgentNarratives";

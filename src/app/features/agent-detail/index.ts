@@ -8,8 +8,8 @@
 export { default as AgentDetailPage } from "../../pages/AgentDetailPage";
 
 /* ── Agent task metadata ── */
-export { AGENT_TASKS } from "../../../imports/agent-tasks-data";
-export type { AgentTaskData } from "../../../imports/agent-tasks-data";
+export { AGENT_TASKS } from "../../shared/data/agent-tasks-data";
+export type { AgentTaskData } from "../../shared/data/agent-tasks-data";
 
 /* ── Intervention / module data ── */
 export {
@@ -17,9 +17,9 @@ export {
   MODULE_KEYS,
   HIDDEN_MODULES_BY_AGENT,
   getVisibleModules,
-} from "../../../imports/intervention-data-types";
+} from "../../shared/data/intervention-data-types";
 export type {
   InterventionData,
   CompletedAction,
   ModuleConfig,
-} from "../../../imports/intervention-data-types";
+} from "../../shared/data/intervention-data-types";

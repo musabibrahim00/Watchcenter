@@ -6,7 +6,7 @@ import { Check, ChevronDown } from "lucide-react";
 import type { AgentId } from "../shared/types/agent-types";
 import { SLUG_TO_AGENT_ID, AGENT_ROLE_LABELS } from "../shared/types/agent-types";
 import { colors } from "../shared/design-system/tokens";
-import { AGENT_TASKS, type AgentTaskData } from "../../imports/agent-tasks-data";
+import { AGENT_TASKS, type AgentTaskData } from "../shared/data/agent-tasks-data";
 import {
   MODULE_DATA,
   HIDDEN_MODULES_BY_AGENT,
@@ -14,7 +14,7 @@ import {
   type InterventionData,
   type CompletedAction,
   type ModuleConfig,
-} from "../../imports/intervention-data-types";
+} from "../shared/data/intervention-data-types";
 
 import svgPaths from "../../imports/svg-a1mpxm4s4x";
 import watchBgPaths from "../../imports/svg-kxe7qom7bz";

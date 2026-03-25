@@ -37,7 +37,7 @@ export type {
 export type { ChatMessage, TaskNode, TaskGraph } from "../../../imports/AiBoxShared";
 
 /* ── Investigation types ── */
-export type { InvestigationScenario } from "../../../imports/InvestigationContext";
+export type { InvestigationScenario } from "../../features/watch-center/InvestigationContext";
 export type { TaskInvestigationRequest } from "../../../imports/TaskInvestigationBridge";
 
 /* ── Data types ── */
@@ -45,4 +45,4 @@ export type {
   InterventionData,
   CompletedAction,
   ModuleConfig,
-} from "../../../imports/intervention-data-types";
+} from "../data/intervention-data-types";
