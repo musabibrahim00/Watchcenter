@@ -96,9 +96,13 @@ export type FrameworkControl = {
   category: string;
   status: ControlStatus;
   description: string;
-  gapId?: string;         // links to GAPS if this control is failing
-  evidenceIds?: string[]; // links to EVIDENCE_ITEMS
+  gapId?: string;             // links to GAPS if this control is failing
+  evidenceIds?: string[];     // links to EVIDENCE_ITEMS (already collected)
   lastTested?: string;
+  // Detail view fields — present for failing / in-progress controls
+  whyItMatters?: string;
+  remediationSteps?: string[];
+  requiredEvidence?: string[]; // artifact names still needed
 };
 
 export const FRAMEWORK_CONTROLS: Record<string, FrameworkControl[]> = {
@@ -108,7 +112,11 @@ export const FRAMEWORK_CONTROLS: Record<string, FrameworkControl[]> = {
     { id: "CC5.1", category: "Control Activities",          status: "passing",     name: "Policies and Procedures",          description: "Documented security policies cover all trust-service categories.", lastTested: "Mar 1" },
     { id: "CC5.2", category: "Control Activities",          status: "passing",     name: "Controls Over Technology",         description: "Technical controls aligned to policies and regularly reviewed.", lastTested: "Feb 28" },
     // CC6 — Logical and Physical Access
-    { id: "CC6.1", category: "Logical and Physical Access", status: "failing",     name: "Logical Access Controls",          description: "Multi-factor authentication required for all system access.", gapId: "g2", evidenceIds: ["e3"], lastTested: "Mar 5" },
+    { id: "CC6.1", category: "Logical and Physical Access", status: "failing",     name: "Logical Access Controls",          description: "Multi-factor authentication required for all system access.", gapId: "g2", evidenceIds: ["e3"], lastTested: "Mar 5",
+      whyItMatters: "MFA is the primary barrier against credential-based attacks. 12 service accounts without MFA are directly exploitable via credential stuffing or phishing — each one a potential lateral movement entry point. This is the top blocker for the SOC 2 annual audit.",
+      remediationSteps: ["Inventory all 12 non-compliant service accounts by owner", "Enable FIDO2 MFA per the updated MFA policy (Mar 14)", "Enforce MFA at the identity provider level — block auth without second factor", "Re-run MFA Coverage Scan to confirm 100% enforcement", "Collect MFA Enforcement Logs as audit evidence and submit to Compliance Team"],
+      requiredEvidence: ["MFA Enforcement Logs (CC6.1) — due Mar 28", "Updated access policy confirming FIDO2 requirement", "Service account inventory with MFA status confirmed"],
+    },
     { id: "CC6.2", category: "Logical and Physical Access", status: "passing",     name: "User Registration and De-registration", description: "Formal process for granting and revoking access.", evidenceIds: ["e1"], lastTested: "Mar 15" },
     { id: "CC6.3", category: "Logical and Physical Access", status: "passing",     name: "Privileged Access Management",     description: "Privileged accounts are managed, monitored, and reviewed.", lastTested: "2h ago" },
     { id: "CC6.7", category: "Logical and Physical Access", status: "in-progress", name: "Transmission Protection",          description: "Data transmitted over public networks is encrypted.", lastTested: "Feb 20" },
@@ -132,7 +140,11 @@ export const FRAMEWORK_CONTROLS: Record<string, FrameworkControl[]> = {
     { id: "A.8.2",  category: "Asset Management",               status: "passing",     name: "Classification of Information",        description: "Information is classified according to sensitivity.", lastTested: "4h ago" },
     // A.9 — Access Control
     { id: "A.9.1",  category: "Access Control",                  status: "passing",     name: "Access Control Policy",               description: "Access control policy is documented and reviewed.", lastTested: "Feb 28" },
-    { id: "A.9.4",  category: "Access Control",                  status: "failing",     name: "System and Application Access Control", description: "Cryptographic key rotation and access controls enforced per policy.", gapId: "g3", lastTested: "Mar 1" },
+    { id: "A.9.4",  category: "Access Control",                  status: "failing",     name: "System and Application Access Control", description: "Cryptographic key rotation and access controls enforced per policy.", gapId: "g3", lastTested: "Mar 1",
+      whyItMatters: "Key rotation limits the blast radius of a compromised key. Without enforcement, stale keys may have been exposed without detection. This is 22 days open and is the primary blocker for the ISO 27001 surveillance audit in 56 days.",
+      remediationSteps: ["Audit all encryption keys against the rotation policy deadline", "Identify keys past their rotation date in the key management system", "Rotate overdue keys and document each rotation event", "Implement automated rotation scheduling with failure alerts", "Generate and submit the Encryption Key Audit Trail as evidence"],
+      requiredEvidence: ["Encryption Key Audit Trail (A.10.1) — currently overdue", "Key rotation policy document with sign-off", "Automated rotation confirmation logs from KMS"],
+    },
     // A.10 — Cryptography
     { id: "A.10.1", category: "Cryptography",                    status: "in-progress", name: "Policy on Cryptographic Controls",     description: "Controls for the use of cryptography to protect information.", evidenceIds: ["e4"], lastTested: "Feb 15" },
     // A.12 — Operations Security
@@ -154,11 +166,19 @@ export const FRAMEWORK_CONTROLS: Record<string, FrameworkControl[]> = {
     { id: "PR.AC-1", category: "Protect — Access Control",       status: "in-progress", name: "Identity and credential management",    description: "Identities and credentials are issued, managed, and verified.", lastTested: "Mar 6" },
     { id: "PR.AC-3", category: "Protect — Access Control",       status: "passing",     name: "Remote access management",             description: "Remote access is managed and controlled.", lastTested: "Mar 12" },
     // AC — Account Management
-    { id: "AC-2",    category: "Protect — Account Management",   status: "failing",     name: "Account Management",                   description: "User accounts are managed across the account lifecycle.", gapId: "g1", lastTested: "Mar 10" },
+    { id: "AC-2",    category: "Protect — Account Management",   status: "failing",     name: "Account Management",                   description: "User accounts are managed across the account lifecycle.", gapId: "g1", lastTested: "Mar 10",
+      whyItMatters: "Stale privileged accounts are one of the most exploited attack vectors. Without lifecycle enforcement, deprovisioned employees or contractors may retain access — directly expanding the blast radius of any breach. This gap has been open 14 days.",
+      remediationSteps: ["Run a full privileged account audit to identify all active accounts", "Disable or remove accounts inactive for 90+ days", "Implement automated deprovisioning triggers tied to HR offboarding events", "Schedule and document quarterly access reviews in the compliance calendar", "Update and re-approve the account lifecycle policy"],
+      requiredEvidence: ["Privileged account audit report showing active status per account", "Deprovisioning workflow documentation with automation confirmation", "Quarterly access review records from the most recent cycle"],
+    },
     // PR.DS — Data Security
     { id: "PR.DS-1", category: "Protect — Data Security",        status: "passing",     name: "Data at rest protection",              description: "Data at rest is protected using encryption.", lastTested: "Mar 1" },
     // PR.IP — Information Protection
-    { id: "PR.IP-1", category: "Protect — Information Protection",status: "failing",    name: "Baseline configuration",               description: "Baseline configurations documented for all IT/OT/ICS systems.", gapId: "g5", lastTested: "Feb 22" },
+    { id: "PR.IP-1", category: "Protect — Information Protection",status: "failing",    name: "Baseline configuration",               description: "Baseline configurations documented for all IT/OT/ICS systems.", gapId: "g5", lastTested: "Feb 22",
+      whyItMatters: "Without documented baselines, configuration drift goes undetected and deviations from secure state cannot be verified or audited. This gap affects 3 asset classes and weakens the foundation for detecting attack paths across the environment.",
+      remediationSteps: ["Identify the 3 asset classes missing approved baseline documentation", "Export current configurations as candidate baselines for review", "Review and formally approve baselines with the Configuration Team", "Implement continuous drift monitoring against each approved baseline", "Record approved baselines in the CMDB and link to asset inventory"],
+      requiredEvidence: ["Approved baseline configuration documents per affected asset class", "CMDB records linking each asset to its approved baseline", "Drift monitoring configuration confirmation showing active coverage"],
+    },
     { id: "PR.IP-3", category: "Protect — Information Protection",status: "passing",    name: "Configuration change control",          description: "Configuration change control processes are in place.", lastTested: "Mar 10" },
     // DE.CM — Detect: Monitoring
     { id: "DE.CM-1", category: "Detect — Security Monitoring",   status: "passing",     name: "Network monitoring",                   description: "The network is monitored to detect potential cybersecurity events.", lastTested: "30m ago" },
@@ -175,7 +195,11 @@ export const FRAMEWORK_CONTROLS: Record<string, FrameworkControl[]> = {
     // Req 4 — Encryption
     { id: "Req 4.1",  category: "Protect Data in Transit",        status: "passing",     name: "Encryption of data transmission",      description: "All cardholder data transmitted over open networks is encrypted.", lastTested: "Mar 9" },
     // Req 6 — Secure Systems
-    { id: "Req 6.3",  category: "Develop and Maintain Secure Systems", status: "failing","name": "Address security vulnerabilities",   description: "Vulnerabilities must be ranked and scanned quarterly.", gapId: "g4", lastTested: "Mar 22" },
+    { id: "Req 6.3",  category: "Develop and Maintain Secure Systems", status: "failing", name: "Address security vulnerabilities",   description: "Vulnerabilities must be ranked and scanned quarterly.", gapId: "g4", lastTested: "Mar 22",
+      whyItMatters: "PCI-DSS requires quarterly scans of the cardholder data environment. An overdue scan means known vulnerabilities may exist in scope — a direct QSA finding that could fail the assessment. The QSA assessment is in 127 days.",
+      remediationSteps: ["Initiate an internal vulnerability scan on the cardholder segment immediately", "Triage all critical and high findings and assign remediation owners", "Remediate all critical findings within 30 days", "Engage an approved ASV for the required external scan", "Archive scan reports and remediation evidence for the QSA assessment"],
+      requiredEvidence: ["Internal vulnerability scan report (cardholder segment)", "ASV external scan certificate", "Remediation closure records for critical findings"],
+    },
     { id: "Req 6.4",  category: "Develop and Maintain Secure Systems", status: "passing","name": "Protect public-facing web apps",     description: "Public web apps are protected via WAF or code review.", lastTested: "Mar 9" },
     // Req 8 — Authentication
     { id: "Req 8.2",  category: "Identify and Authenticate Users", status: "passing",    name: "User identification and authentication","description": "Unique IDs assigned to all users accessing system components.", lastTested: "Mar 9" },
