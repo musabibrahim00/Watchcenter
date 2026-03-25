@@ -50,7 +50,7 @@ function TaskItem({ title, status, time, subtasks, result }: { title: string; st
 
   return (
     <div
-      className="bg-[#050B11] relative rounded-[8px] shrink-0 w-full cursor-pointer"
+      className="bg-[#050C14] relative rounded-[8px] shrink-0 w-full cursor-pointer"
       data-name={expanded ? "TaskExpanded" : "TaskCollapsed"}
       onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
     >

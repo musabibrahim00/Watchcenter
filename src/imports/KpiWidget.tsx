@@ -93,7 +93,7 @@ function Separator() {
     <div className="h-0 relative shrink-0 w-full">
       <div className="absolute inset-[-0.5px_0]">
         <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 326 1">
-          <path d="M0 0.5H326" stroke="rgba(87,177,255,0.09)" />
+          <path d="M0 0.5H326" stroke="#121E27" />
         </svg>
       </div>
     </div>
@@ -174,12 +174,12 @@ export default function KpiWidget() {
 
   return (
     <div
-      className="bg-[rgba(8,18,30,0.60)] flex flex-col relative rounded-[12px] w-full h-full overflow-hidden"
+      className="bg-[#050B11] flex flex-col relative rounded-[12px] w-full h-full overflow-hidden"
       data-name="KPIWidget"
     >
       <div
         aria-hidden="true"
-        className="absolute border border-[rgba(87,177,255,0.24)] border-solid inset-0 pointer-events-none rounded-[12px] z-[1]"
+        className="absolute border border-[#122C4A] border-solid inset-0 pointer-events-none rounded-[12px] z-[1]"
       />
 
       {/* Fixed header — never scrolls */}

@@ -79,12 +79,12 @@ const ENTITY_CONFIG: Record<
   }
 > = {
   action: { label: "Action", pluralLabel: "Actions", icon: Play, accentColor: colors.accent },
-  asset: { label: "Asset", pluralLabel: "Assets", icon: Server, accentColor: "#2bb7ff" },
+  asset: { label: "Asset", pluralLabel: "Assets", icon: Server, accentColor: "#7988FF" },
   case: { label: "Case", pluralLabel: "Cases", icon: FolderOpen, accentColor: "#f5b301" },
   workflow: { label: "Workflow", pluralLabel: "Workflows", icon: Workflow, accentColor: colors.active },
-  cve: { label: "CVE", pluralLabel: "CVEs", icon: Bug, accentColor: "#ff4d4f" },
-  "attack-path": { label: "Attack Path", pluralLabel: "Attack Paths", icon: GitBranch, accentColor: "#ff7a1a" },
-  risk: { label: "Risk", pluralLabel: "Risks", icon: AlertTriangle, accentColor: "#ff5f56" },
+  cve: { label: "CVE", pluralLabel: "CVEs", icon: Bug, accentColor: "#FF5757" },
+  "attack-path": { label: "Attack Path", pluralLabel: "Attack Paths", icon: GitBranch, accentColor: "#FF740A" },
+  risk: { label: "Risk", pluralLabel: "Risks", icon: AlertTriangle, accentColor: "#FF5757" },
   "ai-query": { label: "AI Query", pluralLabel: "AI Queries", icon: Sparkles, accentColor: "#a78bfa" },
 };
 

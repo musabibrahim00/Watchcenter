@@ -77,20 +77,20 @@ function getEventVisual(kind: TimelineEventKind): EventVisual {
     case "run_cancelled":
       return {
         icon: <Ban size={10} />,
-        dotColor: "#7c8da6",
-        labelColor: "#7c8da6",
+        dotColor: "#808080",
+        labelColor: "#808080",
       };
     case "run_paused":
       return {
         icon: <PauseCircle size={10} />,
-        dotColor: "#ff9f43",
-        labelColor: "#ff9f43",
+        dotColor: "#FF740A",
+        labelColor: "#FF740A",
       };
     case "step_started":
       return {
         icon: <Loader2 size={10} className="animate-spin" />,
-        dotColor: "#2bb7ff",
-        labelColor: "#2bb7ff",
+        dotColor: "#7988FF",
+        labelColor: "#7988FF",
       };
     case "step_completed":
       return {
@@ -113,14 +113,14 @@ function getEventVisual(kind: TimelineEventKind): EventVisual {
     case "step_blocked":
       return {
         icon: <AlertCircle size={10} />,
-        dotColor: "#ff9f43",
-        labelColor: "#ff9f43",
+        dotColor: "#FF740A",
+        labelColor: "#FF740A",
       };
     case "step_approval_required":
       return {
         icon: <PauseCircle size={10} />,
-        dotColor: "#ff9f43",
-        labelColor: "#ff9f43",
+        dotColor: "#FF740A",
+        labelColor: "#FF740A",
       };
     case "step_approved":
       return {

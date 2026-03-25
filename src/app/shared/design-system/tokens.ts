@@ -42,33 +42,33 @@ export const colors = {
   /** Primary application background */
   bgApp: "#030A10",
   /** Card / panel default background */
-  bgCard: "#071420",
+  bgCard: "#050B11",
   /** Card / panel hover background */
-  bgCardHover: "#0A1C2E",
+  bgCardHover: "#071019",
   /** Deep dark background (gauge tracks, progress bar backgrounds) */
-  bgDark: "#050c14",
+  bgDark: "#030609",
   /** Semi-transparent panel background (Watch Center overlays) */
-  bgPanel: "rgba(7,20,32,0.92)",
-  bgPanelLight: "rgba(7,20,32,0.18)",
+  bgPanel: "rgba(5,11,17,1)",
+  bgPanelLight: "rgba(5,11,17,1)",
   bgOverlay: "rgba(3,6,9,0.97)",
 
   // ── Table colors ──
   /** Table header row background */
-  tableHeaderBg: "#071420",
+  tableHeaderBg: "#030609",
   /** Table data row default background */
-  tableRowBg: "#0A1828",
+  tableRowBg: "#071019",
   /** Table data row hover background */
-  tableRowHoverBg: "#0F1E2C",
+  tableRowHoverBg: "#0C161F",
 
   // ── Border & Divider ──
   /** Primary border color */
-  border: "#132638",
+  border: "#122C4A",
   /** Hover-state border */
-  borderHover: "rgba(19,38,56,0.8)",
+  borderHover: "rgba(12,33,57,1)",
   /** Strong / emphasis border */
   borderStrong: "rgba(19,38,56,1)",
   /** Divider lines (lighter than border) */
-  divider: "#0F1E2C",
+  divider: "#121E27",
 
   // ── Primary button states ──
   buttonPrimary: "#076498",
@@ -78,18 +78,18 @@ export const colors = {
   buttonPrimaryDisabledText: "#0F496B",
 
   // ── Semantic severity colors ──
-  critical: "#ff4d4f",
-  high: "#ff7a1a",
+  critical: "#FF5757",
+  high: "#FF740A",
   medium: "#f5b301",
-  low: "#2bb7ff",
-  info: "#7c8da6",
+  low: "#7988FF",
+  info: "#808080",
 
   // ── Status colors ──
-  active: "#0ccf92",
-  success: "#0ccf92",
-  warning: "#ff9f43",
-  danger: "#ff5f56",
-  neutral: "#7c8da6",
+  active: "#2FD897",
+  success: "#2FD897",
+  warning: "#FF740A",
+  danger: "#FF5757",
+  neutral: "#808080",
 
   // ── Watch Center palette ──
   primary: "#076498",
@@ -144,10 +144,10 @@ export const radiusClasses = {
 
 export const fontSize = {
   xs: "10px",
-  sm: "11px",
-  md: "12px",
-  lg: "14px",
-  xl: "16px",
+  sm: "12px",
+  md: "14px",
+  lg: "16px",
+  xl: "18px",
 } as const;
 
 export const fontWeight = {

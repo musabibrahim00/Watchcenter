@@ -55,59 +55,59 @@ const STEP_STATUS_CONFIG: Record<
 > = {
   pending: {
     icon: <Clock size={14} />,
-    bg: "rgba(124, 141, 166, 0.12)",
-    text: "#7c8da6",
+    bg: "rgba(128,128,128, 0.12)",
+    text: "#808080",
     label: "Pending",
     borderColor: colors.border,
   },
   queued: {
     icon: <Clock size={14} />,
-    bg: "rgba(124, 141, 166, 0.15)",
+    bg: "rgba(128,128,128, 0.15)",
     text: "#96a4b2",
     label: "Queued",
     borderColor: colors.border,
   },
   running: {
     icon: <Loader2 size={14} className="animate-spin" />,
-    bg: "rgba(43, 183, 255, 0.15)",
-    text: "#2bb7ff",
+    bg: "rgba(121,136,255, 0.15)",
+    text: "#7988FF",
     label: "Running",
-    borderColor: "#2bb7ff",
+    borderColor: "#7988FF",
   },
   success: {
     icon: <CheckCircle2 size={14} />,
-    bg: "rgba(12, 207, 146, 0.12)",
-    text: "#0ccf92",
+    bg: "rgba(47,216,151, 0.12)",
+    text: "#2FD897",
     label: "Success",
     borderColor: colors.active,
   },
   failed: {
     icon: <XCircle size={14} />,
-    bg: "rgba(255, 77, 79, 0.12)",
-    text: "#ff4d4f",
+    bg: "rgba(255,87,87, 0.12)",
+    text: "#FF5757",
     label: "Failed",
     borderColor: colors.critical,
   },
   skipped: {
     icon: <MinusCircle size={14} />,
-    bg: "rgba(124, 141, 166, 0.1)",
-    text: "#7c8da6",
+    bg: "rgba(128,128,128, 0.1)",
+    text: "#808080",
     label: "Skipped",
     borderColor: colors.border,
   },
   waiting_approval: {
     icon: <PauseCircle size={14} />,
-    bg: "rgba(255, 159, 67, 0.15)",
-    text: "#ff9f43",
+    bg: "rgba(255,116,10, 0.15)",
+    text: "#FF740A",
     label: "Awaiting Approval",
-    borderColor: "#ff9f43",
+    borderColor: "#FF740A",
   },
   blocked: {
     icon: <Ban size={14} />,
-    bg: "rgba(255, 159, 67, 0.12)",
-    text: "#ff9f43",
+    bg: "rgba(255,116,10, 0.12)",
+    text: "#FF740A",
     label: "Blocked",
-    borderColor: "#ff9f43",
+    borderColor: "#FF740A",
   },
 };
 
@@ -270,7 +270,7 @@ export default function DebugTab({ workflowId, debugRunId, initialRunId, onAskAI
           padding: "4px 10px",
           borderRadius: "8px",
           fontSize: "13px",
-          background: "#050B11",
+          background: "#050C14",
           color: "#96a4b2",
         }}
       >
@@ -471,7 +471,7 @@ export default function DebugTab({ workflowId, debugRunId, initialRunId, onAskAI
                     step.status === "success" ? colors.active
                     : step.status === "failed" ? colors.critical
                     : step.status === "running" ? colors.accent
-                    : step.status === "waiting_approval" || step.status === "blocked" ? "#ff9f43"
+                    : step.status === "waiting_approval" || step.status === "blocked" ? "#FF740A"
                     : step.status === "skipped" ? "#3a4a5a"
                     : colors.bgCardHover;
                   return (
@@ -508,12 +508,12 @@ export default function DebugTab({ workflowId, debugRunId, initialRunId, onAskAI
                   </span>
                 )}
                 {stepSummary.blocked > 0 && (
-                  <span style={{ fontSize: "11px", color: "#ff9f43", display: "flex", alignItems: "center", gap: "4px" }}>
+                  <span style={{ fontSize: "11px", color: "#FF740A", display: "flex", alignItems: "center", gap: "4px" }}>
                     <Ban size={10} /> {stepSummary.blocked} blocked
                   </span>
                 )}
                 {stepSummary.waitingApproval > 0 && (
-                  <span style={{ fontSize: "11px", color: "#ff9f43", display: "flex", alignItems: "center", gap: "4px" }}>
+                  <span style={{ fontSize: "11px", color: "#FF740A", display: "flex", alignItems: "center", gap: "4px" }}>
                     <PauseCircle size={10} /> {stepSummary.waitingApproval} awaiting approval
                   </span>
                 )}

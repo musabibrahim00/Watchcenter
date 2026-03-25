@@ -191,7 +191,7 @@ export const PanelCard = React.memo(function PanelCard({
 
   return (
     <div
-      className={`rounded-[18px] border border-[rgba(87,177,255,0.20)] bg-[rgba(7,20,32,0.92)] text-[#dadfe3] shadow-[0_2px_8px_rgba(0,0,0,0.40),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm overflow-hidden ${padClass} ${className}`}
+      className={`rounded-[18px] border border-[rgba(87,177,255,0.20)] bg-[rgba(5,11,17,1)] text-[#dadfe3] shadow-[0_2px_8px_rgba(0,0,0,0.40),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm overflow-hidden ${padClass} ${className}`}
       data-name={props["data-name"]}
     >
       {children}

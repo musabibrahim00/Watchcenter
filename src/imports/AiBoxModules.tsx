@@ -337,7 +337,7 @@ export const MetricsSummary = React.memo(function MetricsSummary({
           </div>
           <div className="h-[6px] overflow-hidden rounded-full bg-[rgba(255,255,255,0.06)]">
             <div
-              className="h-full rounded-full bg-[linear-gradient(90deg,#0ea5ff_0%,#0ccf92_100%)]"
+              className="h-full rounded-full bg-[linear-gradient(90deg,#0ea5ff_0%,#2FD897_100%)]"
               style={{ width: `${progressValue}%` }}
             />
           </div>
@@ -450,12 +450,12 @@ export const AttackPathGraph = React.memo(function AttackPathGraph({ title, stat
               <AreaChart data={chartData} key={`area-chart-${gradientId}`}>
                 <defs key={`defs-${gradientId}`}>
                   <linearGradient id={vulnGradId} x1="0" y1="0" x2="0" y2="1" key={vulnGradId}>
-                    <stop offset="0%" stopColor="#ff4d4f" stopOpacity={0.4} key={`${vulnGradId}-stop-0`} />
-                    <stop offset="100%" stopColor="#ff4d4f" stopOpacity={0.05} key={`${vulnGradId}-stop-1`} />
+                    <stop offset="0%" stopColor="#FF5757" stopOpacity={0.4} key={`${vulnGradId}-stop-0`} />
+                    <stop offset="100%" stopColor="#FF5757" stopOpacity={0.05} key={`${vulnGradId}-stop-1`} />
                   </linearGradient>
                   <linearGradient id={misconfigGradId} x1="0" y1="0" x2="0" y2="1" key={misconfigGradId}>
-                    <stop offset="0%" stopColor="#ff7a1a" stopOpacity={0.4} key={`${misconfigGradId}-stop-0`} />
-                    <stop offset="100%" stopColor="#ff7a1a" stopOpacity={0.05} key={`${misconfigGradId}-stop-1`} />
+                    <stop offset="0%" stopColor="#FF740A" stopOpacity={0.4} key={`${misconfigGradId}-stop-0`} />
+                    <stop offset="100%" stopColor="#FF740A" stopOpacity={0.05} key={`${misconfigGradId}-stop-1`} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" key={`grid-${gradientId}`} />
@@ -470,8 +470,8 @@ export const AttackPathGraph = React.memo(function AttackPathGraph({ title, stat
                   }}
                   key={`tooltip-${gradientId}`}
                 />
-                <Area type="monotone" dataKey="vuln" stroke="#ff4d4f" fill={`url(#${vulnGradId})`} key={`area-vuln-${gradientId}`} />
-                <Area type="monotone" dataKey="misconfig" stroke="#ff7a1a" fill={`url(#${misconfigGradId})`} key={`area-misconfig-${gradientId}`} />
+                <Area type="monotone" dataKey="vuln" stroke="#FF5757" fill={`url(#${vulnGradId})`} key={`area-vuln-${gradientId}`} />
+                <Area type="monotone" dataKey="misconfig" stroke="#FF740A" fill={`url(#${misconfigGradId})`} key={`area-misconfig-${gradientId}`} />
               </AreaChart>
             </DeferredChart>
           </div>
@@ -481,7 +481,7 @@ export const AttackPathGraph = React.memo(function AttackPathGraph({ title, stat
             <div className="grid grid-cols-2 gap-4 p-4 max-h-0 opacity-0 overflow-hidden transition-all duration-300 group-hover:max-h-[200px] group-hover:opacity-100">
               {/* Vulnerabilities */}
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-wider" style={{ fontFamily: "'Roboto Mono', monospace", color: "#ff4d4f" }}>
+                <div className="text-[10px] font-bold uppercase tracking-wider" style={{ fontFamily: "'Roboto Mono', monospace", color: "#FF5757" }}>
                   Vulnerabilities
                 </div>
                 <div className="mt-2 space-y-1">
@@ -493,7 +493,7 @@ export const AttackPathGraph = React.memo(function AttackPathGraph({ title, stat
               </div>
               {/* Misconfiguration */}
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-wider" style={{ fontFamily: "'Roboto Mono', monospace", color: "#ff7a1a" }}>
+                <div className="text-[10px] font-bold uppercase tracking-wider" style={{ fontFamily: "'Roboto Mono', monospace", color: "#FF740A" }}>
                   Misconfiguration
                 </div>
                 <div className="mt-2 space-y-1">
@@ -540,12 +540,12 @@ export const AttackPathSystemRecommendation = React.memo(function AttackPathSyst
             <AreaChart data={graph.chartData}>
               <defs>
                 <linearGradient id={vulnGradId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ff4d4f" stopOpacity={0.28} />
-                  <stop offset="100%" stopColor="#ff4d4f" stopOpacity={0.03} />
+                  <stop offset="0%" stopColor="#FF5757" stopOpacity={0.28} />
+                  <stop offset="100%" stopColor="#FF5757" stopOpacity={0.03} />
                 </linearGradient>
                 <linearGradient id={misconfigGradId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ff7a1a" stopOpacity={0.28} />
-                  <stop offset="100%" stopColor="#ff7a1a" stopOpacity={0.03} />
+                  <stop offset="0%" stopColor="#FF740A" stopOpacity={0.28} />
+                  <stop offset="100%" stopColor="#FF740A" stopOpacity={0.03} />
                 </linearGradient>
               </defs>
               <Tooltip
@@ -556,8 +556,8 @@ export const AttackPathSystemRecommendation = React.memo(function AttackPathSyst
                   fontSize: "10px",
                 }}
               />
-              <Area type="monotone" dataKey="vuln" stroke="#ff4d4f" fill={`url(#${vulnGradId})`} />
-              <Area type="monotone" dataKey="misconfig" stroke="#ff7a1a" fill={`url(#${misconfigGradId})`} />
+              <Area type="monotone" dataKey="vuln" stroke="#FF5757" fill={`url(#${vulnGradId})`} />
+              <Area type="monotone" dataKey="misconfig" stroke="#FF740A" fill={`url(#${misconfigGradId})`} />
             </AreaChart>
           </DeferredChart>
         </div>

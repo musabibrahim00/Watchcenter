@@ -686,7 +686,7 @@ function BottomContainer() {
 
 export default function SidebarNavigation() {
   return (
-    <div className="bg-[#030A10] content-stretch flex flex-col items-center justify-between p-[16px] relative size-full" data-name="SidebarNavigation">
+    <div className="bg-[#030609] content-stretch flex flex-col items-center justify-between p-[16px] relative size-full" data-name="SidebarNavigation">
       <div aria-hidden="true" className="absolute border-[#0E1C26] border-r border-solid inset-0 pointer-events-none" />
       <TopContainer />
       <BottomContainer />

@@ -152,7 +152,7 @@ export default function Header() {
   }, []);
 
   return (
-    <div className="bg-[#030A10] content-stretch flex items-center px-[24px] py-[16px] relative size-full" data-name="Header">
+    <div className="bg-[#030609] content-stretch flex items-center px-[24px] py-[16px] relative size-full" data-name="Header">
       <div aria-hidden="true" className="absolute border-[#0E1C26] border-b border-solid inset-0 pointer-events-none" />
       <p className="flex-1 font-['Inter:Bold',sans-serif] font-bold leading-[24px] not-italic relative text-[#dadfe3] text-[20px] tracking-[-0.5px] whitespace-pre-wrap">{pageTitle}</p>
       <div className="content-stretch flex gap-[12px] items-center relative shrink-0">

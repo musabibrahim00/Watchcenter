@@ -296,13 +296,13 @@ export default function RunsTab({ workflowId, onDebugRun, onAskAI }: RunsTabProp
   // Status badge helper
   const getStatusBadge = (status: RunStatus) => {
     const styles: Record<RunStatus, { bg: string; text: string; label: string }> = {
-      queued: { bg: "rgba(124, 141, 166, 0.2)", text: "#7c8da6", label: "Queued" },
-      running: { bg: "rgba(43, 183, 255, 0.2)", text: "#2bb7ff", label: "Running" },
-      waiting_approval: { bg: "rgba(255, 159, 67, 0.2)", text: "#ff9f43", label: "Awaiting Approval" },
-      paused: { bg: "rgba(255, 159, 67, 0.2)", text: "#ff9f43", label: "Paused — Integration Required" },
-      completed: { bg: "rgba(12, 207, 146, 0.2)", text: "#0ccf92", label: "Completed" },
-      failed: { bg: "rgba(255, 77, 79, 0.2)", text: "#ff4d4f", label: "Failed" },
-      cancelled: { bg: "rgba(124, 141, 166, 0.2)", text: "#7c8da6", label: "Cancelled" },
+      queued: { bg: "rgba(128,128,128, 0.2)", text: "#808080", label: "Queued" },
+      running: { bg: "rgba(121,136,255, 0.2)", text: "#7988FF", label: "Running" },
+      waiting_approval: { bg: "rgba(255,116,10, 0.2)", text: "#FF740A", label: "Awaiting Approval" },
+      paused: { bg: "rgba(255,116,10, 0.2)", text: "#FF740A", label: "Paused — Integration Required" },
+      completed: { bg: "rgba(47,216,151, 0.2)", text: "#2FD897", label: "Completed" },
+      failed: { bg: "rgba(255,87,87, 0.2)", text: "#FF5757", label: "Failed" },
+      cancelled: { bg: "rgba(128,128,128, 0.2)", text: "#808080", label: "Cancelled" },
     };
     const style = styles[status];
     return (
@@ -349,7 +349,7 @@ export default function RunsTab({ workflowId, onDebugRun, onAskAI }: RunsTabProp
           padding: "4px 10px",
           borderRadius: "8px",
           fontSize: "13px",
-          background: "#050B11",
+          background: "#050C14",
           color: "#96a4b2",
         }}
       >

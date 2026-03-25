@@ -47,7 +47,7 @@ export const Button = React.memo(function Button({
       : variant === "ghost"
       ? "bg-transparent text-[#96a4b2] hover:text-[#dadfe3] hover:bg-[rgba(12,22,31,0.5)] disabled:hover:bg-transparent"
       : variant === "danger"
-      ? "min-w-[84px] bg-[#ff4d4f] text-white hover:bg-[#ff7875] disabled:hover:bg-[#ff4d4f]"
+      ? "min-w-[84px] bg-[#FF5757] text-white hover:bg-[#ff7875] disabled:hover:bg-[#FF5757]"
       : "";
 
   const widthClass = fullWidth ? "w-full" : "";

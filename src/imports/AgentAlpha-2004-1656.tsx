@@ -45,7 +45,7 @@ function Icon() {
 
 function Container() {
   return (
-    <div className="absolute bg-[#050b11] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
+    <div className="absolute bg-[#050C14] content-stretch flex items-center left-[8px] p-[20px] rounded-[34px] top-[8px]" data-name="Container">
       <div aria-hidden="true" className="absolute border border-[#121e27] border-solid inset-0 pointer-events-none rounded-[34px] shadow-[0px_0px_4.484px_0px_rgba(137,148,158,0.04)]" />
       <Icon />
     </div>

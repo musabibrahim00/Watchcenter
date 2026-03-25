@@ -161,7 +161,7 @@ export default function InvestigationTimeline({ hoveredAgent }: { hoveredAgent?:
       className="relative rounded-[12px] w-full h-full overflow-hidden"
       data-name="InvestigationTimeline"
     >
-      <div className="content-stretch flex flex-col gap-[6px] items-start overflow-hidden p-[10px] relative rounded-[inherit] size-full bg-[rgba(8,18,30,0.80)]">
+      <div className="content-stretch flex flex-col gap-[6px] items-start overflow-hidden p-[10px] relative rounded-[inherit] size-full bg-[#050B11]">
         {/* Header */}
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-[4px]">
@@ -243,7 +243,7 @@ export default function InvestigationTimeline({ hoveredAgent }: { hoveredAgent?:
         {latestExecution && (
           <div
             className="w-full mt-[4px] pt-[6px]"
-            style={{ borderTop: "1px solid rgba(87,177,255,0.08)", animation: "tasksFadeIn 0.4s ease forwards" }}
+            style={{ borderTop: "1px solid #121E27", animation: "tasksFadeIn 0.4s ease forwards" }}
           >
             <p
               className="font-['Inter:Semi_Bold',sans-serif] uppercase tracking-[0.5px] mb-[6px]"
@@ -307,7 +307,7 @@ export default function InvestigationTimeline({ hoveredAgent }: { hoveredAgent?:
         aria-hidden="true"
         className="absolute border border-solid inset-0 pointer-events-none rounded-[12px]"
         style={{
-          borderColor: "rgba(87,177,255,0.16)",
+          borderColor: "#122C4A",
         }}
       />
     </div>

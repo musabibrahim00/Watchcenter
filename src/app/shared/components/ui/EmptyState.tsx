@@ -37,7 +37,7 @@ export function EmptyState({ icon, title, description, action, className = "" }:
         textAlign: "center",
         borderRadius: radius.lg,
         border: `1px dashed ${colors.border}`,
-        background: "rgba(7,20,32,0.4)",
+        background: "rgba(5,11,17,0.4)",
         gap: "8px",
       }}
     >

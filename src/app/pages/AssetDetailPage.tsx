@@ -37,7 +37,7 @@ interface AssetLocationState {
    ================================================================ */
 
 const SEV_COLOR: Record<string, string> = {
-  critical: "#ff4d4f", high: "#0ccf92", medium: "#ff7a1a", low: "#2bb7ff", informational: "#5b6abf",
+  critical: "#FF5757", high: "#2FD897", medium: "#FF740A", low: "#7988FF", informational: "#5b6abf",
 };
 
 const TABS = [
@@ -134,7 +134,7 @@ export default function AssetDetailPage() {
                 <button onClick={() => navigate(`/attack-paths/${sourcePathId}`)}
                   className="hover:opacity-80 transition-opacity"
                   style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-                  <span style={{ fontSize: 12, color: "#ff7a1a" }}>Attack Path</span>
+                  <span style={{ fontSize: 12, color: "#FF740A" }}>Attack Path</span>
                 </button>
                 <ChevronRight size={11} color={colors.textDim} style={{ opacity: 0.4, flexShrink: 0 }} />
                 {/* Asset Register link */}
@@ -172,7 +172,7 @@ export default function AssetDetailPage() {
           {hasAttackPathContext && (
             <div className="flex items-center gap-2 ml-9 mt-0.5">
               <div style={{ width: 18, height: 18, borderRadius: 4, backgroundColor: "rgba(255,122,26,0.10)", border: "1px solid rgba(255,122,26,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Shield size={9} color="#ff7a1a" strokeWidth={2.5} />
+                <Shield size={9} color="#FF740A" strokeWidth={2.5} />
               </div>
               <span style={{ fontSize: 11, color: colors.textDim }}>Attack Path:</span>
               <EntityLink
@@ -306,11 +306,11 @@ function TabDetails({ asset }: { asset: Asset | null }) {
               gap: 10,
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                <GitBranch size={13} color="#ff7a1a" />
+                <GitBranch size={13} color="#FF740A" />
                 <span style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary }}>Attack Path Memberships</span>
                 <span style={{
                   marginLeft: "auto", fontSize: 10, fontWeight: 600,
-                  color: "#ff7a1a", background: "rgba(255,122,26,0.12)",
+                  color: "#FF740A", background: "rgba(255,122,26,0.12)",
                   border: "1px solid rgba(255,122,26,0.25)", borderRadius: 999,
                   padding: "1px 8px",
                 }}>
@@ -465,7 +465,7 @@ function TabRisks({ asset, assetId, highlightId }: { asset: Asset | null; assetI
   const paged = filtered.slice(page * PAGE, (page + 1) * PAGE);
 
   const sev = asset?.severity || "critical";
-  const sevColor = SEV_COLOR[sev] || "#ff4d4f";
+  const sevColor = SEV_COLOR[sev] || "#FF5757";
 
   return (
     <div className="p-6 flex flex-col gap-5">
@@ -743,11 +743,11 @@ function InvestigationTag() {
       border: "1px solid rgba(255,122,26,0.22)",
       fontSize: 10,
       fontWeight: 600,
-      color: "#ff7a1a",
+      color: "#FF740A",
       whiteSpace: "nowrap",
       verticalAlign: "middle",
     }}>
-      <Shield size={8} color="#ff7a1a" strokeWidth={2.5} />
+      <Shield size={8} color="#FF740A" strokeWidth={2.5} />
       From Attack Path Investigation
     </span>
   );
@@ -788,7 +788,7 @@ const HIGHLIGHT_ROW_STYLE: React.CSSProperties = {
   backgroundColor: "rgba(255,122,26,0.04)",
   borderLeftWidth: 3,
   borderLeftStyle: "solid",
-  borderLeftColor: "#ff7a1a",
+  borderLeftColor: "#FF740A",
 };
 
 function SearchBox({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {

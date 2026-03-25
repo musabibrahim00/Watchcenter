@@ -1207,8 +1207,8 @@ function GraphCanvas({
           </filter>
           {/* hover-glow filter removed — hover no longer triggers animations */}
           <radialGradient id={`vuln-glow-${gradientId}`} cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#ff4d4f" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#ff4d4f" stopOpacity="0" />
+            <stop offset="0%" stopColor="#FF5757" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#FF5757" stopOpacity="0" />
           </radialGradient>
           <filter id={`pulse-glow-${gradientId}`}>
             <feGaussianBlur stdDeviation="5" result="blur" />
@@ -1216,7 +1216,7 @@ function GraphCanvas({
           </filter>
           <radialGradient id={`pulse-grad-${gradientId}`} cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#ff8a40" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#ff4d4f" stopOpacity="0" />
+            <stop offset="100%" stopColor="#FF5757" stopOpacity="0" />
           </radialGradient>
         </defs>
 
@@ -1267,7 +1267,7 @@ function GraphCanvas({
               dashArray = "6 4";
               filterUrl = `url(#glow-${gradientId})`;
             } else if (isExploitPath) {
-              edgeColor = "#ff4d4f";
+              edgeColor = "#FF5757";
               edgeWidth = 2.5;
               filterUrl = `url(#glow-${gradientId})`;
             } else if (isOnFlowPath) {
@@ -1416,7 +1416,7 @@ function GraphCanvas({
             const cy = pos.y + VULN_NODE_H / 2;
             const primaryAsset = pathData.blastRadius.assets[0];
             const severity = pathData.priority;
-            const sevAccent = severityAccent[severity] || "#ff4d4f";
+            const sevAccent = severityAccent[severity] || "#FF5757";
             const isVulnRevealed = revealComplete || revealedNodeSet.has(node.id);
             const isVulnJustRevealed = justRevealedId === node.id && !revealComplete;
 
@@ -1433,7 +1433,7 @@ function GraphCanvas({
                 {/* Vuln entrance burst — stronger orange glow ring */}
                 {isVulnJustRevealed && (
                   <g>
-                    <circle cx={cx} cy={cy} r={40} fill="none" stroke="#ff7a1a" strokeWidth={3} opacity={0} filter={`url(#glow-${gradientId})`}>
+                    <circle cx={cx} cy={cy} r={40} fill="none" stroke="#FF740A" strokeWidth={3} opacity={0} filter={`url(#glow-${gradientId})`}>
                       <animate attributeName="r" values="50;150" dur="0.5s" fill="freeze" />
                       <animate attributeName="opacity" values="0.6;0" dur="0.5s" fill="freeze" />
                     </circle>
@@ -1467,9 +1467,9 @@ function GraphCanvas({
                   }}>
                     <rect x={cx - 68} y={pos.y - VULN_KEV_H - VULN_KEV_GAP} width={136} height={VULN_KEV_H} rx={14}
                       fill={showAttackChain ? "rgba(255,77,79,0.30)" : "rgba(255,77,79,0.15)"}
-                      stroke="#ff4d4f" strokeWidth={1}
+                      stroke="#FF5757" strokeWidth={1}
                     />
-                    <text x={cx} y={pos.y - VULN_KEV_GAP - VULN_KEV_H / 2 + 4} textAnchor="middle" fill="#ff4d4f" fontSize="10" fontWeight="700" fontFamily="system-ui, -apple-system, sans-serif">KEV: {node.cve}</text>
+                    <text x={cx} y={pos.y - VULN_KEV_GAP - VULN_KEV_H / 2 + 4} textAnchor="middle" fill="#FF5757" fontSize="10" fontWeight="700" fontFamily="system-ui, -apple-system, sans-serif">KEV: {node.cve}</text>
                   </g>
                 )}
 
@@ -1511,7 +1511,7 @@ function GraphCanvas({
                         width: 26, height: 26, borderRadius: 7, backgroundColor: "rgba(255,77,79,0.12)",
                         border: "1px solid rgba(255,77,79,0.30)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
                       }}>
-                        <AlertTriangle size={14} color="#ff4d4f" strokeWidth={2} />
+                        <AlertTriangle size={14} color="#FF5757" strokeWidth={2} />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 11.5, fontWeight: 600, color: colors.textPrimary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -1539,8 +1539,8 @@ function GraphCanvas({
 
                     {/* Metrics */}
                     <div style={{ padding: "10px 14px", display: "flex", gap: 20 }}>
-                      <VulnMetric label="Vulnerabilities" value={primaryAsset?.vulnerabilities ?? pathData.vulnerabilities} color="#ff4d4f" />
-                      <VulnMetric label="Misconfigs" value={primaryAsset?.misconfigurations ?? pathData.misconfigurations} color="#ff7a1a" />
+                      <VulnMetric label="Vulnerabilities" value={primaryAsset?.vulnerabilities ?? pathData.vulnerabilities} color="#FF5757" />
+                      <VulnMetric label="Misconfigs" value={primaryAsset?.misconfigurations ?? pathData.misconfigurations} color="#FF740A" />
                     </div>
 
                     <div style={{ height: 1, backgroundColor: "rgba(255,122,26,0.10)", margin: "0 14px", flexShrink: 0 }} />
@@ -1556,10 +1556,10 @@ function GraphCanvas({
                         onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(255,122,26,0.08)"; }}
                         onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent"; }}
                       >
-                        <span style={{ fontSize: 8.5, fontWeight: 600, color: "#ff7a1a" }}>
+                        <span style={{ fontSize: 8.5, fontWeight: 600, color: "#FF740A" }}>
                           {showAttackChain ? "Hide Attack Chain" : "Show Attack Chain"}
                         </span>
-                        <ChevronDown size={12} color="#ff7a1a" strokeWidth={2.5} style={{
+                        <ChevronDown size={12} color="#FF740A" strokeWidth={2.5} style={{
                           transform: showAttackChain ? "rotate(180deg)" : "rotate(0deg)",
                           transition: "transform 200ms ease",
                         }} />
@@ -1588,8 +1588,8 @@ function GraphCanvas({
                         <foreignObject x={brAnchorX} y={pillY} width={BR_PILL_W} height={BR_PILL_H} style={{ cursor: "pointer" }}>
                           <div onClick={toggleBlastRadius} onMouseDown={(e) => e.stopPropagation()}
                             style={{ width: BR_PILL_W, height: BR_PILL_H, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer", fontFamily: "system-ui, -apple-system, sans-serif" }}>
-                            <Crosshair size={13} color="#ff7a1a" strokeWidth={2} />
-                            <span style={{ fontSize: 10, fontWeight: 600, color: "#ff7a1a" }}>Blast Radius</span>
+                            <Crosshair size={13} color="#FF740A" strokeWidth={2} />
+                            <span style={{ fontSize: 10, fontWeight: 600, color: "#FF740A" }}>Blast Radius</span>
                             <span style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,122,26,0.7)", backgroundColor: "rgba(255,122,26,0.12)", borderRadius: 8, padding: "1px 5px" }}>
                               {pathData.blastRadius.totalAssets}
                             </span>
@@ -1783,7 +1783,7 @@ function InlineBlastRadiusPanel({
               width: 28, height: 28, borderRadius: 8, backgroundColor: "rgba(255,122,26,0.10)",
               border: "1px solid rgba(255,122,26,0.25)", display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <Crosshair size={14} color="#ff7a1a" strokeWidth={2} />
+              <Crosshair size={14} color="#FF740A" strokeWidth={2} />
             </div>
             <span style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>Blast Radius</span>
             <span style={{
@@ -1804,7 +1804,7 @@ function InlineBlastRadiusPanel({
               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(255,122,26,0.06)"; }}
               title="Collapse Blast Radius"
             >
-              <ExternalLink size={13} color="#ff7a1a" strokeWidth={2} />
+              <ExternalLink size={13} color="#FF740A" strokeWidth={2} />
             </button>
           </div>
 
@@ -1816,13 +1816,13 @@ function InlineBlastRadiusPanel({
             zIndex: 2,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-              <Network size={12} color="#ff7a1a" strokeWidth={2} />
-              <span style={{ fontSize: 10.5, fontWeight: 600, color: "#ff7a1a" }}>Blast Radius via Network</span>
+              <Network size={12} color="#FF740A" strokeWidth={2} />
+              <span style={{ fontSize: 10.5, fontWeight: 600, color: "#FF740A" }}>Blast Radius via Network</span>
             </div>
             <div style={{ display: "flex", gap: 32 }}>
               <InlineBRMetric label="Total Assets" value={data.totalAssets} color="#57b1ff" />
-              <InlineBRMetric label="Vulnerabilities" value={data.totalVulnerabilities} color="#ff4d4f" />
-              <InlineBRMetric label="Misconfigurations" value={data.totalMisconfigurations} color="#ff7a1a" />
+              <InlineBRMetric label="Vulnerabilities" value={data.totalVulnerabilities} color="#FF5757" />
+              <InlineBRMetric label="Misconfigurations" value={data.totalMisconfigurations} color="#FF740A" />
             </div>
           </div>
 
@@ -1948,14 +1948,14 @@ function InlineBRAssetCard({ asset, isSelected, onClick }: { asset: BlastRadiusA
       {/* Metrics */}
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Bug size={8} color="#ff4d4f" strokeWidth={1.5} />
+          <Bug size={8} color="#FF5757" strokeWidth={1.5} />
           <span style={{ fontSize: 7, color: colors.textDim }}>Vulns</span>
-          <span style={{ fontSize: 9, fontWeight: 700, color: "#ff4d4f" }}>{asset.vulnerabilities}</span>
+          <span style={{ fontSize: 9, fontWeight: 700, color: "#FF5757" }}>{asset.vulnerabilities}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Settings2 size={8} color="#ff7a1a" strokeWidth={1.5} />
+          <Settings2 size={8} color="#FF740A" strokeWidth={1.5} />
           <span style={{ fontSize: 7, color: colors.textDim }}>Misconfigs</span>
-          <span style={{ fontSize: 9, fontWeight: 700, color: "#ff7a1a" }}>{asset.misconfigurations}</span>
+          <span style={{ fontSize: 9, fontWeight: 700, color: "#FF740A" }}>{asset.misconfigurations}</span>
         </div>
       </div>
 
@@ -2044,7 +2044,7 @@ function AttackChainOverlay({
       {/* Dashed connector from vuln card to chain panel */}
       <line
         x1={connStartX} y1={connStartY} x2={connStartX} y2={connEndY}
-        stroke="#ff7a1a" strokeWidth={1.5} strokeDasharray="5 4" strokeLinecap="round"
+        stroke="#FF740A" strokeWidth={1.5} strokeDasharray="5 4" strokeLinecap="round"
         style={{ opacity: mounted ? 1 : 0, transition: "opacity 250ms ease-out 80ms" }}
       >
         <animate attributeName="stroke-dashoffset" values="0;-18" dur="1.2s" repeatCount="indefinite" />
@@ -2069,8 +2069,8 @@ function AttackChainOverlay({
             height: CHAIN_HEADER_H, display: "flex", alignItems: "center", gap: 6, padding: "0 10px",
             borderBottom: "1px solid rgba(255,122,26,0.18)", flexShrink: 0,
           }}>
-            <Zap size={11} color="#ff7a1a" strokeWidth={2} />
-            <span style={{ fontSize: 10, fontWeight: 600, color: "#ff7a1a" }}>Attack Chain</span>
+            <Zap size={11} color="#FF740A" strokeWidth={2} />
+            <span style={{ fontSize: 10, fontWeight: 600, color: "#FF740A" }}>Attack Chain</span>
             <span style={{
               marginLeft: "auto", fontSize: 8, fontWeight: 600, color: "rgba(255,122,26,0.7)",
               backgroundColor: "rgba(255,122,26,0.10)", borderRadius: 8, padding: "1px 5px",
@@ -2084,7 +2084,7 @@ function AttackChainOverlay({
             {allSteps.map((step, idx) => {
               const isExploit = !!(step as { isExploit?: boolean }).isExploit;
               const isVuln = step.isVulnerable;
-              const accentColor = isExploit ? "#ff4d4f" : isVuln ? "#ff4d4f" : nodeColorMap[step.icon] || "#57b1ff";
+              const accentColor = isExploit ? "#FF5757" : isVuln ? "#FF5757" : nodeColorMap[step.icon] || "#57b1ff";
               const Icon = isExploit ? Zap : (nodeIconMap[step.icon] || Server);
               const isLast = idx === totalSteps - 1;
               const delay = 80 + idx * 50;
@@ -2110,7 +2110,7 @@ function AttackChainOverlay({
                     </div>
                     <span style={{
                       fontSize: 9.5, fontWeight: isVuln || isExploit ? 700 : 600,
-                      color: isExploit ? "#ff4d4f" : colors.textPrimary,
+                      color: isExploit ? "#FF5757" : colors.textPrimary,
                       whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1,
                     }}>
                       {step.label}
@@ -2174,7 +2174,7 @@ function _BlastRadiusPanel_UNUSED({
       {/* Horizontal dashed connector from chain to BR panel */}
       <line
         x1={connStartX} y1={connY} x2={connEndX} y2={connY}
-        stroke="#ff7a1a" strokeWidth={1.5} strokeDasharray="5 4" strokeLinecap="round"
+        stroke="#FF740A" strokeWidth={1.5} strokeDasharray="5 4" strokeLinecap="round"
         style={{ opacity: brMounted ? 1 : 0, transition: "opacity 200ms ease-out 80ms" }}
       >
         <animate attributeName="stroke-dashoffset" values="0;-18" dur="1.2s" repeatCount="indefinite" />
@@ -2209,7 +2209,7 @@ function _BlastRadiusPanel_UNUSED({
               width: 26, height: 26, borderRadius: 7, backgroundColor: "rgba(255,122,26,0.12)",
               border: "1px solid rgba(255,122,26,0.30)", display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <Crosshair size={14} color="#ff7a1a" strokeWidth={2} />
+              <Crosshair size={14} color="#FF740A" strokeWidth={2} />
             </div>
             <span style={{ fontSize: 12.5, fontWeight: 600, color: colors.textPrimary }}>Blast Radius</span>
             <span style={{
@@ -2227,15 +2227,15 @@ function _BlastRadiusPanel_UNUSED({
             border: "1px solid rgba(255,122,26,0.18)", flexShrink: 0,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-              <Network size={11} color="#ff7a1a" strokeWidth={2} />
-              <span style={{ fontSize: 10.5, fontWeight: 600, color: "#ff7a1a" }}>
+              <Network size={11} color="#FF740A" strokeWidth={2} />
+              <span style={{ fontSize: 10.5, fontWeight: 600, color: "#FF740A" }}>
                 Blast Radius via Network
               </span>
             </div>
             <div style={{ display: "flex", gap: 28 }}>
               <BRSummaryMetric label="Total Assets" value={data.totalAssets} color="#57b1ff" />
-              <BRSummaryMetric label="Vulnerabilities" value={data.totalVulnerabilities} color="#ff4d4f" />
-              <BRSummaryMetric label="Misconfigurations" value={data.totalMisconfigurations} color="#ff7a1a" />
+              <BRSummaryMetric label="Vulnerabilities" value={data.totalVulnerabilities} color="#FF5757" />
+              <BRSummaryMetric label="Misconfigurations" value={data.totalMisconfigurations} color="#FF740A" />
             </div>
           </div>
 
@@ -2336,14 +2336,14 @@ function BRAssetCard({ asset, onClick }: { asset: BlastRadiusAsset; onClick?: ()
       {/* Metrics row: Vulns + Misconfigs */}
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Bug size={8} color="#ff4d4f" strokeWidth={1.5} />
+          <Bug size={8} color="#FF5757" strokeWidth={1.5} />
           <span style={{ fontSize: 7, color: colors.textDim }}>Vulns</span>
-          <span style={{ fontSize: 9, fontWeight: 700, color: "#ff4d4f" }}>{asset.vulnerabilities}</span>
+          <span style={{ fontSize: 9, fontWeight: 700, color: "#FF5757" }}>{asset.vulnerabilities}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Settings2 size={8} color="#ff7a1a" strokeWidth={1.5} />
+          <Settings2 size={8} color="#FF740A" strokeWidth={1.5} />
           <span style={{ fontSize: 7, color: colors.textDim }}>Misconfigs</span>
-          <span style={{ fontSize: 9, fontWeight: 700, color: "#ff7a1a" }}>{asset.misconfigurations}</span>
+          <span style={{ fontSize: 9, fontWeight: 700, color: "#FF740A" }}>{asset.misconfigurations}</span>
         </div>
       </div>
 
@@ -2524,8 +2524,8 @@ function InsightsPanel({ asset, onClose, sourcePathId, sourcePathName }: { asset
                 onCopy={handleCopy}
               />
               <div style={{ height: 1, backgroundColor: colors.border, margin: "2px 0" }} />
-              <InsightRow label="Misconfigurations" value={String(asset.misconfigurations)} accent="#ff7a1a" />
-              <InsightRow label="Vulnerabilities" value={String(asset.vulnerabilities)} accent="#ff4d4f" />
+              <InsightRow label="Misconfigurations" value={String(asset.misconfigurations)} accent="#FF740A" />
+              <InsightRow label="Vulnerabilities" value={String(asset.vulnerabilities)} accent="#FF5757" />
             </div>
 
             {/* ══════════════  SECTION 2: Primary Action  ══════════════ */}
@@ -2649,7 +2649,7 @@ function InsightsPanel({ asset, onClose, sourcePathId, sourcePathName }: { asset
                   width: 24, height: 24, borderRadius: 6, backgroundColor: "rgba(255,122,26,0.10)",
                   border: "1px solid rgba(255,122,26,0.22)", display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
-                  <Network size={12} color="#ff7a1a" strokeWidth={2} />
+                  <Network size={12} color="#FF740A" strokeWidth={2} />
                 </div>
                 <span style={{ fontSize: 11.5, fontWeight: 600, color: colors.textPrimary }}>Exposed Via Network</span>
                 <span style={{
@@ -2678,7 +2678,7 @@ function InsightsPanel({ asset, onClose, sourcePathId, sourcePathName }: { asset
                       width: 20, height: 20, borderRadius: 5, flexShrink: 0,
                       backgroundColor: "rgba(255,122,26,0.10)", border: "1px solid rgba(255,122,26,0.22)",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 9, fontWeight: 700, color: "#ff7a1a",
+                      fontSize: 9, fontWeight: 700, color: "#FF740A",
                     }}>
                       {idx + 1}
                     </span>
@@ -2801,7 +2801,7 @@ function InsightCopyBtn({
       onMouseLeave={(e) => { if (!isCopied) (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent"; }}
     >
       {isCopied
-        ? <Check size={11} color="#0ccf92" strokeWidth={2.5} />
+        ? <Check size={11} color="#2FD897" strokeWidth={2.5} />
         : <Copy size={11} color={colors.textDim} strokeWidth={2} />
       }
     </button>
@@ -2936,8 +2936,8 @@ export default function AttackPathDetailPage() {
         <Badge tone={pathData.priority} size="sm">{pathData.priority}</Badge>
         <div className="ml-auto flex items-center gap-5">
           <MetricPill label="Assets" value={pathData.assets} color="#57b1ff" />
-          <MetricPill label="Misconfigs" value={pathData.misconfigurations} color="#ff7a1a" />
-          <MetricPill label="Vulns" value={pathData.vulnerabilities} color="#ff4d4f" />
+          <MetricPill label="Misconfigs" value={pathData.misconfigurations} color="#FF740A" />
+          <MetricPill label="Vulns" value={pathData.vulnerabilities} color="#FF5757" />
         </div>
         <button
           onClick={() => {

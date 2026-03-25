@@ -12,6 +12,7 @@ import {
 import { colors } from "../../shared/design-system/tokens";
 import { PageHeader } from "../../shared/components/ui";
 import { DeferredChart } from "../../shared/components/DeferredChart";
+import { SecurityDiagram } from "../../features/asset-register";
 import { EntityLink } from "../../shared/components/EntityLink";
 import {
   ASSETS, KPI_DATA, INVENTORY_TREND, TYPE_DISTRIBUTION, RISK_INDICATORS,
@@ -122,7 +123,17 @@ const TABS = [
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 15;
+
+const OWNER_OPTIONS = [
+  "Liam Carter", "Ella Smith", "Noah Lee", "Ava Brown", "Mia Davis",
+  "Ethan Wilson", "Zoe Johnson", "Lucas White", "Sophie Green", "Jack Taylor",
+  "Chloe Martinez", "Oliver Anderson",
+];
+
+const CUSTODIAN_OPTIONS = [
+  "Engineering", "Platform", "Security", "Infrastructure", "CloudOps", "DevOps",
+];
 
 /* ================================================================
    MAIN COMPONENT
@@ -153,9 +164,9 @@ export default function AssetRegisterPage() {
 
   /* ── Filter state ── */
   const [filters, setFilters] = useState<ActiveFilter[]>([
-    { id: nextFilterId(), field: "securityPlane", operator: "is", value: "Cloud" },
-    { id: nextFilterId(), field: "vendor", operator: "is", value: "AWS" },
-    { id: nextFilterId(), field: "accountName", operator: "is", value: "Prod-Primary-AWS" },
+    { id: nextFilterId(), field: "securityPlane", operator: "is", value: "All" },
+    { id: nextFilterId(), field: "vendor", operator: "is", value: "All" },
+    { id: nextFilterId(), field: "accountName", operator: "is", value: "All" },
     { id: nextFilterId(), field: "assetType", operator: "is", value: "All" },
   ]);
 
@@ -265,14 +276,37 @@ export default function AssetRegisterPage() {
         </div>
       </div>
 
-      {/* ── Tab Content ── */}
-      <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(87,177,255,0.12) transparent" }}>
+            {/* ── Tab Content ── */}
+      <div
+        className="flex-1 overflow-y-auto"
+        style={{
+          scrollbarWidth: "thin",
+          scrollbarColor: "rgba(87,177,255,0.12) transparent",
+        }}
+      >
         {activeTab === "dashboard" && (
-          <DashboardView kpi={computedKpi} typeDist={computedTypeDist} riskIndicators={computedRiskIndicators} />
+          <DashboardView
+            kpi={computedKpi}
+            typeDist={computedTypeDist}
+            riskIndicators={computedRiskIndicators}
+          />
         )}
-        {activeTab === "register" && <RegisterListView filteredAssets={filteredAssets} />}
-        {activeTab === "security" && <PlaceholderTab label="Security Diagram" />}
-        {activeTab === "infra" && <PlaceholderTab label="Infrastructure Security Diagram" />}
+
+        {activeTab === "register" && (
+          <RegisterListView filteredAssets={filteredAssets} />
+        )}
+
+        {activeTab === "security" && (
+          <div className="p-6">
+            <SecurityDiagram filteredIds={new Set(filteredAssets.map(a => a.id))} />
+          </div>
+        )}
+
+        {activeTab === "infra" && (
+          <div className="p-6">
+            <SecurityDiagram filteredIds={new Set(filteredAssets.map(a => a.id))} />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -683,6 +717,104 @@ function FreeTextEditor({ currentValue, onCommit }: { currentValue: string; onCo
 }
 
 /* ================================================================
+   INLINE DROPDOWN — for owner / custodian editing in table rows
+   ================================================================ */
+
+function InlineDropdown({ value, options, placeholder, onSelect }: {
+  value: string;
+  options: string[];
+  placeholder: string;
+  onSelect: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  return (
+    <div
+      ref={ref}
+      style={{ position: "relative" }}
+      onClick={e => e.stopPropagation()}   /* prevent row navigation */
+    >
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1 px-2 py-[5px] rounded transition-colors"
+        style={{
+          backgroundColor: "rgba(87,177,255,0.05)",
+          border: `1px solid ${colors.border}`,
+          cursor: "pointer", maxWidth: 140,
+        }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = colors.borderHover; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = colors.border; }}
+      >
+        <span style={{
+          fontSize: 11, color: value ? colors.textSecondary : colors.textDim,
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 110,
+        }}>
+          {value || placeholder}
+        </span>
+        <ChevronDown size={10} color={colors.textDim} style={{ flexShrink: 0, marginLeft: 2 }} />
+      </button>
+
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 3px)", left: 0, zIndex: 300,
+          minWidth: 160, maxHeight: 220, overflowY: "auto",
+          backgroundColor: colors.bgCard,
+          border: `1px solid ${colors.border}`, borderRadius: 6,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+          padding: "4px 0",
+          scrollbarWidth: "thin",
+          scrollbarColor: "rgba(87,177,255,0.12) transparent",
+        }}>
+          {/* Unassigned option */}
+          <button
+            onClick={() => { onSelect(""); setOpen(false); }}
+            className="flex items-center justify-between w-full px-3 py-2 text-left"
+            style={{
+              fontSize: 12, color: !value ? colors.textPrimary : colors.textDim,
+              background: !value ? "rgba(87,177,255,0.08)" : "none",
+              border: "none", cursor: "pointer",
+            }}
+            onMouseEnter={e => { if (value) e.currentTarget.style.backgroundColor = "rgba(87,177,255,0.05)"; }}
+            onMouseLeave={e => { if (value) e.currentTarget.style.backgroundColor = "transparent"; }}
+          >
+            <span>(Unassigned)</span>
+            {!value && <Check size={11} color={colors.active} />}
+          </button>
+          {options.map(opt => (
+            <button
+              key={opt}
+              onClick={() => { onSelect(opt); setOpen(false); }}
+              className="flex items-center justify-between w-full px-3 py-2 text-left"
+              style={{
+                fontSize: 12, color: value === opt ? colors.textPrimary : colors.textSecondary,
+                background: value === opt ? "rgba(87,177,255,0.08)" : "none",
+                fontWeight: value === opt ? 500 : 400,
+                border: "none", cursor: "pointer",
+              }}
+              onMouseEnter={e => { if (value !== opt) e.currentTarget.style.backgroundColor = "rgba(87,177,255,0.05)"; }}
+              onMouseLeave={e => { if (value !== opt) e.currentTarget.style.backgroundColor = "transparent"; }}
+            >
+              <span>{opt}</span>
+              {value === opt && <Check size={11} color={colors.active} />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ================================================================
    DASHBOARD VIEW — driven by filtered data
    ================================================================ */
 
@@ -874,10 +1006,19 @@ function buildAssetContext(asset: Asset) {
 function RegisterListView({ filteredAssets }: { filteredAssets: Asset[] }) {
   const navigate = useNavigate();
   const { openWithContext } = useAiBox();
-  const [search, setSearch] = useState("");
+  const [search] = useState("");
   const [page, setPage] = useState(0);
   const [sortCol, setSortCol] = useState<SortCol | "">("");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  /* Per-row owner / custodian overrides */
+  const [overrides, setOverrides] = useState<Record<string, { owner?: string; custodian?: string }>>({});
+  const getOwner = (a: Asset) => overrides[a.id]?.owner ?? a.owner;
+  const getCustodian = (a: Asset) => overrides[a.id]?.custodian ?? a.custodian;
+  const setOwner = (id: string, v: string) =>
+    setOverrides(prev => ({ ...prev, [id]: { ...prev[id], owner: v } }));
+  const setCustodian = (id: string, v: string) =>
+    setOverrides(prev => ({ ...prev, [id]: { ...prev[id], custodian: v } }));
 
   /* Reset page when filteredAssets changes */
   useEffect(() => { setPage(0); }, [filteredAssets]);
@@ -977,30 +1118,20 @@ function RegisterListView({ filteredAssets }: { filteredAssets: Asset[] }) {
                   </div>
                 </TdCell>
                 <TdCell>
-                  {asset.owner ? (
-                    <div className="flex items-center gap-1 px-2 py-1 rounded" style={{ backgroundColor: "rgba(87,177,255,0.05)", border: `1px solid ${colors.border}` }}>
-                      <span style={{ fontSize: 11, color: colors.textSecondary, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{asset.owner}</span>
-                      <ChevronDown size={10} color={colors.textDim} />
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1 px-2 py-1 rounded" style={{ backgroundColor: "rgba(87,177,255,0.03)", border: `1px solid ${colors.border}` }}>
-                      <span style={{ fontSize: 11, color: colors.textDim }}>Select Owner</span>
-                      <ChevronDown size={10} color={colors.textDim} />
-                    </div>
-                  )}
+                  <InlineDropdown
+                    value={getOwner(asset)}
+                    options={OWNER_OPTIONS}
+                    placeholder="Select Owner"
+                    onSelect={v => setOwner(asset.id, v)}
+                  />
                 </TdCell>
                 <TdCell>
-                  {asset.custodian ? (
-                    <div className="flex items-center gap-1 px-2 py-1 rounded" style={{ backgroundColor: "rgba(87,177,255,0.05)", border: `1px solid ${colors.border}` }}>
-                      <span style={{ fontSize: 11, color: colors.textSecondary, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{asset.custodian}</span>
-                      <ChevronDown size={10} color={colors.textDim} />
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1 px-2 py-1 rounded" style={{ backgroundColor: "rgba(87,177,255,0.03)", border: `1px solid ${colors.border}` }}>
-                      <span style={{ fontSize: 11, color: colors.textDim }}>Select Custodian</span>
-                      <ChevronDown size={10} color={colors.textDim} />
-                    </div>
-                  )}
+                  <InlineDropdown
+                    value={getCustodian(asset)}
+                    options={CUSTODIAN_OPTIONS}
+                    placeholder="Select Custodian"
+                    onSelect={v => setCustodian(asset.id, v)}
+                  />
                 </TdCell>
                 {/* AI quick-actions — stop row nav, open AIBox with asset context */}
                 <TdCell>
@@ -1047,7 +1178,7 @@ function RegisterListView({ filteredAssets }: { filteredAssets: Asset[] }) {
    TABLE PRIMITIVES
    ================================================================ */
 
-function ThPlain({ children }: { children: React.ReactNode }) {
+function ThPlain({ children }: { children?: React.ReactNode }) {
   return (
     <th style={{
       padding: "12px 16px", textAlign: "left", fontSize: 12, fontWeight: 500,

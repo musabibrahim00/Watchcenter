@@ -1103,11 +1103,11 @@ export default function AiBox() {
   return (
     <AiBoxActionProvider onAction={handleAction}>
       <div
-        className="bg-[rgba(3,6,9,0.16)] relative rounded-[16px] size-full min-h-0"
+        className="bg-[#050C14] relative rounded-[16px] size-full min-h-0"
         data-name="AiBox"
         style={{
-          border: "1px solid #030609",
-          boxShadow: "0px 24px 48px 0px rgba(0,0,0,0.48), inset 0 0 0 1px rgba(87,177,255,0.13)",
+          border: "1px solid #091829",
+          boxShadow: "0px 24px 48px 0px rgba(0,0,0,0.48)",
         }}
       >
         <div className="content-stretch flex flex-col isolate items-center overflow-hidden relative rounded-[inherit] size-full min-h-0">

@@ -172,7 +172,7 @@ export default function ActivityFeed() {
 
   return (
     <div className="relative rounded-[12px] w-full h-full overflow-hidden" data-name="ActivityFeed">
-      <div className="content-stretch flex flex-col items-start overflow-hidden p-px relative rounded-[inherit] size-full bg-[rgba(8,18,30,0.80)]">
+      <div className="content-stretch flex flex-col items-start overflow-hidden p-px relative rounded-[inherit] size-full bg-[#050B11]">
         <div className="flex-1 min-h-0 relative w-full">
           <div className="absolute inset-0 flex flex-col gap-[8px] items-start pt-[12px] px-[14px] pb-[6px]">
             {/* Header */}
@@ -191,7 +191,7 @@ export default function ActivityFeed() {
             <div className="h-0 relative shrink-0 w-full">
               <div className="absolute inset-[-0.5px_0]">
                 <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 272 1">
-                  <path d="M0 0.5H272" stroke="rgba(87,177,255,0.09)" />
+                  <path d="M0 0.5H272" stroke="#121E27" />
                 </svg>
               </div>
             </div>
@@ -219,7 +219,7 @@ export default function ActivityFeed() {
       </div>
       <div
         aria-hidden="true"
-        className="absolute border border-[rgba(87,177,255,0.16)] border-solid inset-0 pointer-events-none rounded-[12px]"
+        className="absolute border border-[#122C4A] border-solid inset-0 pointer-events-none rounded-[12px]"
       />
     </div>
   );
