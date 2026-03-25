@@ -3,7 +3,7 @@ import svgPaths from "./svg-63n4fkkbae";
 const img5 = "";
 import { imgGroup } from "./svg-0cfqo";
 import { useNavigate, useLocation } from "react-router";
-import { getStoredExperience } from "../app/pages/ExperienceChooser";
+import { getStoredExperience, EXPERIENCE_EVENT } from "../app/pages/ExperienceChooser";
 
 /* ================================================================
    GLOBAL SIDEBAR NAVIGATION
@@ -552,7 +552,13 @@ function IconSettings() {
    ================================================================ */
 
 function TopItems() {
-  const isAli = getStoredExperience() === "ali";
+  const [isAli, setIsAli] = React.useState(() => getStoredExperience() === "ali");
+
+  React.useEffect(() => {
+    const handler = (e: Event) => setIsAli((e as CustomEvent).detail === "ali");
+    window.addEventListener(EXPERIENCE_EVENT, handler);
+    return () => window.removeEventListener(EXPERIENCE_EVENT, handler);
+  }, []);
   return (
     <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0" data-name="Top items">
       {/* Watch Center */}

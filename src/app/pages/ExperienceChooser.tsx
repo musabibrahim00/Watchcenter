@@ -8,8 +8,16 @@ export function getStoredExperience(): Experience | null {
   return localStorage.getItem(EXPERIENCE_KEY) as Experience | null;
 }
 
+export const EXPERIENCE_EVENT = "wc:experience-changed";
+
 export function setStoredExperience(exp: Experience) {
   localStorage.setItem(EXPERIENCE_KEY, exp);
+  window.dispatchEvent(new CustomEvent(EXPERIENCE_EVENT, { detail: exp }));
+}
+
+export function removeStoredExperience() {
+  localStorage.removeItem(EXPERIENCE_KEY);
+  window.dispatchEvent(new CustomEvent(EXPERIENCE_EVENT, { detail: null }));
 }
 
 export default function ExperienceChooser() {

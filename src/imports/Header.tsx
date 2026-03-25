@@ -2,7 +2,7 @@ import { useLocation, useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import svgPaths from "./svg-vlugkcafyl";
 import { useTimeTravel } from "../app/shared/contexts/TimeTravelContext";
-import { getStoredExperience, setStoredExperience, type Experience } from "../app/pages/ExperienceChooser";
+import { getStoredExperience, setStoredExperience, removeStoredExperience, EXPERIENCE_EVENT, type Experience } from "../app/pages/ExperienceChooser";
 
 /**
  * Global Application Header
@@ -140,6 +140,12 @@ function ExperienceSwitcher() {
   const [current, setCurrent] = useState<Experience | null>(getStoredExperience());
   const [open, setOpen] = useState(false);
 
+  useEffect(() => {
+    const handler = (e: Event) => setCurrent((e as CustomEvent<Experience | null>).detail);
+    window.addEventListener(EXPERIENCE_EVENT, handler);
+    return () => window.removeEventListener(EXPERIENCE_EVENT, handler);
+  }, []);
+
   function switchTo(exp: Experience) {
     setStoredExperience(exp);
     setCurrent(exp);
@@ -202,7 +208,7 @@ function ExperienceSwitcher() {
             ))}
             <div className="mt-[4px] pt-[4px]" style={{ borderTop: "1px solid #0E1C26" }}>
               <button
-                onClick={() => { localStorage.removeItem("wc:experience"); navigate("/choose"); setOpen(false); }}
+                onClick={() => { removeStoredExperience(); navigate("/choose"); setOpen(false); }}
                 className="w-full text-left px-[8px] py-[6px] rounded-[7px] text-[11px] cursor-pointer transition-colors"
                 style={{ color: "#62707D" }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#a8b6c4"; (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(255,255,255,0.04)"; }}

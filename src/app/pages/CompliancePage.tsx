@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
-  AlertTriangle, Clock, TrendingUp, Shield, FileText,
+  AlertTriangle, TrendingUp, Shield, FileText,
   GitBranch, Server, Sparkles, CheckCircle2, XCircle,
   AlertCircle, Activity, FolderOpen, Calendar, ChevronRight,
 } from "lucide-react";
@@ -296,10 +296,6 @@ function GapRow({ gap }: { gap: typeof GAPS[number] }) {
           </div>
         </div>
         <div className="shrink-0 flex items-center gap-[8px]">
-          <div className="flex items-center gap-[4px]" style={{ color: colors.textDim }}>
-            <Clock size={11} />
-            <span style={{ fontSize: 10 }}>{gap.daysOpen}d</span>
-          </div>
           <button
             onClick={handleAskAI}
             title={`Ask AI about ${gap.control}`}
@@ -522,19 +518,7 @@ export default function CompliancePage() {
           icon={<Shield size={18} style={{ color: colors.accent }} />}
           title="Compliance"
           subtitle="Posture, audit readiness, evidence, and continuous controls monitoring"
-          actions={
-            <div className="flex items-center gap-[8px]">
-              <button
-                className="flex items-center gap-[6px] px-[12px] py-[7px] rounded-[8px] text-[12px] font-medium cursor-pointer transition-colors"
-                style={{ background: colors.bgCard, border: `1px solid ${colors.border}`, color: colors.textMuted }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = colors.textPrimary; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = colors.textMuted; }}
-              >
-                <FileText size={12} />
-                Export Report
-              </button>
-            </div>
-          }
+          actions={undefined}
         />
       </div>
 
