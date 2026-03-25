@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from "react-router";
 import { useState, useEffect } from "react";
-import SidebarNavigation from "../../imports/SidebarNavigation";
-import Header from "../../imports/Header";
+import SidebarNavigation from "./SidebarNavigation";
+import Header from "./Header";
 import { AiBoxProvider, useAiBox, useAiBoxDeepLink } from "../features/ai-box";
 import { colors } from "../shared/design-system/tokens";
 import { CommandPalette } from "./CommandPalette";
