@@ -263,6 +263,7 @@ function ScoreBadge({ score, trend }: { score: number; trend: string }) {
 }
 
 function FrameworkRow({ fw }: { fw: typeof FRAMEWORKS[number] }) {
+  const navigate       = useNavigate();
   const passWidth      = `${(fw.passing    / fw.controls) * 100}%`;
   const failWidth      = `${(fw.failing    / fw.controls) * 100}%`;
   const inProgressWidth= `${(fw.inProgress / fw.controls) * 100}%`;
@@ -270,7 +271,10 @@ function FrameworkRow({ fw }: { fw: typeof FRAMEWORKS[number] }) {
 
   return (
     <div
-      className="flex flex-col gap-[10px] p-[16px] rounded-[10px]"
+      className="flex flex-col gap-[10px] p-[16px] rounded-[10px] cursor-pointer transition-colors"
+      onClick={() => navigate(`/compliance/${fw.id}`)}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = isTrending ? colors.medium + "66" : colors.primary + "44"; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = isTrending ? colors.medium + "44" : colors.border; }}
       style={{
         background: colors.bgCard,
         border: `1px solid ${isTrending ? colors.medium + "44" : colors.border}`,
@@ -283,7 +287,10 @@ function FrameworkRow({ fw }: { fw: typeof FRAMEWORKS[number] }) {
             {fw.controls} controls · {fw.failing} failing
           </p>
         </div>
-        <ScoreBadge score={fw.score} trend={fw.trend} />
+        <div className="flex items-center gap-[10px]">
+          <ScoreBadge score={fw.score} trend={fw.trend} />
+          <ArrowRight size={13} color={colors.textDim} />
+        </div>
       </div>
       <div className="flex h-[5px] rounded-full overflow-hidden w-full" style={{ background: "rgba(255,255,255,0.06)" }}>
         <div style={{ width: passWidth,       background: colors.success }} />

@@ -77,6 +77,7 @@ export const router = createBrowserRouter(
           element: <PlaceholderPage title="Vulnerabilities" />,
         },
         { path: "compliance", lazy: () => import("./pages/CompliancePage").then(m => ({ Component: m.default })) },
+        { path: "compliance/:frameworkId", lazy: () => import("./pages/ComplianceFrameworkPage").then(m => ({ Component: m.default })) },
         {
           path: "misconfigurations",
           element: <PlaceholderPage title="Misconfigurations" />,
