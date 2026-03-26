@@ -129,14 +129,14 @@ function ControlTableRow({
       }}
     >
       {/* ID */}
-      <div className="shrink-0 px-[12px] py-[10px]" style={{ width: 88 }}>
+      <div className="shrink-0 px-[12px] py-[8px]" style={{ width: 88 }}>
         <span className="text-[11px] font-mono font-semibold" style={{ color: statusColor }}>
           {ctrl.id}
         </span>
       </div>
 
       {/* Name + category */}
-      <div className="flex-1 min-w-0 px-[8px] py-[10px]">
+      <div className="flex-1 min-w-0 px-[8px] py-[8px]">
         <p
           style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary, lineHeight: 1.3 }}
           className="truncate"
@@ -149,7 +149,7 @@ function ControlTableRow({
       </div>
 
       {/* Status */}
-      <div className="shrink-0 px-[8px] py-[10px]" style={{ width: 110 }}>
+      <div className="shrink-0 px-[8px] py-[8px]" style={{ width: 110 }}>
         <span
           className="flex items-center gap-[5px] px-[7px] py-[3px] rounded-[5px] w-fit text-[10px] font-semibold capitalize"
           style={{
@@ -164,7 +164,7 @@ function ControlTableRow({
       </div>
 
       {/* Owner */}
-      <div className="shrink-0 px-[8px] py-[10px]" style={{ width: 120 }}>
+      <div className="shrink-0 px-[8px] py-[8px]" style={{ width: 120 }}>
         <span
           style={{ fontSize: 11, color: owner ? colors.textMuted : colors.textDim }}
           className="truncate block"
@@ -174,7 +174,7 @@ function ControlTableRow({
       </div>
 
       {/* Evidence */}
-      <div className="shrink-0 px-[8px] py-[10px] flex items-center gap-[5px]" style={{ width: 80 }}>
+      <div className="shrink-0 px-[8px] py-[8px] flex items-center gap-[5px]" style={{ width: 80 }}>
         <FileCheck2 size={11} color={evidenceCount > 0 ? colors.success : colors.textDim} />
         <span style={{ fontSize: 11, color: evidenceCount > 0 ? colors.textMuted : colors.textDim }}>
           {evidenceCount}
@@ -724,106 +724,139 @@ function PoliciesTab({ policies }: { policies: FrameworkPolicy[] }) {
     );
   }
 
-  const categories = Array.from(new Set(policies.map(p => p.category)));
-  const needsAttentionCount = policies.filter(p => p.status === "under-review" || p.status === "draft" || p.status === "expired").length;
+  const approvedCount = policies.filter(p => p.status === "approved").length;
+  const reviewCount   = policies.filter(p => p.status === "under-review").length;
+  const draftCount    = policies.filter(p => p.status === "draft").length;
+  const expiredCount  = policies.filter(p => p.status === "expired").length;
+  const needsAttn     = reviewCount + draftCount + expiredCount;
+
+  const sorted = [...policies].sort((a, b) => {
+    const o: Record<PolicyStatus, number> = { expired: 0, "under-review": 1, draft: 2, approved: 3 };
+    return o[a.status] - o[b.status];
+  });
 
   return (
-    <div className="flex flex-col gap-[24px]">
-      {/* Summary strip */}
-      <div className="flex items-center gap-[20px] flex-wrap">
-        {[
-          { label: "Approved",      value: policies.filter(p => p.status === "approved").length,      color: colors.success  },
-          { label: "Under Review",  value: policies.filter(p => p.status === "under-review").length,  color: colors.medium   },
-          { label: "Draft",         value: policies.filter(p => p.status === "draft").length,         color: colors.textDim  },
-          { label: "Expired",       value: policies.filter(p => p.status === "expired").length,       color: colors.critical },
-        ].map(s => (
-          <div key={s.label} className="flex items-center gap-[6px]">
-            <span style={{ fontSize: 18, fontWeight: 700, color: s.color, lineHeight: 1 }}>{s.value}</span>
-            <span style={{ fontSize: 11, color: colors.textDim }}>{s.label}</span>
-          </div>
-        ))}
-        {needsAttentionCount > 0 && (
+    <div className="flex flex-col gap-[12px]">
+      {/* Summary line */}
+      <div className="flex items-center gap-[14px] flex-wrap">
+        <span style={{ fontSize: 11, color: colors.success }}>{approvedCount} approved</span>
+        <span style={{ fontSize: 11, color: colors.medium }}>{reviewCount} under review</span>
+        <span style={{ fontSize: 11, color: colors.textDim }}>{draftCount} draft</span>
+        {expiredCount > 0 && (
+          <span style={{ fontSize: 11, color: colors.critical }}>{expiredCount} expired</span>
+        )}
+        {needsAttn > 0 && (
           <span
             className="flex items-center gap-[4px] px-[8px] py-[3px] rounded-full text-[10px] font-semibold ml-auto"
             style={{ background: `${colors.medium}14`, color: colors.medium, border: `1px solid ${colors.medium}28` }}
           >
             <AlertCircle size={9} />
-            {needsAttentionCount} need{needsAttentionCount === 1 ? "s" : ""} attention
+            {needsAttn} need{needsAttn === 1 ? "s" : ""} attention
           </span>
         )}
       </div>
 
-      {/* Policies by category */}
-      {categories.map(cat => {
-        const catPolicies = policies.filter(p => p.category === cat);
-        const hasDraft    = catPolicies.some(p => p.status === "draft" || p.status === "under-review" || p.status === "expired");
-        return (
-          <div key={cat} className="flex flex-col gap-[8px]">
-            <div className="flex items-center gap-[8px]">
-              <span style={{ fontSize: 11, fontWeight: 700, color: hasDraft ? colors.medium : colors.textMuted }}>
-                {cat}
-              </span>
-              <div style={{ flex: 1, height: 1, background: colors.border }} />
-            </div>
-            {catPolicies.map(policy => {
-              const statusColor = POLICY_STATUS_COLOR[policy.status];
-              const isAtRisk    = policy.status !== "approved";
-              return (
-                <div
-                  key={policy.id}
-                  className="flex flex-col gap-[10px] p-[14px] rounded-[10px]"
+      {/* Table */}
+      <div
+        className="rounded-[10px] overflow-hidden"
+        style={{ border: `1px solid ${colors.border}`, background: colors.bgCard }}
+      >
+        {/* Header */}
+        <div
+          className="flex items-center"
+          style={{ borderBottom: `1px solid ${colors.border}`, background: "rgba(255,255,255,0.02)" }}
+        >
+          <div className="flex-1 min-w-0 px-[12px] py-[8px]">
+            <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>Policy</span>
+          </div>
+          <div className="shrink-0 px-[8px] py-[8px]" style={{ width: 90 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>Status</span>
+          </div>
+          <div className="shrink-0 px-[8px] py-[8px]" style={{ width: 130 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>Owner</span>
+          </div>
+          <div className="shrink-0 px-[8px] py-[8px]" style={{ width: 80 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>Reviewed</span>
+          </div>
+          <div className="shrink-0 px-[8px] py-[8px]" style={{ width: 86 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>Next Review</span>
+          </div>
+          <div className="shrink-0 px-[8px] py-[8px]" style={{ width: 100 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>Controls</span>
+          </div>
+        </div>
+
+        {/* Rows */}
+        {sorted.map(policy => {
+          const statusColor  = POLICY_STATUS_COLOR[policy.status];
+          const isAtRisk     = policy.status !== "approved";
+          const statusLabel  = policy.status === "under-review" ? "Review" : policy.status.charAt(0).toUpperCase() + policy.status.slice(1);
+          return (
+            <div
+              key={policy.id}
+              className="flex items-center"
+              style={{
+                borderBottom: `1px solid ${colors.border}`,
+                background: isAtRisk ? `${statusColor}06` : "transparent",
+              }}
+            >
+              {/* Policy name + summary */}
+              <div className="flex-1 min-w-0 px-[12px] py-[10px]">
+                <p style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary }} className="truncate">
+                  {policy.name}
+                </p>
+                <p style={{ fontSize: 10, color: colors.textDim, marginTop: 1 }} className="truncate">
+                  {policy.summary}
+                </p>
+              </div>
+
+              {/* Status */}
+              <div className="shrink-0 px-[8px] py-[10px]" style={{ width: 90 }}>
+                <span
+                  className="flex items-center gap-[5px] px-[6px] py-[2px] rounded-[5px] w-fit text-[10px] font-semibold"
                   style={{
-                    background: isAtRisk ? `${statusColor}07` : colors.bgCard,
-                    border: `1px solid ${isAtRisk ? statusColor + "28" : colors.border}`,
+                    background: `${statusColor}14`,
+                    color: statusColor,
+                    border: `1px solid ${statusColor}28`,
                   }}
                 >
-                  {/* Header row */}
-                  <div className="flex items-start justify-between gap-[10px]">
-                    <div className="flex items-start gap-[10px] flex-1 min-w-0">
-                      <div className="shrink-0 mt-[1px]">{POLICY_STATUS_ICON[policy.status]}</div>
-                      <div className="min-w-0">
-                        <p style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary, lineHeight: 1.3 }}>{policy.name}</p>
-                        <p style={{ fontSize: 11, color: colors.textMuted, marginTop: 3, lineHeight: 1.5 }}>{policy.summary}</p>
-                      </div>
-                    </div>
-                    <div className="shrink-0 text-right flex flex-col items-end gap-[4px]">
-                      <span
-                        className="px-[7px] py-[2px] rounded-full text-[9px] font-bold uppercase"
-                        style={{ background: `${statusColor}14`, color: statusColor, border: `1px solid ${statusColor}28` }}
-                      >
-                        {policy.status === "under-review" ? "review" : policy.status}
-                      </span>
-                      <span style={{ fontSize: 9, color: colors.textDim }}>{policy.version}</span>
-                    </div>
-                  </div>
+                  {POLICY_STATUS_ICON[policy.status]}
+                  {statusLabel}
+                </span>
+              </div>
 
-                  {/* Meta row */}
-                  <div className="flex items-center gap-[16px] flex-wrap" style={{ borderTop: `1px solid ${colors.border}`, paddingTop: 8 }}>
-                    <span style={{ fontSize: 10, color: colors.textDim }}>
-                      Owner: <span style={{ color: colors.textMuted }}>{policy.owner}</span>
-                    </span>
-                    {policy.lastReviewed && (
-                      <span style={{ fontSize: 10, color: colors.textDim }}>
-                        Reviewed: <span style={{ color: colors.textMuted }}>{policy.lastReviewed}</span>
-                      </span>
-                    )}
-                    {policy.nextReview && (
-                      <span style={{ fontSize: 10, color: colors.textDim }}>
-                        Next review: <span style={{ color: isAtRisk ? statusColor : colors.textMuted }}>{policy.nextReview}</span>
-                      </span>
-                    )}
-                    {policy.controlIds && policy.controlIds.length > 0 && (
-                      <span style={{ fontSize: 10, color: colors.textDim }}>
-                        Controls: <span style={{ color: colors.textMuted, fontFamily: "monospace" }}>{policy.controlIds.join(", ")}</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        );
-      })}
+              {/* Owner */}
+              <div className="shrink-0 px-[8px] py-[10px]" style={{ width: 130 }}>
+                <span style={{ fontSize: 11, color: colors.textMuted }} className="truncate block">{policy.owner}</span>
+              </div>
+
+              {/* Last reviewed */}
+              <div className="shrink-0 px-[8px] py-[10px]" style={{ width: 80 }}>
+                <span style={{ fontSize: 11, color: policy.lastReviewed ? colors.textMuted : colors.textDim }}>
+                  {policy.lastReviewed || "—"}
+                </span>
+              </div>
+
+              {/* Next review */}
+              <div className="shrink-0 px-[8px] py-[10px]" style={{ width: 86 }}>
+                <span style={{ fontSize: 11, color: isAtRisk ? statusColor : colors.textMuted }}>
+                  {policy.nextReview || "—"}
+                </span>
+              </div>
+
+              {/* Controls */}
+              <div className="shrink-0 px-[8px] py-[10px]" style={{ width: 100 }}>
+                <span
+                  className="text-[10px] font-mono truncate block"
+                  style={{ color: policy.controlIds?.length ? colors.textMuted : colors.textDim }}
+                >
+                  {policy.controlIds?.join(", ") || "—"}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -837,6 +870,7 @@ function DocumentsTab({ frameworkId }: { frameworkId: string }) {
   const fwItems = items.filter(ev => ev.fwId === frameworkId);
 
   const collectedCount = fwItems.filter(e => e.status === "collected").length;
+  const pendingCount   = fwItems.filter(e => e.status === "pending").length;
   const overdueCount   = fwItems.filter(e => e.status === "overdue").length;
 
   const sorted = [...fwItems].sort((a, b) => {
@@ -845,31 +879,40 @@ function DocumentsTab({ frameworkId }: { frameworkId: string }) {
   });
 
   return (
-    <div className="flex flex-col gap-[20px]">
-      {/* Summary */}
+    <div className="flex flex-col gap-[12px]">
+      {/* Summary line */}
       {fwItems.length > 0 && (
-        <div className="flex items-center gap-[20px] flex-wrap">
-          <div className="flex items-center gap-[6px]">
-            <span style={{ fontSize: 18, fontWeight: 700, color: colors.success, lineHeight: 1 }}>{collectedCount}</span>
-            <span style={{ fontSize: 11, color: colors.textDim }}>Collected</span>
-          </div>
-          <div className="flex items-center gap-[6px]">
-            <span style={{ fontSize: 18, fontWeight: 700, color: colors.medium, lineHeight: 1 }}>{fwItems.filter(e => e.status === "pending").length}</span>
-            <span style={{ fontSize: 11, color: colors.textDim }}>Pending</span>
-          </div>
+        <div className="flex items-center gap-[14px] flex-wrap">
+          <span style={{ fontSize: 11, color: colors.success }}>{collectedCount} collected</span>
+          <span style={{ fontSize: 11, color: colors.medium }}>{pendingCount} pending</span>
           {overdueCount > 0 && (
-            <div className="flex items-center gap-[6px]">
-              <span style={{ fontSize: 18, fontWeight: 700, color: colors.critical, lineHeight: 1 }}>{overdueCount}</span>
-              <span style={{ fontSize: 11, color: colors.textDim }}>Overdue</span>
-            </div>
+            <span style={{ fontSize: 11, color: colors.critical }}>{overdueCount} overdue</span>
           )}
           {/* Progress bar */}
-          <div className="flex-1 min-w-[120px]">
-            <div className="flex h-[4px] rounded-full overflow-hidden w-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+          <div className="flex-1 min-w-[100px] max-w-[200px]">
+            <div className="flex h-[3px] rounded-full overflow-hidden w-full" style={{ background: "rgba(255,255,255,0.06)" }}>
               <div style={{ width: `${fwItems.length ? (collectedCount / fwItems.length) * 100 : 0}%`, background: colors.success }} />
-              <div style={{ width: `${fwItems.length ? (fwItems.filter(e => e.status === "pending").length / fwItems.length) * 100 : 0}%`, background: colors.medium }} />
+              <div style={{ width: `${fwItems.length ? (pendingCount / fwItems.length) * 100 : 0}%`, background: colors.medium }} />
               <div style={{ width: `${fwItems.length ? (overdueCount / fwItems.length) * 100 : 0}%`, background: colors.critical }} />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Column header */}
+      {sorted.length > 0 && (
+        <div
+          className="flex items-center px-[12px] py-[7px] rounded-t-[10px]"
+          style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${colors.border}`, borderBottom: "none" }}
+        >
+          <div className="w-[20px] shrink-0 mr-[10px]" />
+          <div className="flex-1 min-w-0">
+            <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>Evidence Item</span>
+          </div>
+          <div className="shrink-0 flex items-center gap-[8px]">
+            <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em", width: 85, textAlign: "right" }}>Status</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em", width: 60, textAlign: "right" }}>Due</span>
+            <div className="w-[12px]" />
           </div>
         </div>
       )}
@@ -883,7 +926,10 @@ function DocumentsTab({ frameworkId }: { frameworkId: string }) {
           <p style={{ fontSize: 12, color: colors.textDim }}>No evidence items mapped to this framework yet.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-[6px]">
+        <div
+          className="flex flex-col rounded-b-[10px] overflow-hidden"
+          style={{ border: `1px solid ${colors.border}` }}
+        >
           {sorted.map(ev => (
             <ActionableEvidenceRow key={ev.id} ev={ev} onUpdate={update} />
           ))}
@@ -912,9 +958,11 @@ function AuditTab({
   gaps: typeof GAPS;
   onAskAI: () => void;
 }) {
+  const { items: evidenceItems } = useEvidenceStore();
   const audit       = UPCOMING_AUDITS.find(a => a.fwId === frameworkId);
   const failingCtrl = controls.filter(c => c.status === "failing");
   const inProgCtrl  = controls.filter(c => c.status === "in-progress");
+  const missingEv   = evidenceItems.filter(e => e.fwId === frameworkId && e.status !== "collected");
 
   const scoreColor = audit
     ? (audit.readiness >= 85 ? colors.success : audit.readiness >= 70 ? colors.medium : colors.critical)
@@ -922,19 +970,17 @@ function AuditTab({
 
   if (!audit) {
     return (
-      <div className="flex flex-col gap-[20px]">
+      <div className="flex flex-col gap-[16px]">
         <div
-          className="flex items-center gap-[10px] p-[20px] rounded-[12px]"
+          className="flex items-center gap-[10px] p-[16px] rounded-[10px]"
           style={{ background: colors.bgCard, border: `1px solid ${colors.border}` }}
         >
-          <CheckCircle2 size={16} color={colors.success} />
+          <CheckCircle2 size={14} color={colors.success} />
           <div>
             <p style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>No upcoming audit scheduled</p>
-            <p style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>There are no audits scheduled for {frameworkName} in the next 12 months.</p>
+            <p style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>No audits scheduled for {frameworkName} in the next 12 months.</p>
           </div>
         </div>
-
-        {/* Still show blocking controls if any */}
         {failingCtrl.length > 0 && (
           <BlockingControlsList controls={failingCtrl} label="Failing Controls" color={colors.critical} />
         )}
@@ -942,128 +988,158 @@ function AuditTab({
     );
   }
 
-  const isAtRisk  = audit.readiness < 80;
-  const isUrgent  = audit.daysUntil <= 60;
+  const isAtRisk    = audit.readiness < 80;
+  const isUrgent    = audit.daysUntil <= 60;
   const urgentColor = isAtRisk ? colors.critical : isUrgent ? colors.medium : colors.textDim;
 
   return (
-    <div className="flex flex-col gap-[24px]">
-      {/* Audit readiness card */}
+    <div className="flex flex-col gap-[16px]">
+
+      {/* Readiness strip */}
       <div
-        className="flex flex-col gap-[16px] p-[20px] rounded-[12px]"
+        className="flex flex-col gap-[10px] px-[16px] pt-[12px] pb-[10px] rounded-[10px]"
         style={{ background: colors.bgCard, border: `1px solid ${isAtRisk ? colors.medium + "44" : colors.border}` }}
       >
-        <div className="flex items-start justify-between gap-[12px]">
-          <div>
-            <p style={{ fontSize: 15, fontWeight: 700, color: colors.textPrimary, lineHeight: 1.3 }}>{audit.name}</p>
-            <div className="flex items-center gap-[10px] mt-[6px]">
-              <span
-                className="px-[7px] py-[2px] rounded-[4px] text-[10px] font-semibold"
-                style={{ background: `${audit.color}18`, color: audit.color, border: `1px solid ${audit.color}28` }}
-              >
-                {audit.framework}
-              </span>
-              <span style={{ fontSize: 11, color: colors.textMuted }}>{audit.owner}</span>
-            </div>
+        <div className="flex items-center gap-[16px] flex-wrap">
+          {/* Days countdown */}
+          <div className="flex flex-col gap-[1px]">
+            <span style={{ fontSize: 10, color: colors.textDim }}>Time until audit</span>
+            <span style={{ fontSize: 22, fontWeight: 700, color: urgentColor, lineHeight: 1 }}>{audit.daysUntil}d</span>
           </div>
-          <div className="shrink-0 text-right">
-            <p style={{ fontSize: 28, fontWeight: 700, color: urgentColor, lineHeight: 1 }}>{audit.daysUntil}d</p>
-            <p style={{ fontSize: 10, color: colors.textDim, marginTop: 3 }}>{audit.date}</p>
+
+          <div style={{ width: 1, height: 32, background: colors.border }} />
+
+          {/* Audit identity */}
+          <div className="flex flex-col gap-[1px] flex-1 min-w-0">
+            <span style={{ fontSize: 10, color: colors.textDim }}>Audit</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>{audit.name}</span>
+            <span style={{ fontSize: 10, color: colors.textMuted }}>{audit.date} · {audit.owner}</span>
           </div>
+
+          {/* Readiness score */}
+          <div className="flex flex-col gap-[1px] shrink-0">
+            <span style={{ fontSize: 10, color: colors.textDim }}>Readiness</span>
+            <span style={{ fontSize: 22, fontWeight: 700, color: scoreColor, lineHeight: 1 }}>{audit.readiness}%</span>
+            {isAtRisk && <span style={{ fontSize: 10, color: colors.medium }}>Below threshold</span>}
+          </div>
+
+          {/* CTA */}
+          <button
+            onClick={onAskAI}
+            className="shrink-0 flex items-center gap-[6px] px-[12px] py-[7px] rounded-[8px] text-[11px] font-semibold cursor-pointer transition-colors"
+            style={{ background: `${colors.primary}18`, color: colors.primary, border: `1px solid ${colors.primary}28` }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${colors.primary}28`; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${colors.primary}18`; }}
+          >
+            <Sparkles size={11} />
+            Prep plan
+          </button>
         </div>
 
         {/* Readiness bar */}
-        <div className="flex flex-col gap-[6px]">
-          <div className="flex items-center justify-between">
-            <span style={{ fontSize: 11, color: colors.textMuted }}>Readiness</span>
-            <span style={{ fontSize: 14, fontWeight: 700, color: scoreColor }}>{audit.readiness}%</span>
-          </div>
-          <div className="flex h-[6px] rounded-full overflow-hidden w-full" style={{ background: "rgba(255,255,255,0.06)" }}>
-            <div style={{ width: `${audit.readiness}%`, background: scoreColor, borderRadius: 999, transition: "width 0.4s ease" }} />
-          </div>
-          {isAtRisk && (
-            <p style={{ fontSize: 11, color: colors.medium, marginTop: 2 }}>
-              Below 80% — this audit is at risk. Resolve failing controls to improve readiness.
-            </p>
-          )}
+        <div className="flex h-[4px] rounded-full overflow-hidden w-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+          <div style={{ width: `${audit.readiness}%`, background: scoreColor, borderRadius: 999, transition: "width 0.4s ease" }} />
         </div>
 
-        {/* Key risks */}
+        {/* Key risks — compact */}
         {audit.keyRisks.length > 0 && (
-          <div
-            className="flex flex-col gap-[6px] p-[12px] rounded-[8px]"
-            style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)" }}
-          >
-            <p style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 2 }}>
-              Blocking issues
-            </p>
+          <div className="flex flex-col gap-[4px]">
             {audit.keyRisks.map((r, i) => (
-              <div key={i} className="flex items-start gap-[7px]">
+              <div key={i} className="flex items-start gap-[6px]">
                 <AlertCircle size={10} color={colors.medium} style={{ marginTop: 2, flexShrink: 0 }} />
-                <span style={{ fontSize: 11, color: colors.textMuted, lineHeight: 1.5 }}>{r}</span>
+                <span style={{ fontSize: 11, color: colors.textMuted, lineHeight: 1.4 }}>{r}</span>
               </div>
             ))}
           </div>
         )}
-
-        {/* CTA */}
-        <button
-          onClick={onAskAI}
-          className="w-full flex items-center justify-center gap-[6px] py-[9px] rounded-[8px] text-[12px] font-semibold cursor-pointer transition-colors"
-          style={{ background: `${colors.primary}18`, color: colors.primary, border: `1px solid ${colors.primary}28` }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${colors.primary}28`; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${colors.primary}18`; }}
-        >
-          <Sparkles size={13} />
-          Get {audit.daysUntil}-day preparation plan
-        </button>
       </div>
 
-      {/* Failing controls — primary blockers */}
+      {/* Failing controls — direct audit findings */}
       {failingCtrl.length > 0 && (
-        <BlockingControlsList controls={failingCtrl} label="Failing Controls — Direct Audit Findings" color={colors.critical} />
+        <BlockingControlsList controls={failingCtrl} label="Failing Controls — Direct Findings" color={colors.critical} />
       )}
 
-      {/* In-progress controls — secondary risk */}
+      {/* In-progress controls — may be flagged */}
       {inProgCtrl.length > 0 && (
-        <BlockingControlsList controls={inProgCtrl} label="In-Progress Controls — May Be Flagged" color={colors.medium} />
+        <BlockingControlsList controls={inProgCtrl} label="In Progress — May Be Flagged" color={colors.medium} />
       )}
 
-      {/* Open gaps summary */}
-      {gaps.length > 0 && (
+      {/* Missing evidence */}
+      {missingEv.length > 0 && (
         <div
-          className="flex flex-col gap-[8px] p-[16px] rounded-[10px]"
-          style={{ background: colors.bgCard, border: `1px solid ${colors.border}` }}
+          className="flex flex-col gap-[2px] rounded-[10px] overflow-hidden"
+          style={{ border: `1px solid ${colors.medium}28` }}
         >
-          <p style={{ fontSize: 11, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>
-            Open Gaps ({gaps.length})
-          </p>
-          {gaps.map(gap => (
+          <div
+            className="flex items-center justify-between px-[12px] py-[8px]"
+            style={{ background: `${colors.medium}08`, borderBottom: `1px solid ${colors.medium}20` }}
+          >
+            <span style={{ fontSize: 11, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+              Missing Evidence ({missingEv.length})
+            </span>
+          </div>
+          {missingEv.map(ev => (
             <div
-              key={gap.id}
-              className="flex items-start gap-[10px] p-[10px] rounded-[8px]"
-              style={{
-                background: `${gap.severity === "critical" ? colors.critical : colors.high}08`,
-                border: `1px solid ${gap.severity === "critical" ? colors.critical : colors.high}28`,
-              }}
+              key={ev.id}
+              className="flex items-center gap-[10px] px-[12px] py-[9px]"
+              style={{ borderBottom: `1px solid ${colors.border}`, background: ev.status === "overdue" ? `${colors.critical}06` : "transparent" }}
             >
+              <FileText size={11} color={ev.status === "overdue" ? colors.critical : colors.medium} className="shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary }} className="truncate">{ev.name}</p>
+                <p style={{ fontSize: 10, color: colors.textDim }}>{ev.control} · {ev.collector}</p>
+              </div>
               <span
-                className="shrink-0 px-[6px] py-[1px] rounded-full text-[9px] font-bold uppercase mt-[1px]"
+                className="shrink-0 px-[6px] py-[1px] rounded-[4px] text-[9px] font-semibold capitalize"
                 style={{
-                  background: `${gap.severity === "critical" ? colors.critical : colors.high}18`,
-                  color: gap.severity === "critical" ? colors.critical : colors.high,
+                  background: `${EVIDENCE_STATUS_COLOR[ev.status]}14`,
+                  color: EVIDENCE_STATUS_COLOR[ev.status],
                 }}
               >
-                {gap.severity}
+                {ev.status}
               </span>
-              <div className="flex-1 min-w-0">
-                <p style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary }}>{gap.title}</p>
-                <p style={{ fontSize: 10, color: colors.textMuted, marginTop: 2 }}>
-                  {gap.control} · Open {gap.daysOpen} days · {gap.owner}
-                </p>
-              </div>
+              <span style={{ fontSize: 10, color: ev.status === "overdue" ? colors.critical : colors.textDim, flexShrink: 0 }}>
+                Due {ev.dueDate}
+              </span>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Open gaps */}
+      {gaps.length > 0 && (
+        <div
+          className="flex flex-col rounded-[10px] overflow-hidden"
+          style={{ border: `1px solid ${colors.border}` }}
+        >
+          <div
+            className="flex items-center px-[12px] py-[8px]"
+            style={{ background: "rgba(255,255,255,0.02)", borderBottom: `1px solid ${colors.border}` }}
+          >
+            <span style={{ fontSize: 11, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+              Open Gaps ({gaps.length})
+            </span>
+          </div>
+          {gaps.map(gap => {
+            const gapColor = gap.severity === "critical" ? colors.critical : colors.high;
+            return (
+              <div
+                key={gap.id}
+                className="flex items-center gap-[10px] px-[12px] py-[9px]"
+                style={{ borderBottom: `1px solid ${colors.border}`, background: `${gapColor}05` }}
+              >
+                <span
+                  className="shrink-0 px-[5px] py-[1px] rounded-full text-[9px] font-bold uppercase"
+                  style={{ background: `${gapColor}18`, color: gapColor }}
+                >
+                  {gap.severity}
+                </span>
+                <span className="shrink-0 text-[10px] font-mono" style={{ color: gapColor, width: 60 }}>{gap.control}</span>
+                <p style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary, flex: 1 }} className="truncate">{gap.title}</p>
+                <span style={{ fontSize: 10, color: colors.textDim, flexShrink: 0 }}>{gap.daysOpen}d · {gap.owner}</span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -1073,21 +1149,26 @@ function AuditTab({
 function BlockingControlsList({ controls, label, color }: { controls: FrameworkControl[]; label: string; color: string }) {
   return (
     <div
-      className="flex flex-col gap-[8px] p-[16px] rounded-[10px]"
-      style={{ background: colors.bgCard, border: `1px solid ${color}22` }}
+      className="flex flex-col rounded-[10px] overflow-hidden"
+      style={{ border: `1px solid ${color}22` }}
     >
-      <p style={{ fontSize: 11, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>
-        {label} ({controls.length})
-      </p>
+      <div
+        className="flex items-center px-[12px] py-[8px]"
+        style={{ background: `${color}08`, borderBottom: `1px solid ${color}18` }}
+      >
+        <span style={{ fontSize: 11, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+          {label} ({controls.length})
+        </span>
+      </div>
       {controls.map(ctrl => (
         <div
           key={ctrl.id}
-          className="flex items-start gap-[10px] px-[10px] py-[9px] rounded-[8px]"
-          style={{ background: `${color}07`, border: `1px solid ${color}22` }}
+          className="flex items-center gap-[10px] px-[12px] py-[9px]"
+          style={{ borderBottom: `1px solid ${color}14`, background: `${color}04` }}
         >
-          <span className="shrink-0 text-[10px] font-mono font-semibold mt-[1px]" style={{ color }}>{ctrl.id}</span>
+          <span className="shrink-0 text-[10px] font-mono font-semibold" style={{ color, width: 70 }}>{ctrl.id}</span>
           <div className="flex-1 min-w-0">
-            <p style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary }}>{ctrl.name}</p>
+            <p style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary }} className="truncate">{ctrl.name}</p>
             <p style={{ fontSize: 10, color: colors.textMuted, marginTop: 1 }}>{ctrl.category}</p>
           </div>
         </div>
@@ -1195,36 +1276,43 @@ export default function ComplianceFrameworkPage() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Page header */}
-      <PageHeader
-        title={framework.name}
-        subtitle={framework.purpose}
-        actions={
+      {/* Header — breadcrumb + identity */}
+      <div
+        className="flex-none px-[32px] pt-[16px] pb-[0px]"
+        style={{ borderBottom: `1px solid ${colors.border}` }}
+      >
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-[5px] mb-[8px]">
           <button
-            onClick={handleOpenAI}
-            className="flex items-center gap-[6px] px-[14px] py-[7px] rounded-[8px] text-[12px] font-semibold cursor-pointer transition-colors"
-            style={{ background: `${colors.primary}18`, color: colors.primary, border: `1px solid ${colors.primary}28` }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${colors.primary}28`; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${colors.primary}18`; }}
+            onClick={() => navigate("/compliance")}
+            className="flex items-center gap-[4px] text-[11px] cursor-pointer transition-colors"
+            style={{ color: colors.textDim }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = colors.textMuted; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = colors.textDim; }}
           >
-            <Sparkles size={13} />
-            Ask AI
+            <ArrowLeft size={10} />
+            Compliance
           </button>
-        }
-      />
-
-      {/* Back nav */}
-      <div className="flex-none px-[32px] pt-[4px] pb-[8px]">
-        <button
-          onClick={() => navigate("/compliance")}
-          className="flex items-center gap-[5px] text-[12px] cursor-pointer transition-colors"
-          style={{ color: colors.textMuted }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = colors.textPrimary; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = colors.textMuted; }}
-        >
-          <ArrowLeft size={13} />
-          All Frameworks
-        </button>
+          <ChevronRight size={9} color={colors.textDim} />
+          <span style={{ fontSize: 11, color: colors.textMuted }}>{framework.name}</span>
+        </div>
+        <PageHeader
+          icon={<Shield size={16} style={{ color: colors.accent }} />}
+          title={framework.name}
+          subtitle={framework.purpose}
+          actions={
+            <button
+              onClick={handleOpenAI}
+              className="flex items-center gap-[6px] px-[14px] py-[7px] rounded-[8px] text-[12px] font-semibold cursor-pointer transition-colors"
+              style={{ background: `${colors.primary}18`, color: colors.primary, border: `1px solid ${colors.primary}28` }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${colors.primary}28`; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${colors.primary}18`; }}
+            >
+              <Sparkles size={13} />
+              Ask AI
+            </button>
+          }
+        />
       </div>
 
       {/* Scrollable body */}
@@ -1232,50 +1320,60 @@ export default function ComplianceFrameworkPage() {
 
         {/* Score + stats strip */}
         <div
-          className="flex items-center gap-[20px] p-[20px] rounded-[12px] mb-[24px] flex-wrap"
+          className="flex flex-col gap-[10px] px-[16px] pt-[12px] pb-[10px] rounded-[10px] mb-[16px]"
           style={{ background: colors.bgCard, border: `1px solid ${isTrendingDown ? colors.medium + "44" : colors.border}` }}
         >
-          <div className="flex flex-col gap-[2px] min-w-[80px]">
-            <span style={{ fontSize: 11, color: colors.textDim }}>Score</span>
-            <div className="flex items-baseline gap-[6px]">
-              <span style={{ fontSize: 28, fontWeight: 700, color: scoreColor, lineHeight: 1 }}>{framework.score}%</span>
-              {trendNum !== 0 && (
-                <span style={{ fontSize: 12, color: trendNum > 0 ? colors.success : colors.critical }}>
-                  {trendNum > 0 ? "+" : ""}{framework.trend}
-                  {isTrendingDown && <TrendingDown size={11} style={{ display: "inline", marginLeft: 3 }} />}
-                </span>
-              )}
+          <div className="flex items-center gap-[16px] flex-wrap">
+            {/* Score */}
+            <div className="flex flex-col gap-[1px] min-w-[60px]">
+              <span style={{ fontSize: 10, color: colors.textDim }}>Score</span>
+              <div className="flex items-baseline gap-[5px]">
+                <span style={{ fontSize: 22, fontWeight: 700, color: scoreColor, lineHeight: 1 }}>{framework.score}%</span>
+                {trendNum !== 0 && (
+                  <span style={{ fontSize: 11, color: trendNum > 0 ? colors.success : colors.critical }}>
+                    {trendNum > 0 ? "+" : ""}{framework.trend}
+                    {isTrendingDown && <TrendingDown size={10} style={{ display: "inline", marginLeft: 2 }} />}
+                  </span>
+                )}
+              </div>
             </div>
+
+            <div style={{ width: 1, height: 32, background: colors.border }} />
+
+            {[
+              { label: "Controls",  value: framework.controls,   color: colors.textPrimary },
+              { label: "Passing",   value: framework.passing,    color: colors.success     },
+              { label: "Progress",  value: framework.inProgress, color: colors.medium      },
+              { label: "Failing",   value: framework.failing,    color: framework.failing > 0 ? colors.critical : colors.textDim },
+              { label: "Gaps",      value: gaps.length,          color: gaps.length > 0 ? colors.critical : colors.textDim },
+              { label: "Missing ev.",value: missingEvidence,     color: missingEvidence > 0 ? colors.medium : colors.textDim },
+            ].map(s => (
+              <div key={s.label} className="flex flex-col gap-[1px]">
+                <span style={{ fontSize: 10, color: colors.textDim }}>{s.label}</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: s.color, lineHeight: 1 }}>{s.value}</span>
+              </div>
+            ))}
+
+            {audit && (
+              <>
+                <div style={{ width: 1, height: 32, background: colors.border }} className="ml-auto" />
+                <div className="flex flex-col gap-[1px]">
+                  <span style={{ fontSize: 10, color: colors.textDim }}>Next audit</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: audit.color }}>{audit.date}</span>
+                  <span style={{ fontSize: 10, color: audit.readiness < 80 ? colors.medium : colors.textDim }}>
+                    {audit.daysUntil}d · {audit.readiness}% ready{audit.readiness < 80 ? " — at risk" : ""}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
-          <div style={{ width: 1, height: 40, background: colors.border }} />
-
-          {[
-            { label: "Total controls",    value: framework.controls,    color: colors.textPrimary },
-            { label: "Passing",           value: framework.passing,     color: colors.success     },
-            { label: "In progress",       value: framework.inProgress,  color: colors.medium      },
-            { label: "Failing",           value: framework.failing,     color: colors.critical    },
-            { label: "Open gaps",         value: gaps.length,           color: gaps.length > 0 ? colors.critical : colors.success },
-            { label: "Missing evidence",  value: missingEvidence,       color: missingEvidence > 0 ? colors.medium : colors.success },
-          ].map(s => (
-            <div key={s.label} className="flex flex-col gap-[2px]">
-              <span style={{ fontSize: 11, color: colors.textDim }}>{s.label}</span>
-              <span style={{ fontSize: 20, fontWeight: 700, color: s.color, lineHeight: 1 }}>{s.value}</span>
-            </div>
-          ))}
-
-          {audit && (
-            <>
-              <div style={{ width: 1, height: 40, background: colors.border }} className="ml-auto" />
-              <div className="flex flex-col gap-[2px]">
-                <span style={{ fontSize: 11, color: colors.textDim }}>Next audit</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: audit.color }}>{audit.date}</span>
-                <span style={{ fontSize: 10, color: audit.readiness < 80 ? colors.critical : colors.textMuted }}>
-                  Readiness {audit.readiness}%{audit.readiness < 80 ? " — at risk" : ""}
-                </span>
-              </div>
-            </>
-          )}
+          {/* Progress bar */}
+          <div className="flex h-[3px] rounded-full overflow-hidden w-full" style={{ background: "rgba(255,255,255,0.05)" }}>
+            <div style={{ width: `${(framework.passing / framework.controls) * 100}%`, background: colors.success }} />
+            <div style={{ width: `${(framework.inProgress / framework.controls) * 100}%`, background: colors.medium }} />
+            <div style={{ width: `${(framework.failing / framework.controls) * 100}%`, background: colors.critical }} />
+          </div>
         </div>
 
         {/* Tab navigation strip */}
