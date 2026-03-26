@@ -418,7 +418,6 @@ function walkToVisible(
     visited.add(current);
 
     const neighbors = outgoing.get(current) ?? [];
-    let foundVisible = false;
 
     for (const nid of neighbors) {
       if (visibleSet.has(nid)) {

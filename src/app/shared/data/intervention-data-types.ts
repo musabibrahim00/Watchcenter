@@ -15,6 +15,8 @@ export interface InterventionData {
   confidence: number;
   status: "awaiting" | "executing" | "completed";
   executingStep?: number;
+  owner?: string;
+  deferRisk?: boolean;
 }
 
 export interface CompletedAction {

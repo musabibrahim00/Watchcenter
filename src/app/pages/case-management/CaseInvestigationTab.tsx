@@ -411,7 +411,7 @@ export default function CaseInvestigationTab({ caseData, observations, playbooks
                     <button
                       key={status}
                       onClick={() => {
-                        setSelectedStatus(status);
+                        setSelectedStatus(status as CaseStatus);
                         setStatusDropdownOpen(false);
                         updateCase(caseData.id, { status: status as CaseStatus });
                       }}
@@ -497,7 +497,6 @@ export default function CaseInvestigationTab({ caseData, observations, playbooks
               backgroundColor: colors.bgCard,
               border: `1px solid ${colors.border}`,
               color: colors.textPrimary,
-              focusRing: colors.accent,
             }}
           />
         </div>

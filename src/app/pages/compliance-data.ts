@@ -258,3 +258,73 @@ export const FRAMEWORK_CONTROLS: Record<string, FrameworkControl[]> = {
     { id: "§164.314(a)(1)", category: "Organizational Requirements", status: "in-progress","name": "Business Associate Contracts",       description: "BAAs in place with all business associates handling ePHI.", lastTested: "Feb 10" },
   ],
 };
+
+/* ================================================================
+   FRAMEWORK POLICIES
+   Representative policies per framework — one policy per major
+   control domain. Includes status, ownership, and review dates.
+   ================================================================ */
+
+export type PolicyStatus = "approved" | "under-review" | "draft" | "expired";
+
+export type FrameworkPolicy = {
+  id: string;
+  name: string;
+  category: string;
+  status: PolicyStatus;
+  owner: string;
+  version: string;
+  lastReviewed?: string;
+  nextReview?: string;
+  controlIds?: string[];
+  summary: string;
+};
+
+export const FRAMEWORK_POLICIES: Record<string, FrameworkPolicy[]> = {
+
+  "soc2": [
+    { id: "soc2-p1", name: "Access Control Policy",          category: "Logical & Physical Access", status: "approved",      owner: "Platform Engineering",  version: "v3.2", lastReviewed: "Mar 14", nextReview: "Sep 14",  controlIds: ["CC6.1","CC6.2","CC6.3"], summary: "Defines MFA requirements, least-privilege access, and quarterly access review procedures for all systems in scope." },
+    { id: "soc2-p2", name: "Change Management Policy",       category: "Change Management",         status: "approved",      owner: "Platform Engineering",  version: "v2.1", lastReviewed: "Feb 28", nextReview: "Aug 28",  controlIds: ["CC8.1"],             summary: "Governs the formal review, testing, and approval process for all infrastructure and code changes before production deployment." },
+    { id: "soc2-p3", name: "Incident Response Plan",         category: "System Operations",         status: "under-review",  owner: "Security Operations",   version: "v4.0-draft", lastReviewed: "Feb 10", nextReview: "Mar 31", controlIds: ["CC7.1","CC7.2"],  summary: "Defines escalation paths, triage severity levels, and communication protocols for security incidents. Currently under annual review." },
+    { id: "soc2-p4", name: "Vendor Risk Management Policy",  category: "Risk Mitigation",           status: "draft",         owner: "Compliance Team",       version: "v1.0-draft", nextReview: "Apr 15",   controlIds: ["CC9.2"],             summary: "Establishes vendor onboarding assessment, annual review requirements, and offboarding procedures for third-party suppliers." },
+    { id: "soc2-p5", name: "Risk Assessment Procedure",      category: "Risk Mitigation",           status: "approved",      owner: "Compliance Team",       version: "v2.0", lastReviewed: "Jan 15",  nextReview: "Jul 15",  controlIds: ["CC9.1"],             summary: "Documents the annual risk assessment methodology, scoring criteria, and treatment plan approval process." },
+    { id: "soc2-p6", name: "Transmission Protection Standard",category: "Logical & Physical Access", status: "under-review", owner: "Platform Engineering",  version: "v1.3-draft", lastReviewed: "Feb 20", nextReview: "Mar 31", controlIds: ["CC6.7"],            summary: "Specifies TLS version requirements, cipher suites, and certificate management for all data transmitted over public networks." },
+  ],
+
+  "iso27001": [
+    { id: "iso-p1", name: "Information Security Policy",       category: "Information Security Policies", status: "approved",     owner: "CISO Office",          version: "v5.1", lastReviewed: "Jan 20",  nextReview: "Jan 20, 2027", controlIds: ["A.5.1"],           summary: "Top-level management-endorsed policy establishing the organisation's commitment to information security and high-level control objectives." },
+    { id: "iso-p2", name: "Access Control Policy",             category: "Access Control",                status: "approved",     owner: "Platform Engineering", version: "v3.0", lastReviewed: "Feb 28",  nextReview: "Aug 28",       controlIds: ["A.9.1","A.9.4"],   summary: "Defines role-based access control, least-privilege principles, and cryptographic key access restrictions across all systems." },
+    { id: "iso-p3", name: "Cryptographic Controls Policy",     category: "Cryptography",                  status: "under-review", owner: "Security Operations",  version: "v2.1-draft", lastReviewed: "Feb 15", nextReview: "Mar 31",    controlIds: ["A.10.1"],          summary: "Specifies approved encryption algorithms, key lengths, rotation schedules, and key escrow procedures. Under review to address current key rotation gap." },
+    { id: "iso-p4", name: "Supplier Relationships Policy",     category: "Supplier Relationships",        status: "draft",        owner: "Procurement",          version: "v1.0-draft", nextReview: "Apr 01",               controlIds: ["A.15.2"],          summary: "Establishes due diligence requirements, SLA monitoring, and annual assessments for all suppliers with access to company systems or data." },
+    { id: "iso-p5", name: "Asset Classification Standard",     category: "Asset Management",              status: "approved",     owner: "Security Operations",  version: "v2.3", lastReviewed: "Mar 5",   nextReview: "Sep 5",        controlIds: ["A.8.1","A.8.2"],   summary: "Defines the four-tier data classification scheme (Public, Internal, Confidential, Restricted) and mandatory handling requirements per tier." },
+    { id: "iso-p6", name: "Secure Development Lifecycle Policy",category: "System Acquisition",          status: "approved",     owner: "Platform Engineering", version: "v2.0", lastReviewed: "Feb 28",  nextReview: "Aug 28",       controlIds: ["A.14.2"],          summary: "Mandates security requirements, code review gates, and penetration testing at each phase of the software development lifecycle." },
+    { id: "iso-p7", name: "Legal and Regulatory Compliance Policy", category: "Compliance",              status: "approved",     owner: "Legal",                version: "v1.2", lastReviewed: "Jan 30",  nextReview: "Jul 30",       controlIds: ["A.18.1"],          summary: "Maps applicable laws, regulations, and contractual requirements; assigns compliance owners; and sets review cadence." },
+  ],
+
+  "nist-csf": [
+    { id: "nist-p1", name: "Cybersecurity Policy",               category: "Govern",                    status: "approved",     owner: "CISO Office",           version: "v3.0", lastReviewed: "Mar 1",   nextReview: "Sep 1",     summary: "Top-level policy aligning cybersecurity activities to the NIST CSF Identify–Protect–Detect–Respond–Recover structure." },
+    { id: "nist-p2", name: "Account Lifecycle Management Procedure", category: "Protect — Access Control", status: "under-review", owner: "Identity Team",      version: "v2.0-draft", lastReviewed: "Mar 6", nextReview: "Mar 31",  controlIds: ["AC-2","PR.AC-1"],  summary: "Defines provisioning, review, and deprovisioning workflows for all privileged and standard accounts. Currently under emergency review to address AC-2 gap." },
+    { id: "nist-p3", name: "Configuration Baseline Standard",    category: "Protect — Information Protection", status: "draft", owner: "Configuration Team",  version: "v1.0-draft", nextReview: "Apr 30",               controlIds: ["PR.IP-1","PR.IP-3"],summary: "Documents approved baseline configurations for all asset classes. 3 asset classes still pending initial baseline documentation — linked to open gap PR.IP-1." },
+    { id: "nist-p4", name: "Vulnerability Management Policy",    category: "Identify — Risk Assessment", status: "approved",     owner: "Security Operations",  version: "v2.1", lastReviewed: "Mar 8",   nextReview: "Sep 8",     controlIds: ["ID.RA-1"],         summary: "Defines vulnerability scan frequency, severity-based SLA windows, and remediation tracking requirements across all environments." },
+    { id: "nist-p5", name: "Security Monitoring Runbook",        category: "Detect — Security Monitoring", status: "approved",  owner: "Security Operations",  version: "v1.4", lastReviewed: "Mar 10",  nextReview: "Jun 10",    controlIds: ["DE.CM-1","AU-3"],  summary: "Defines alert triage procedures, escalation thresholds, and evidence preservation requirements for the SOC monitoring team." },
+    { id: "nist-p6", name: "Incident Response Plan",             category: "Respond",                   status: "approved",     owner: "Security Operations",  version: "v3.1", lastReviewed: "Feb 15",  nextReview: "Aug 15",    controlIds: ["RS.RP-1"],         summary: "Defines response team roles, incident severity classification, communication timelines, and post-incident review process." },
+  ],
+
+  "pci-dss": [
+    { id: "pci-p1", name: "Cardholder Data Handling Policy",     category: "Protect Stored Account Data", status: "approved",   owner: "Payment Security",      version: "v4.1", lastReviewed: "Mar 9",   nextReview: "Sep 9",     controlIds: ["Req 3.2","Req 12.5"], summary: "Defines what cardholder data may be stored, how it must be protected, and retention and disposal requirements for all payment data." },
+    { id: "pci-p2", name: "Encryption and Transmission Policy",  category: "Protect Data in Transit",   status: "approved",     owner: "Payment Security",      version: "v3.0", lastReviewed: "Mar 9",   nextReview: "Sep 9",     controlIds: ["Req 4.1"],         summary: "Mandates TLS 1.2+ for all cardholder data transmission, prohibits deprecated protocols, and requires annual cipher suite review." },
+    { id: "pci-p3", name: "Vulnerability Management Procedure",  category: "Develop and Maintain Secure Systems", status: "under-review", owner: "Vulnerability Team", version: "v2.0-draft", lastReviewed: "Mar 1", nextReview: "Mar 31", controlIds: ["Req 6.3","Req 11.2"], summary: "Specifies quarterly internal and ASV scan requirements for the CDE. Currently under review to address the overdue cardholder segment scan." },
+    { id: "pci-p4", name: "Password and Authentication Policy",  category: "Identify and Authenticate Users", status: "approved", owner: "Platform Engineering", version: "v2.2", lastReviewed: "Feb 28", nextReview: "Aug 28",    controlIds: ["Req 8.2","Req 8.3"], summary: "Defines password complexity, rotation intervals, lockout policies, and MFA requirements for all users accessing CDE components." },
+    { id: "pci-p5", name: "Logging and Monitoring Standard",     category: "Log and Monitor All Access",status: "approved",     owner: "Security Operations",  version: "v2.0", lastReviewed: "Mar 9",   nextReview: "Sep 9",     controlIds: ["Req 10.1"],        summary: "Mandates audit trail requirements, log retention periods (12 months), tamper-evidence controls, and daily log review for CDE systems." },
+    { id: "pci-p6", name: "Information Security Policy (PCI)",   category: "Support Security with Policies", status: "approved", owner: "Payment Security",     version: "v4.0", lastReviewed: "Mar 9",   nextReview: "Mar 9, 2027", controlIds: ["Req 12.5","Req 12.10"], summary: "Annual PCI-DSS program policy covering roles, responsibilities, incident response testing, and security awareness requirements." },
+  ],
+
+  "hipaa": [
+    { id: "hipaa-p1", name: "HIPAA Privacy Policy",              category: "Administrative Safeguards", status: "approved",     owner: "Compliance Team",       version: "v3.0", lastReviewed: "Feb 15",  nextReview: "Feb 15, 2027", controlIds: ["§164.308(a)(4)"], summary: "Documents permissible uses and disclosures of PHI, patient rights, minimum necessary standard, and privacy officer responsibilities." },
+    { id: "hipaa-p2", name: "HIPAA Security Policy",             category: "Administrative Safeguards", status: "approved",     owner: "CISO Office",           version: "v2.1", lastReviewed: "Feb 15",  nextReview: "Feb 15, 2027", controlIds: ["§164.308(a)(1)"], summary: "Top-level policy establishing administrative, physical, and technical safeguard requirements for all electronic PHI." },
+    { id: "hipaa-p3", name: "Security Awareness Training Program",category: "Administrative Safeguards", status: "approved",    owner: "People Operations",     version: "v1.5", lastReviewed: "Jan 30",  nextReview: "Jul 30",       controlIds: ["§164.308(a)(5)"], summary: "Annual mandatory training for all workforce members covering phishing awareness, PHI handling, breach reporting, and device security." },
+    { id: "hipaa-p4", name: "Workforce Authorization Procedure", category: "Administrative Safeguards", status: "under-review", owner: "People Operations",     version: "v1.2-draft", lastReviewed: "Feb 28", nextReview: "Mar 31",   controlIds: ["§164.308(a)(3)"], summary: "Defines role-based ePHI access authorisation workflow, clearance levels, and access revocation on workforce change." },
+    { id: "hipaa-p5", name: "Business Associate Agreement Template", category: "Organizational Requirements", status: "under-review", owner: "Legal",            version: "v2.0-draft", lastReviewed: "Feb 10", nextReview: "Mar 31",   controlIds: ["§164.314(a)(1)"], summary: "Standard BAA template covering required HIPAA provisions for all business associates with access to ePHI. Under review with Legal for 2026 updates." },
+    { id: "hipaa-p6", name: "Transmission Security Standard",    category: "Technical Safeguards",      status: "approved",     owner: "Platform Engineering",  version: "v1.1", lastReviewed: "Feb 25",  nextReview: "Aug 25",       controlIds: ["§164.312(e)(1)"], summary: "Specifies encryption protocols, VPN requirements, and session timeout standards for all ePHI transmitted over networks." },
+  ],
+};

@@ -3,6 +3,7 @@ import {
   MoreVertical, Play, Copy, Edit3, Power, Trash2,
   CheckCircle2, ArrowRight, Star, Download, Plug,
   Code2, Layers, FileText, Database, X, Loader2,
+  User as UserIcon,
 } from "lucide-react";
 import { colors } from "../../shared/design-system/tokens";
 import {

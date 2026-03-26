@@ -10,7 +10,6 @@ export {
   AttackPathGraph,
 } from "../../../imports/AiBoxModules";
 export type {
-  TrendChartDatum,
   TrendChartProps,
   AttackPathGraphProps,
 } from "../../../imports/AiBoxModules";

@@ -25,7 +25,8 @@ const SCOPE_CONFIG: Record<ActionScope, { label: string; color: string; bg: stri
   agent:         { label: "Agent",         color: "#00A46E", bg: "rgba(0,164,110,0.10)" },
   workflow:      { label: "Workflow",      color: "#3b82f6", bg: "rgba(59,130,246,0.10)" },
   investigation: { label: "Investigation", color: "#d97706", bg: "rgba(217,119,6,0.10)" },
-  risk:          { label: "Risk",          color: "#9738C6", bg: "rgba(151,56,198,0.10)" },
+  risk:                    { label: "Risk",        color: "#9738C6", bg: "rgba(151,56,198,0.10)" },
+  "attack-path-simulation": { label: "Attack Path", color: "#ef4444", bg: "rgba(239,68,68,0.10)" },
 };
 
 /* ── Component ── */

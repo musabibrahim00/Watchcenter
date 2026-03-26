@@ -33,11 +33,13 @@ AI-assisted security operations platform. Surfaces live risk signals, routes inv
 
 ```bash
 npm install
-npm run dev     # development server at http://localhost:5173
-npm run build   # production build to dist/
+npm run dev        # development server at http://localhost:5173
+npm run build      # production build to dist/
+npm run typecheck  # TypeScript type-check (no emit)
+npm run lint       # ESLint across src/
 ```
 
-Node 18+ required.
+Node 22 required.
 
 ---
 
@@ -66,6 +68,7 @@ src/
         types/              # Pure TypeScript type definitions (no React)
         utils/              # Pure helper functions (classifiers, result derivation)
         index.ts            # Public barrel export for the feature
+      asset-register/   # Asset Register feature (components, data, hooks, utils)
       charts/           # Recharts wrappers
       compliance/       # ActionableEvidenceRow + evidence store
       investigation/    # InvestigationTimeline, TaskInvestigationBridge + barrel export
@@ -102,23 +105,27 @@ src/
 
   imports/            # Figma-scaffold origin. Large components still live here:
     WatchDst.tsx        # Watch Center main layout
-    AiBox.tsx           # AIBox embedded in Watch Center
-    AiBoxModules.tsx    # AIBox response module renderers
-    AiBoxRenderer.tsx   # AIBox response rendering engine
-    AiBoxLiveData.ts    # Live data integration bridge
-    AiBoxShared.tsx     # Compatibility re-export surface — thin shim to features/ai-box/
+    AiBox.tsx           # AIBox embedded in Watch Center (~2200 lines, defer decomposition)
+    AiBoxModules.tsx    # AIBox response module renderers (~1300 lines)
+    AiBoxRenderer.tsx   # AIBox response rendering engine (~1600 lines)
+    AiBoxLiveData.ts    # Live data integration bridge (~1700 lines)
+    AiBoxShared.tsx     # Thin shim — re-exports everything from features/ai-box/
     Tasks.tsx           # Risk Tracker task cards
-    Working.tsx         # Globe + agent visualization
+    Working.tsx         # Globe + agent visualization (~4400 lines)
     Container.tsx       # Scroll container wrapper
+    LoaderFill.tsx      # Loading overlay
+    MoveLeft.tsx        # Navigation helper
+    MoveRight.tsx       # Navigation helper
     Secure.tsx          # Clearance/security gate component
-    # The following are shims — canonical source is in src/app/features/:
-    ActivityFeed.tsx    → features/watch-center/ActivityFeed
-    KpiWidget.tsx       → features/watch-center/KpiWidget
+    assets.ts           # Asset data shim
+    # Shims only — canonical source is in src/app/features/:
+    ActivityFeed.tsx         → features/watch-center/ActivityFeed
+    KpiWidget.tsx            → features/watch-center/KpiWidget
     InvestigationTimeline.tsx → features/investigation/InvestigationTimeline
     InvestigationContext.tsx  → features/watch-center/InvestigationContext
     TaskInvestigationBridge.tsx → features/investigation/TaskInvestigationBridge
-    StatusContext.tsx    → features/watch-center/StatusContext
-    svg-*.ts/tsx         # SVG path data (Figma export, ~80 files)
+    StatusContext.tsx         → features/watch-center/StatusContext
+    svg-*.ts/tsx             # SVG path data (Figma export, ~14 files)
 
 cli/                # secops CLI utility (secops.mjs)
 guidelines/         # Product design and development guidelines

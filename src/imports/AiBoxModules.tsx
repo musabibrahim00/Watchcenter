@@ -617,7 +617,7 @@ export const AttackPathSystemRecommendation = React.memo(function AttackPathSyst
 /* ── AnalystDetailPanel Component ── */
 export interface AnalystDetailPanelProps {
   analyst: string;
-  role: string;
+  role?: string;
   discoveries: string[];
   decisions: string[];
   actions: string[];
@@ -666,9 +666,9 @@ export interface CaseSummaryCardProps {
   title: string;
   severity: Severity;
   status: string;
-  assignee: string;
-  findings: number;
-  lastUpdate: string;
+  assignee?: string;
+  findings?: number;
+  lastUpdate?: string;
   actions?: string[];
 }
 
@@ -775,9 +775,12 @@ export const LoadingSkeleton = React.memo(function LoadingSkeleton() {
 
 /* ── SuccessConfirmation Component ── */
 export interface SuccessConfirmationProps {
-  message: string;
+  message?: string;
+  title?: string;
+  description?: string;
   detail?: string;
   metrics?: Array<{ label: string; value: string }>;
+  actions?: string[];
 }
 
 export const SuccessConfirmation = React.memo(function SuccessConfirmation({
@@ -822,10 +825,10 @@ export const SuccessConfirmation = React.memo(function SuccessConfirmation({
 
 /* ── FallbackSuggestion Component ── */
 export interface FallbackSuggestionProps {
-  suggestions: Array<{ label: string; description: string }>;
+  suggestions?: Array<{ label: string; description: string }>;
 }
 
-export const FallbackSuggestion = React.memo(function FallbackSuggestion({ suggestions }: FallbackSuggestionProps) {
+export const FallbackSuggestion = React.memo(function FallbackSuggestion({ suggestions = [] }: FallbackSuggestionProps) {
   return (
     <PanelCard padding="lg">
       <CardHeader title="I can help with" eyebrow="Suggestions" />

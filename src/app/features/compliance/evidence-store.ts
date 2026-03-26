@@ -23,7 +23,8 @@ export type EvidenceOverride = {
   updatedAt?: string; // ISO string, set automatically
 };
 
-export type MergedEvidenceItem = typeof EVIDENCE_ITEMS[number] & {
+export type MergedEvidenceItem = Omit<typeof EVIDENCE_ITEMS[number], "collector"> & {
+  collector: string;
   note:      string;
   updatedAt: string;
 };

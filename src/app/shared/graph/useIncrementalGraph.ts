@@ -115,7 +115,7 @@ export function useIncrementalGraph<
   }, [initialFocusId, store]);
 
   /* ── Feed ONLY the loaded subset to the focused graph engine ── */
-  const loadedNodes = snapshot.nodes as N[];
+  const loadedNodes = snapshot.nodes as unknown as N[];
   const loadedEdges = snapshot.edges as E[];
 
   const focused = useFocusedGraph<N, E>(loadedNodes, loadedEdges, initialFocusId, {

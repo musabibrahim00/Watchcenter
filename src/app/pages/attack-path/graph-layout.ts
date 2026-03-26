@@ -203,12 +203,12 @@ export function clampPan(
    ATTACK CHAIN — derive longest root→target path
    ================================================================ */
 
-interface ChainStep {
+export interface ChainStep {
   nodeId: string;
   label: string;
-  icon: string;
+  icon: PathNode["icon"];
   isVulnerable: boolean;
-  cve?: string;
+  cve: string | undefined;
 }
 
 export function computeAttackChainToNode(
@@ -329,7 +329,7 @@ export function evalCubicBezier(t: number, p0: number, p1: number, p2: number, p
    EXPLOIT FLOW PULSE — animated dot traveling the attack path
    ================================================================ */
 
-interface FlowSegment {
+export interface FlowSegment {
   x1: number; y1: number;
   cp1x: number; cp1y: number;
   cp2x: number; cp2y: number;

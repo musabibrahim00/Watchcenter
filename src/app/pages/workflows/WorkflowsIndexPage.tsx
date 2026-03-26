@@ -17,6 +17,7 @@ import {
   Shield, Bell, User as UserIcon, Plug,
   HelpCircle, TrendingUp,
   Code2, Layers, Database,
+  Activity, CheckCircle2, ArrowRight, Clock, Loader2, Play, MoreVertical, Edit3, Power,
 } from "lucide-react";
 import { toast } from "sonner";
 import { colors } from "../../shared/design-system/tokens";
@@ -38,8 +39,9 @@ import { IntegrationSetupModal } from "./IntegrationSetupModal";
 import {
   KIND_META, SOURCE_META,
   StatusBadge, Tag, WorkflowCardComp, LibraryItemCard, IntegrationCard,
-  RunConfirmationModal,
+  RunConfirmationModal, IntegrationDot,
 } from "./WorkflowUIHelpers";
+import { getStepTemplatesForWorkflow } from "./mockStepExecutions";
 
 /* ================================================================
    LOCAL TYPES

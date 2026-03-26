@@ -402,7 +402,6 @@ export default function CasesListPage() {
               backgroundColor: caseColors.bgCard,
               border: `1px solid ${caseColors.border}`,
               color: caseColors.textPrimary,
-              focusRingColor: caseColors.accent,
             }}
           />
         </div>

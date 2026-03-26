@@ -26,7 +26,7 @@
 
     /* ── Paths ───────────────────────────────────────── */
     /* Mirrors the alias in vite.config.ts so IDEs resolve @/ correctly */
-    "baseUrl": ".",
+    /* baseUrl removed — TS 6 resolves paths entries relative to tsconfig location */
     "paths": {
       "@/*": ["./src/*"]
     }

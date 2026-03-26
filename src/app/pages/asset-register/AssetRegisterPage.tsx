@@ -124,6 +124,7 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 const PAGE_SIZE = 15;
+const OWNERSHIP_STORAGE_KEY = "wc-asset-ownership-overrides";
 
 const OWNER_OPTIONS = [
   "Liam Carter", "Ella Smith", "Noah Lee", "Ava Brown", "Mia Davis",
@@ -748,12 +749,12 @@ function InlineDropdown({ value, options, placeholder, onSelect }: {
         onClick={() => setOpen(o => !o)}
         className="flex items-center gap-1 px-2 py-[5px] rounded transition-colors"
         style={{
-          backgroundColor: "rgba(87,177,255,0.05)",
-          border: `1px solid ${colors.border}`,
+          backgroundColor: value ? "rgba(87,177,255,0.05)" : "rgba(245,158,11,0.04)",
+          border: `1px solid ${value ? colors.border : "rgba(245,158,11,0.35)"}`,
           cursor: "pointer", maxWidth: 140,
         }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = colors.borderHover; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = colors.border; }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = value ? colors.borderHover : "rgba(245,158,11,0.6)"; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = value ? colors.border : "rgba(245,158,11,0.35)"; }}
       >
         <span style={{
           fontSize: 11, color: value ? colors.textSecondary : colors.textDim,
@@ -983,7 +984,7 @@ function LegendDot({ color, label }: { color: string; label: string }) {
    REGISTER LIST VIEW — driven by filtered data
    ================================================================ */
 
-type SortCol = "securityPlane" | "assetType" | "service" | "cia";
+type SortCol = "securityPlane" | "assetType" | "service" | "cia" | "owner" | "custodian";
 type SortDir = "asc" | "desc";
 
 function buildAssetContext(asset: Asset) {
@@ -1011,8 +1012,19 @@ function RegisterListView({ filteredAssets }: { filteredAssets: Asset[] }) {
   const [sortCol, setSortCol] = useState<SortCol | "">("");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
-  /* Per-row owner / custodian overrides */
-  const [overrides, setOverrides] = useState<Record<string, { owner?: string; custodian?: string }>>({});
+  /* Per-row owner / custodian overrides — persisted to localStorage */
+  const [overrides, setOverrides] = useState<Record<string, { owner?: string; custodian?: string }>>(() => {
+    try {
+      const raw = localStorage.getItem(OWNERSHIP_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(OWNERSHIP_STORAGE_KEY, JSON.stringify(overrides)); } catch { /* quota / private browsing */ }
+  }, [overrides]);
+
   const getOwner = (a: Asset) => overrides[a.id]?.owner ?? a.owner;
   const getCustodian = (a: Asset) => overrides[a.id]?.custodian ?? a.custodian;
   const setOwner = (id: string, v: string) =>
@@ -1020,8 +1032,11 @@ function RegisterListView({ filteredAssets }: { filteredAssets: Asset[] }) {
   const setCustodian = (id: string, v: string) =>
     setOverrides(prev => ({ ...prev, [id]: { ...prev[id], custodian: v } }));
 
-  /* Reset page when filteredAssets changes */
-  useEffect(() => { setPage(0); }, [filteredAssets]);
+  /* Unassigned filter toggle */
+  const [showUnassignedOnly, setShowUnassignedOnly] = useState(false);
+
+  /* Reset page + unassigned toggle when filteredAssets changes */
+  useEffect(() => { setPage(0); setShowUnassignedOnly(false); }, [filteredAssets]);
 
   const toggleSort = useCallback((col: SortCol) => {
     if (sortCol === col) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -1041,14 +1056,35 @@ function RegisterListView({ filteredAssets }: { filteredAssets: Asset[] }) {
         else if (sortCol === "assetType") cmp = a.assetType.localeCompare(b.assetType);
         else if (sortCol === "service") cmp = a.service.localeCompare(b.service);
         else if (sortCol === "cia") cmp = (a.ciaC + a.ciaI + a.ciaA) - (b.ciaC + b.ciaI + b.ciaA);
+        else if (sortCol === "owner" || sortCol === "custodian") {
+          const va = sortCol === "owner"
+            ? (overrides[a.id]?.owner ?? a.owner)
+            : (overrides[a.id]?.custodian ?? a.custodian);
+          const vb = sortCol === "owner"
+            ? (overrides[b.id]?.owner ?? b.owner)
+            : (overrides[b.id]?.custodian ?? b.custodian);
+          // Unassigned rows always sort to the end on asc, start on desc
+          if (!va && !vb) cmp = 0;
+          else if (!va) cmp = 1;
+          else if (!vb) cmp = -1;
+          else cmp = va.localeCompare(vb);
+        }
         return sortDir === "desc" ? -cmp : cmp;
       });
     }
     return list;
-  }, [filteredAssets, search, sortCol, sortDir]);
+  }, [filteredAssets, search, sortCol, sortDir, overrides]);
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const unassignedCount = useMemo(
+    () => filtered.filter(a => !getOwner(a) || !getCustodian(a)).length,
+    [filtered, overrides], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  const visibleAssets = showUnassignedOnly
+    ? filtered.filter(a => !getOwner(a) || !getCustodian(a))
+    : filtered;
+
+  const totalPages = Math.ceil(visibleAssets.length / PAGE_SIZE);
+  const paged = visibleAssets.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   return (
     <div className="p-6 flex flex-col gap-3">
@@ -1056,8 +1092,25 @@ function RegisterListView({ filteredAssets }: { filteredAssets: Asset[] }) {
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <span style={{ fontSize: 12, color: colors.textMuted }}>
-            {filtered.length} asset{filtered.length !== 1 ? "s" : ""}
+            {showUnassignedOnly ? visibleAssets.length : filtered.length} asset{(showUnassignedOnly ? visibleAssets.length : filtered.length) !== 1 ? "s" : ""}
           </span>
+          {unassignedCount > 0 && (
+            <button
+              onClick={() => { setShowUnassignedOnly(v => !v); setPage(0); }}
+              className="flex items-center gap-1 px-2 py-[3px] rounded-full transition-colors"
+              style={{
+                fontSize: 11, fontWeight: 500,
+                color: showUnassignedOnly ? "#fff" : "rgba(245,158,11,0.9)",
+                backgroundColor: showUnassignedOnly ? "rgba(245,158,11,0.7)" : "rgba(245,158,11,0.10)",
+                border: `1px solid rgba(245,158,11,${showUnassignedOnly ? "0.7" : "0.3"})`,
+                cursor: "pointer",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.backgroundColor = showUnassignedOnly ? "rgba(245,158,11,0.8)" : "rgba(245,158,11,0.18)"; }}
+              onMouseLeave={e => { e.currentTarget.style.backgroundColor = showUnassignedOnly ? "rgba(245,158,11,0.7)" : "rgba(245,158,11,0.10)"; }}
+            >
+              {unassignedCount} unassigned{showUnassignedOnly && <X size={9} style={{ marginLeft: 3 }} />}
+            </button>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
@@ -1078,8 +1131,8 @@ function RegisterListView({ filteredAssets }: { filteredAssets: Asset[] }) {
               <ThSort label="Asset Type" col="assetType" active={sortCol} dir={sortDir} onSort={toggleSort} />
               <ThSort label="Service" col="service" active={sortCol} dir={sortDir} onSort={toggleSort} />
               <ThSort label="C.I.A" col="cia" active={sortCol} dir={sortDir} onSort={toggleSort} />
-              <ThPlain>Asset Owner</ThPlain>
-              <ThPlain>Asset Custodian</ThPlain>
+              <ThSort label="Asset Owner" col="owner" active={sortCol} dir={sortDir} onSort={toggleSort} />
+              <ThSort label="Asset Custodian" col="custodian" active={sortCol} dir={sortDir} onSort={toggleSort} />
               <ThPlain></ThPlain>
             </tr>
           </thead>

@@ -111,7 +111,7 @@ export class PlaybookEngine {
   private runsByPlaybook: Record<string, WorkflowRun[]>;
 
   /** Active timers so we can cancel if needed */
-  private activeTimers: Map<string, NodeJS.Timeout[]> = new Map();
+  private activeTimers: Map<string, ReturnType<typeof setTimeout>[]> = new Map();
 
   /** Subscribers */
   private listeners: Set<RunEventListener> = new Set();
@@ -519,7 +519,7 @@ export class PlaybookEngine {
 
     const failProb = options?.failureProbability ?? 0.12;
     const willFail = Math.random() < failProb;
-    const timers: NodeJS.Timeout[] = [];
+    const timers: ReturnType<typeof setTimeout>[] = [];
     const templates = getStepTemplatesForWorkflow(run.workflowId);
 
     // Decide which step fails (if any)
@@ -971,7 +971,7 @@ export class PlaybookEngine {
     if (!run) return;
 
     const { templates, failStepIndex, options } = context;
-    const timers: NodeJS.Timeout[] = [];
+    const timers: ReturnType<typeof setTimeout>[] = [];
     let cumulativeDelay = 300; // Small delay before resuming
 
     for (let stepIndex = context.stepIndex; stepIndex < templates.length; stepIndex++) {
@@ -1148,7 +1148,7 @@ export class PlaybookEngine {
     if (paused) {
       const { templates, failStepIndex, options, stepIndex } = paused;
       const template = templates[stepIndex];
-      const timers: NodeJS.Timeout[] = [];
+      const timers: ReturnType<typeof setTimeout>[] = [];
 
       // Simulate the approved step completing
       const stepDurationMs = (template.avgDurationSec * 100) + Math.floor(Math.random() * 800);

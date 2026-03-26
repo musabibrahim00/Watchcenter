@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { Sparkles, AlertTriangle } from "lucide-react";
+import { Sparkles, AlertTriangle, Database, ChevronDown } from "lucide-react";
 import { colors } from "../../shared/design-system/tokens";
 import { TokenInput } from "./VariableMapping";
 import type { WorkflowStep } from "./types";
 import { debug } from "../../shared/utils/debug";
+import type { StepConfigurationFormProps } from "./StepConfigForms";
+import { WORKFLOW_DATA_VARIABLES } from "./StepConfigForms";
 
 export function AISuggestionBox({ message, onApply }: { message: string; onApply: () => void }) {
   const [dismissed, setDismissed] = useState(false);
@@ -2040,3 +2042,4 @@ export function GenericConfigForm({ step, onUpdate }: StepConfigurationFormProps
       </p>
     </div>
   );
+}

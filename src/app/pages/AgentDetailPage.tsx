@@ -699,7 +699,7 @@ function ModuleSection({ moduleKey, config, onComplete, defaultExpanded = false,
   }, [procState]);
 
   /* authorize/defer */
-  const timersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const handleAuthorize = useCallback(
     (id: string) => {

@@ -18,7 +18,7 @@ import {
   AIEnrichmentConfigForm, UpdateAssetConfigForm, TagResourceConfigForm, GenericConfigForm,
 } from "./StepFormComponents";
 
-interface StepConfigurationFormProps {
+export interface StepConfigurationFormProps {
   step: WorkflowStep;
   onUpdate: (updates: Partial<WorkflowStep>) => void;
 }
@@ -27,7 +27,7 @@ interface StepConfigurationFormProps {
    WORKFLOW DATA VARIABLES
    ================================================================ */
 
-const WORKFLOW_DATA_VARIABLES = {
+export const WORKFLOW_DATA_VARIABLES = {
   alert: [
     { key: "alert.title", label: "Alert Title", example: "Suspicious PowerShell Execution" },
     { key: "alert.severity", label: "Alert Severity", example: "Critical" },

@@ -643,13 +643,26 @@ export default function CompliancePage() {
         </div>
       </div>
 
+      {/* ── Framework Grid — hero section, full-width ── */}
+      <div className="flex-none px-[32px] pt-[20px] pb-[0px]">
+        <SectionLabel
+          icon={<TrendingUp size={13} color={colors.textMuted} />}
+          label="Framework Status"
+          count={FRAMEWORKS.length}
+          description="Click a framework to view controls, policies, evidence, and audit readiness"
+        />
+        <div className="grid gap-[12px] mt-[0px]" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
+          {FRAMEWORKS.map(fw => <FrameworkRow key={fw.id} fw={fw} />)}
+        </div>
+      </div>
+
       {/* ── Body: two-column layout ── */}
       <div className="flex-1 px-[32px] py-[24px] flex gap-[24px] min-h-0">
 
-        {/* Left column — sorted by urgency: Gaps → Frameworks → Policy */}
+        {/* Left column — Open Gaps → Policy Changes */}
         <div className="flex-1 min-w-0 flex flex-col gap-[28px]">
 
-          {/* Open Gaps — first, most actionable */}
+          {/* Open Gaps */}
           <section>
             <SectionLabel
               icon={<AlertTriangle size={13} color={colors.medium} />}
@@ -662,20 +675,7 @@ export default function CompliancePage() {
             </div>
           </section>
 
-          {/* Frameworks — context, not action */}
-          <section>
-            <SectionLabel
-              icon={<TrendingUp size={13} color={colors.textMuted} />}
-              label="Framework Status"
-              count={FRAMEWORKS.length}
-              description="How you're scoring across each active compliance framework"
-            />
-            <div className="grid gap-[12px]" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}>
-              {FRAMEWORKS.map(fw => <FrameworkRow key={fw.id} fw={fw} />)}
-            </div>
-          </section>
-
-          {/* Policy Changes — lowest urgency */}
+          {/* Policy Changes */}
           <section>
             <SectionLabel
               icon={<FileText size={13} color={colors.textMuted} />}

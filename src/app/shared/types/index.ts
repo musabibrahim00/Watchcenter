@@ -4,7 +4,7 @@
 
 /* ── Agent types ── */
 export type { AgentId } from "./agent-types";
-export { AGENT_ROLE_LABELS, AGENT_SUGGESTIONS } from "./agent-types";
+export { AGENT_ROLE_LABELS } from "./agent-types";
 
 /* ── AiBox module types (re-exported from source) ── */
 export type {
@@ -15,7 +15,6 @@ export type {
   TimelineStep,
   InvestigationTimelineProps,
   MetricsSummaryProps,
-  TrendChartDatum,
   TrendChartProps,
   AttackPathGraphProps,
   AnalystDetailPanelProps,

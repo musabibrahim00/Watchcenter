@@ -68,7 +68,7 @@ export const Heading = React.memo(function Heading({
   size = "md",
   className = "",
 }: HeadingProps) {
-  const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+  const Tag = `h${level}` as React.ElementType;
 
   return (
     <Tag

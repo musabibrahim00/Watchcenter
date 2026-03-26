@@ -1,16 +1,19 @@
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, useSearchParams } from "react-router";
 import {
   ArrowLeft, CheckCircle2, XCircle, AlertCircle, Clock,
   FileText, Sparkles, AlertTriangle, Calendar, TrendingDown,
   ChevronRight, X, BookmarkPlus, BookmarkCheck, ListChecks, Shield,
+  FolderOpen, ClipboardList, FileCheck2, ClipboardCheck,
 } from "lucide-react";
 import { colors } from "../shared/design-system/tokens";
 import { PageHeader } from "../shared/components/ui";
 import { useAiBox } from "../features/ai-box";
+import { useEvidenceStore } from "../features/compliance/evidence-store";
+import { ActionableEvidenceRow } from "../features/compliance/ActionableEvidenceRow";
 import {
-  FRAMEWORKS, FRAMEWORK_CONTROLS, GAPS, EVIDENCE_ITEMS, UPCOMING_AUDITS,
-  type FrameworkControl, type ControlStatus, type EvidenceStatus,
+  FRAMEWORKS, FRAMEWORK_CONTROLS, FRAMEWORK_POLICIES, GAPS, EVIDENCE_ITEMS, UPCOMING_AUDITS,
+  type FrameworkControl, type FrameworkPolicy, type PolicyStatus, type ControlStatus, type EvidenceStatus,
 } from "./compliance-data";
 
 /* ================================================================
@@ -467,7 +470,7 @@ function DefaultSidebar({
   audit,
   gaps,
 }: {
-  evidence: typeof EVIDENCE_ITEMS;
+  evidence: typeof EVIDENCE_ITEMS[number][];
   audit: typeof UPCOMING_AUDITS[number] | undefined;
   gaps: typeof GAPS;
 }) {
@@ -593,13 +596,431 @@ function DefaultSidebar({
 }
 
 /* ================================================================
+   POLICY STATUS HELPERS
+   ================================================================ */
+
+const POLICY_STATUS_COLOR: Record<PolicyStatus, string> = {
+  approved:      colors.success,
+  "under-review": colors.medium,
+  draft:         colors.textDim,
+  expired:       colors.critical,
+};
+
+const POLICY_STATUS_ICON: Record<PolicyStatus, React.ReactNode> = {
+  approved:       <FileCheck2  size={12} color={colors.success}  />,
+  "under-review": <AlertCircle size={12} color={colors.medium}   />,
+  draft:          <Clock       size={12} color={colors.textDim}  />,
+  expired:        <XCircle     size={12} color={colors.critical} />,
+};
+
+/* ================================================================
+   POLICIES TAB
+   ================================================================ */
+
+function PoliciesTab({ policies }: { policies: FrameworkPolicy[] }) {
+  if (policies.length === 0) {
+    return (
+      <div
+        className="flex items-center justify-center p-[32px] rounded-[12px]"
+        style={{ background: colors.bgCard, border: `1px solid ${colors.border}` }}
+      >
+        <p style={{ fontSize: 12, color: colors.textDim }}>No policies mapped for this framework.</p>
+      </div>
+    );
+  }
+
+  const categories = Array.from(new Set(policies.map(p => p.category)));
+  const needsAttentionCount = policies.filter(p => p.status === "under-review" || p.status === "draft" || p.status === "expired").length;
+
+  return (
+    <div className="flex flex-col gap-[24px]">
+      {/* Summary strip */}
+      <div className="flex items-center gap-[20px] flex-wrap">
+        {[
+          { label: "Approved",      value: policies.filter(p => p.status === "approved").length,      color: colors.success  },
+          { label: "Under Review",  value: policies.filter(p => p.status === "under-review").length,  color: colors.medium   },
+          { label: "Draft",         value: policies.filter(p => p.status === "draft").length,         color: colors.textDim  },
+          { label: "Expired",       value: policies.filter(p => p.status === "expired").length,       color: colors.critical },
+        ].map(s => (
+          <div key={s.label} className="flex items-center gap-[6px]">
+            <span style={{ fontSize: 18, fontWeight: 700, color: s.color, lineHeight: 1 }}>{s.value}</span>
+            <span style={{ fontSize: 11, color: colors.textDim }}>{s.label}</span>
+          </div>
+        ))}
+        {needsAttentionCount > 0 && (
+          <span
+            className="flex items-center gap-[4px] px-[8px] py-[3px] rounded-full text-[10px] font-semibold ml-auto"
+            style={{ background: `${colors.medium}14`, color: colors.medium, border: `1px solid ${colors.medium}28` }}
+          >
+            <AlertCircle size={9} />
+            {needsAttentionCount} need{needsAttentionCount === 1 ? "s" : ""} attention
+          </span>
+        )}
+      </div>
+
+      {/* Policies by category */}
+      {categories.map(cat => {
+        const catPolicies = policies.filter(p => p.category === cat);
+        const hasDraft    = catPolicies.some(p => p.status === "draft" || p.status === "under-review" || p.status === "expired");
+        return (
+          <div key={cat} className="flex flex-col gap-[8px]">
+            <div className="flex items-center gap-[8px]">
+              <span style={{ fontSize: 11, fontWeight: 700, color: hasDraft ? colors.medium : colors.textMuted }}>
+                {cat}
+              </span>
+              <div style={{ flex: 1, height: 1, background: colors.border }} />
+            </div>
+            {catPolicies.map(policy => {
+              const statusColor = POLICY_STATUS_COLOR[policy.status];
+              const isAtRisk    = policy.status !== "approved";
+              return (
+                <div
+                  key={policy.id}
+                  className="flex flex-col gap-[10px] p-[14px] rounded-[10px]"
+                  style={{
+                    background: isAtRisk ? `${statusColor}07` : colors.bgCard,
+                    border: `1px solid ${isAtRisk ? statusColor + "28" : colors.border}`,
+                  }}
+                >
+                  {/* Header row */}
+                  <div className="flex items-start justify-between gap-[10px]">
+                    <div className="flex items-start gap-[10px] flex-1 min-w-0">
+                      <div className="shrink-0 mt-[1px]">{POLICY_STATUS_ICON[policy.status]}</div>
+                      <div className="min-w-0">
+                        <p style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary, lineHeight: 1.3 }}>{policy.name}</p>
+                        <p style={{ fontSize: 11, color: colors.textMuted, marginTop: 3, lineHeight: 1.5 }}>{policy.summary}</p>
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right flex flex-col items-end gap-[4px]">
+                      <span
+                        className="px-[7px] py-[2px] rounded-full text-[9px] font-bold uppercase"
+                        style={{ background: `${statusColor}14`, color: statusColor, border: `1px solid ${statusColor}28` }}
+                      >
+                        {policy.status === "under-review" ? "review" : policy.status}
+                      </span>
+                      <span style={{ fontSize: 9, color: colors.textDim }}>{policy.version}</span>
+                    </div>
+                  </div>
+
+                  {/* Meta row */}
+                  <div className="flex items-center gap-[16px] flex-wrap" style={{ borderTop: `1px solid ${colors.border}`, paddingTop: 8 }}>
+                    <span style={{ fontSize: 10, color: colors.textDim }}>
+                      Owner: <span style={{ color: colors.textMuted }}>{policy.owner}</span>
+                    </span>
+                    {policy.lastReviewed && (
+                      <span style={{ fontSize: 10, color: colors.textDim }}>
+                        Reviewed: <span style={{ color: colors.textMuted }}>{policy.lastReviewed}</span>
+                      </span>
+                    )}
+                    {policy.nextReview && (
+                      <span style={{ fontSize: 10, color: colors.textDim }}>
+                        Next review: <span style={{ color: isAtRisk ? statusColor : colors.textMuted }}>{policy.nextReview}</span>
+                      </span>
+                    )}
+                    {policy.controlIds && policy.controlIds.length > 0 && (
+                      <span style={{ fontSize: 10, color: colors.textDim }}>
+                        Controls: <span style={{ color: colors.textMuted, fontFamily: "monospace" }}>{policy.controlIds.join(", ")}</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ================================================================
+   DOCUMENTS TAB
+   ================================================================ */
+
+function DocumentsTab({ frameworkId }: { frameworkId: string }) {
+  const { items, update } = useEvidenceStore();
+  const fwItems = items.filter(ev => ev.fwId === frameworkId);
+
+  const collectedCount = fwItems.filter(e => e.status === "collected").length;
+  const overdueCount   = fwItems.filter(e => e.status === "overdue").length;
+
+  const sorted = [...fwItems].sort((a, b) => {
+    const o = { overdue: 0, pending: 1, collected: 2 } as const;
+    return o[a.status] - o[b.status];
+  });
+
+  return (
+    <div className="flex flex-col gap-[20px]">
+      {/* Summary */}
+      {fwItems.length > 0 && (
+        <div className="flex items-center gap-[20px] flex-wrap">
+          <div className="flex items-center gap-[6px]">
+            <span style={{ fontSize: 18, fontWeight: 700, color: colors.success, lineHeight: 1 }}>{collectedCount}</span>
+            <span style={{ fontSize: 11, color: colors.textDim }}>Collected</span>
+          </div>
+          <div className="flex items-center gap-[6px]">
+            <span style={{ fontSize: 18, fontWeight: 700, color: colors.medium, lineHeight: 1 }}>{fwItems.filter(e => e.status === "pending").length}</span>
+            <span style={{ fontSize: 11, color: colors.textDim }}>Pending</span>
+          </div>
+          {overdueCount > 0 && (
+            <div className="flex items-center gap-[6px]">
+              <span style={{ fontSize: 18, fontWeight: 700, color: colors.critical, lineHeight: 1 }}>{overdueCount}</span>
+              <span style={{ fontSize: 11, color: colors.textDim }}>Overdue</span>
+            </div>
+          )}
+          {/* Progress bar */}
+          <div className="flex-1 min-w-[120px]">
+            <div className="flex h-[4px] rounded-full overflow-hidden w-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+              <div style={{ width: `${fwItems.length ? (collectedCount / fwItems.length) * 100 : 0}%`, background: colors.success }} />
+              <div style={{ width: `${fwItems.length ? (fwItems.filter(e => e.status === "pending").length / fwItems.length) * 100 : 0}%`, background: colors.medium }} />
+              <div style={{ width: `${fwItems.length ? (overdueCount / fwItems.length) * 100 : 0}%`, background: colors.critical }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Evidence rows */}
+      {sorted.length === 0 ? (
+        <div
+          className="flex items-center justify-center p-[32px] rounded-[12px]"
+          style={{ background: colors.bgCard, border: `1px solid ${colors.border}` }}
+        >
+          <p style={{ fontSize: 12, color: colors.textDim }}>No evidence items mapped to this framework yet.</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-[6px]">
+          {sorted.map(ev => (
+            <ActionableEvidenceRow key={ev.id} ev={ev} onUpdate={update} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ================================================================
+   AUDIT TAB
+   ================================================================ */
+
+function AuditTab({
+  frameworkId,
+  frameworkName,
+  frameworkScore,
+  controls,
+  gaps,
+  onAskAI,
+}: {
+  frameworkId: string;
+  frameworkName: string;
+  frameworkScore: number;
+  controls: FrameworkControl[];
+  gaps: typeof GAPS;
+  onAskAI: () => void;
+}) {
+  const audit       = UPCOMING_AUDITS.find(a => a.fwId === frameworkId);
+  const failingCtrl = controls.filter(c => c.status === "failing");
+  const inProgCtrl  = controls.filter(c => c.status === "in-progress");
+
+  const scoreColor = audit
+    ? (audit.readiness >= 85 ? colors.success : audit.readiness >= 70 ? colors.medium : colors.critical)
+    : (frameworkScore >= 90 ? colors.success : frameworkScore >= 80 ? colors.medium : colors.critical);
+
+  if (!audit) {
+    return (
+      <div className="flex flex-col gap-[20px]">
+        <div
+          className="flex items-center gap-[10px] p-[20px] rounded-[12px]"
+          style={{ background: colors.bgCard, border: `1px solid ${colors.border}` }}
+        >
+          <CheckCircle2 size={16} color={colors.success} />
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>No upcoming audit scheduled</p>
+            <p style={{ fontSize: 11, color: colors.textMuted, marginTop: 2 }}>There are no audits scheduled for {frameworkName} in the next 12 months.</p>
+          </div>
+        </div>
+
+        {/* Still show blocking controls if any */}
+        {failingCtrl.length > 0 && (
+          <BlockingControlsList controls={failingCtrl} label="Failing Controls" color={colors.critical} />
+        )}
+      </div>
+    );
+  }
+
+  const isAtRisk  = audit.readiness < 80;
+  const isUrgent  = audit.daysUntil <= 60;
+  const urgentColor = isAtRisk ? colors.critical : isUrgent ? colors.medium : colors.textDim;
+
+  return (
+    <div className="flex flex-col gap-[24px]">
+      {/* Audit readiness card */}
+      <div
+        className="flex flex-col gap-[16px] p-[20px] rounded-[12px]"
+        style={{ background: colors.bgCard, border: `1px solid ${isAtRisk ? colors.medium + "44" : colors.border}` }}
+      >
+        <div className="flex items-start justify-between gap-[12px]">
+          <div>
+            <p style={{ fontSize: 15, fontWeight: 700, color: colors.textPrimary, lineHeight: 1.3 }}>{audit.name}</p>
+            <div className="flex items-center gap-[10px] mt-[6px]">
+              <span
+                className="px-[7px] py-[2px] rounded-[4px] text-[10px] font-semibold"
+                style={{ background: `${audit.color}18`, color: audit.color, border: `1px solid ${audit.color}28` }}
+              >
+                {audit.framework}
+              </span>
+              <span style={{ fontSize: 11, color: colors.textMuted }}>{audit.owner}</span>
+            </div>
+          </div>
+          <div className="shrink-0 text-right">
+            <p style={{ fontSize: 28, fontWeight: 700, color: urgentColor, lineHeight: 1 }}>{audit.daysUntil}d</p>
+            <p style={{ fontSize: 10, color: colors.textDim, marginTop: 3 }}>{audit.date}</p>
+          </div>
+        </div>
+
+        {/* Readiness bar */}
+        <div className="flex flex-col gap-[6px]">
+          <div className="flex items-center justify-between">
+            <span style={{ fontSize: 11, color: colors.textMuted }}>Readiness</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: scoreColor }}>{audit.readiness}%</span>
+          </div>
+          <div className="flex h-[6px] rounded-full overflow-hidden w-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+            <div style={{ width: `${audit.readiness}%`, background: scoreColor, borderRadius: 999, transition: "width 0.4s ease" }} />
+          </div>
+          {isAtRisk && (
+            <p style={{ fontSize: 11, color: colors.medium, marginTop: 2 }}>
+              Below 80% — this audit is at risk. Resolve failing controls to improve readiness.
+            </p>
+          )}
+        </div>
+
+        {/* Key risks */}
+        {audit.keyRisks.length > 0 && (
+          <div
+            className="flex flex-col gap-[6px] p-[12px] rounded-[8px]"
+            style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)" }}
+          >
+            <p style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 2 }}>
+              Blocking issues
+            </p>
+            {audit.keyRisks.map((r, i) => (
+              <div key={i} className="flex items-start gap-[7px]">
+                <AlertCircle size={10} color={colors.medium} style={{ marginTop: 2, flexShrink: 0 }} />
+                <span style={{ fontSize: 11, color: colors.textMuted, lineHeight: 1.5 }}>{r}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* CTA */}
+        <button
+          onClick={onAskAI}
+          className="w-full flex items-center justify-center gap-[6px] py-[9px] rounded-[8px] text-[12px] font-semibold cursor-pointer transition-colors"
+          style={{ background: `${colors.primary}18`, color: colors.primary, border: `1px solid ${colors.primary}28` }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${colors.primary}28`; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${colors.primary}18`; }}
+        >
+          <Sparkles size={13} />
+          Get {audit.daysUntil}-day preparation plan
+        </button>
+      </div>
+
+      {/* Failing controls — primary blockers */}
+      {failingCtrl.length > 0 && (
+        <BlockingControlsList controls={failingCtrl} label="Failing Controls — Direct Audit Findings" color={colors.critical} />
+      )}
+
+      {/* In-progress controls — secondary risk */}
+      {inProgCtrl.length > 0 && (
+        <BlockingControlsList controls={inProgCtrl} label="In-Progress Controls — May Be Flagged" color={colors.medium} />
+      )}
+
+      {/* Open gaps summary */}
+      {gaps.length > 0 && (
+        <div
+          className="flex flex-col gap-[8px] p-[16px] rounded-[10px]"
+          style={{ background: colors.bgCard, border: `1px solid ${colors.border}` }}
+        >
+          <p style={{ fontSize: 11, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+            Open Gaps ({gaps.length})
+          </p>
+          {gaps.map(gap => (
+            <div
+              key={gap.id}
+              className="flex items-start gap-[10px] p-[10px] rounded-[8px]"
+              style={{
+                background: `${gap.severity === "critical" ? colors.critical : colors.high}08`,
+                border: `1px solid ${gap.severity === "critical" ? colors.critical : colors.high}28`,
+              }}
+            >
+              <span
+                className="shrink-0 px-[6px] py-[1px] rounded-full text-[9px] font-bold uppercase mt-[1px]"
+                style={{
+                  background: `${gap.severity === "critical" ? colors.critical : colors.high}18`,
+                  color: gap.severity === "critical" ? colors.critical : colors.high,
+                }}
+              >
+                {gap.severity}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary }}>{gap.title}</p>
+                <p style={{ fontSize: 10, color: colors.textMuted, marginTop: 2 }}>
+                  {gap.control} · Open {gap.daysOpen} days · {gap.owner}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BlockingControlsList({ controls, label, color }: { controls: FrameworkControl[]; label: string; color: string }) {
+  return (
+    <div
+      className="flex flex-col gap-[8px] p-[16px] rounded-[10px]"
+      style={{ background: colors.bgCard, border: `1px solid ${color}22` }}
+    >
+      <p style={{ fontSize: 11, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+        {label} ({controls.length})
+      </p>
+      {controls.map(ctrl => (
+        <div
+          key={ctrl.id}
+          className="flex items-start gap-[10px] px-[10px] py-[9px] rounded-[8px]"
+          style={{ background: `${color}07`, border: `1px solid ${color}22` }}
+        >
+          <span className="shrink-0 text-[10px] font-mono font-semibold mt-[1px]" style={{ color }}>{ctrl.id}</span>
+          <div className="flex-1 min-w-0">
+            <p style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary }}>{ctrl.name}</p>
+            <p style={{ fontSize: 10, color: colors.textMuted, marginTop: 1 }}>{ctrl.category}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ================================================================
    PAGE
    ================================================================ */
+
+type TabId = "controls" | "policies" | "documents" | "audit";
+
+const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
+  { id: "controls",  label: "Controls",  icon: <ClipboardList size={12} /> },
+  { id: "policies",  label: "Policies",  icon: <FileText      size={12} /> },
+  { id: "documents", label: "Documents", icon: <FolderOpen    size={12} /> },
+  { id: "audit",     label: "Audit",     icon: <ClipboardCheck size={12} /> },
+];
 
 export default function ComplianceFrameworkPage() {
   const { frameworkId } = useParams<{ frameworkId: string }>();
   const navigate        = useNavigate();
   const { openWithContext } = useAiBox();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const activeTab = (searchParams.get("tab") as TabId | null) ?? "controls";
 
   const [selectedControlId, setSelectedControlId] = useState<string | null>(null);
 
@@ -758,60 +1179,116 @@ export default function ComplianceFrameworkPage() {
           )}
         </div>
 
-        {/* Two-column layout */}
-        <div className="flex gap-[20px] items-start">
-
-          {/* LEFT — controls by category */}
-          <div className="flex-1 min-w-0 flex flex-col gap-[20px]">
-            <p style={{ fontSize: 12, fontWeight: 700, color: colors.textDim, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-              Controls ({controls.length})
-            </p>
-
-            {categories.map(cat => {
-              const catControls = controls.filter(c => c.category === cat);
-              const failCount   = catControls.filter(c => c.status === "failing").length;
-              return (
-                <div key={cat} className="flex flex-col gap-[2px]">
-                  <div className="flex items-center gap-[8px] mb-[6px]">
-                    <span style={{ fontSize: 11, fontWeight: 700, color: failCount > 0 ? colors.critical : colors.textMuted }}>
-                      {cat}
-                    </span>
-                    {failCount > 0 && (
-                      <span
-                        className="px-[6px] py-[1px] rounded-full text-[9px] font-bold"
-                        style={{ background: `${colors.critical}18`, color: colors.critical, border: `1px solid ${colors.critical}28` }}
-                      >
-                        {failCount} failing
-                      </span>
-                    )}
-                  </div>
-                  {catControls.map(ctrl => (
-                    <ControlRow
-                      key={ctrl.id}
-                      ctrl={ctrl}
-                      isSelected={selectedControlId === ctrl.id}
-                      onSelect={handleSelectControl}
-                    />
-                  ))}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* RIGHT — detail panel or default sidebar */}
-          <div className="w-[300px] shrink-0" style={{ position: "sticky", top: 0 }}>
-            {selectedControl ? (
-              <ControlDetailPanel
-                ctrl={selectedControl}
-                frameworkName={framework.name}
-                onClose={() => setSelectedControlId(null)}
-                onAskAI={handleRemediateControl}
-              />
-            ) : (
-              <DefaultSidebar evidence={evidence} audit={audit} gaps={gaps} />
-            )}
-          </div>
+        {/* Tab navigation strip */}
+        <div
+          className="flex items-center gap-[0px] mb-[20px]"
+          style={{ borderBottom: `1px solid ${colors.border}` }}
+        >
+          {TABS.map(tab => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setSearchParams({ tab: tab.id }, { replace: true });
+                  if (tab.id !== "controls") setSelectedControlId(null);
+                }}
+                className="flex items-center gap-[6px] px-[14px] py-[10px] text-[12px] font-medium cursor-pointer transition-colors relative"
+                style={{
+                  color: isActive ? colors.textPrimary : colors.textMuted,
+                  background: "transparent",
+                  border: "none",
+                  outline: "none",
+                  borderBottom: isActive ? `2px solid ${colors.primary}` : "2px solid transparent",
+                  marginBottom: -1,
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) (e.currentTarget as HTMLButtonElement).style.color = colors.textSecondary;
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) (e.currentTarget as HTMLButtonElement).style.color = colors.textMuted;
+                }}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
+
+        {/* Controls tab */}
+        {activeTab === "controls" && (
+          <div className="flex gap-[20px] items-start">
+            {/* LEFT — controls by category */}
+            <div className="flex-1 min-w-0 flex flex-col gap-[20px]">
+              {categories.map(cat => {
+                const catControls = controls.filter(c => c.category === cat);
+                const failCount   = catControls.filter(c => c.status === "failing").length;
+                return (
+                  <div key={cat} className="flex flex-col gap-[2px]">
+                    <div className="flex items-center gap-[8px] mb-[6px]">
+                      <span style={{ fontSize: 11, fontWeight: 700, color: failCount > 0 ? colors.critical : colors.textMuted }}>
+                        {cat}
+                      </span>
+                      {failCount > 0 && (
+                        <span
+                          className="px-[6px] py-[1px] rounded-full text-[9px] font-bold"
+                          style={{ background: `${colors.critical}18`, color: colors.critical, border: `1px solid ${colors.critical}28` }}
+                        >
+                          {failCount} failing
+                        </span>
+                      )}
+                    </div>
+                    {catControls.map(ctrl => (
+                      <ControlRow
+                        key={ctrl.id}
+                        ctrl={ctrl}
+                        isSelected={selectedControlId === ctrl.id}
+                        onSelect={handleSelectControl}
+                      />
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* RIGHT — detail panel or default sidebar */}
+            <div className="w-[300px] shrink-0" style={{ position: "sticky", top: 0 }}>
+              {selectedControl ? (
+                <ControlDetailPanel
+                  ctrl={selectedControl}
+                  frameworkName={framework.name}
+                  onClose={() => setSelectedControlId(null)}
+                  onAskAI={handleRemediateControl}
+                />
+              ) : (
+                <DefaultSidebar evidence={evidence} audit={audit} gaps={gaps} />
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Policies tab */}
+        {activeTab === "policies" && (
+          <PoliciesTab policies={FRAMEWORK_POLICIES[framework.id] ?? []} />
+        )}
+
+        {/* Documents tab */}
+        {activeTab === "documents" && (
+          <DocumentsTab frameworkId={framework.id} />
+        )}
+
+        {/* Audit tab */}
+        {activeTab === "audit" && (
+          <AuditTab
+            frameworkId={framework.id}
+            frameworkName={framework.name}
+            frameworkScore={framework.score}
+            controls={controls}
+            gaps={gaps}
+            onAskAI={handleOpenAI}
+          />
+        )}
       </div>
     </div>
   );

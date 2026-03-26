@@ -50,7 +50,7 @@ export interface ChatMessage {
 /* ── Action model ── */
 
 export type ActionIntent = "explain" | "explore" | "act";
-export type ActionScope = "asset" | "agent" | "workflow" | "investigation" | "risk";
+export type ActionScope = "asset" | "agent" | "workflow" | "investigation" | "risk" | "attack-path-simulation";
 export type ActionStatus =
   | "pending"
   | "awaiting-approval"

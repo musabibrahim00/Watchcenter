@@ -1,10 +1,10 @@
 import React from "react";
 
 // ── Priority signals (top 3 highest-value signals for compact view) ────────
-const PRIORITY_SIGNALS = [
-  { type: "critical" as const, badge: "CRIT", text: "Lateral movement confirmed to finance-db-01 — domain credentials at risk" },
-  { type: "warning" as const, badge: "HIGH", text: "3 crown jewel assets exposed to internet with no active mitigation" },
-  { type: "warning" as const, badge: "HIGH", text: "TLS cert expiry <72h on prod-lb-01/02 — service disruption risk" },
+const PRIORITY_SIGNALS: Array<{ type: "critical" | "warning" | "good" | "info"; badge: string; text: string }> = [
+  { type: "critical", badge: "CRIT", text: "Lateral movement confirmed to finance-db-01 — domain credentials at risk" },
+  { type: "warning", badge: "HIGH", text: "3 crown jewel assets exposed to internet with no active mitigation" },
+  { type: "warning", badge: "HIGH", text: "TLS cert expiry <72h on prod-lb-01/02 — service disruption risk" },
 ];
 
 const SIGNAL_COLORS: Record<string, string> = {

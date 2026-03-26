@@ -23,6 +23,7 @@ import {
   matchAction,
   ActionCard,
   type ActionCardData,
+  type ActionScope,
 } from "./AiBoxShared";
 
 /* ── Module-level message store — survives React unmount/remount (route changes) ── */
@@ -777,15 +778,15 @@ export default function AiBox() {
               module: insightModule?.module || "Watch Center AI",
               severity: proactiveScenario.signals.severity || "high",
               title: insightModule?.title || proactiveScenario.label || "Security Investigation",
-              description: insightModule?.description || insightModule?.whyItMatters || proactiveScenario.label || "",
-              supportingStats: insightModule?.supportingStats,
-              actions: insightModule?.actions,
+              description: (insightModule as any)?.description || (insightModule as any)?.whyItMatters || proactiveScenario.label || "",
+              supportingStats: (insightModule as any)?.supportingStats,
+              actions: (insightModule as any)?.actions,
             };
             
             // Try to extract attack path ID from any action or module data
-            const attackPathId = proactiveScenario.modules
-              .find(m => m.type === "insight" && m.actions?.some(a => a.includes("attack path")))
-              ?.title.match(/ap-\d{3}/i)?.[0];
+            const attackPathId = (proactiveScenario.modules
+              .find(m => m.type === "insight" && (m as any).actions?.some((a: string) => a.includes("attack path"))) as any)
+              ?.title?.match(/ap-\d{3}/i)?.[0];
             
             const { caseData, initialObservation, recommendedPlaybooks } = createCaseFromAIRecommendation(
               aiContext,
@@ -897,7 +898,7 @@ export default function AiBox() {
         const actionData: ActionCardData = {
           id: crypto.randomUUID(),
           title: isApprove ? "Approve Action" : "Reject Action",
-          scope: "Pending item in approval queue",
+          scope: "Pending item in approval queue" as ActionScope,
           guardrailLevel: isApprove ? "L3" : "L2",
           requiresApproval: isApprove,
           parameters: [
@@ -945,7 +946,7 @@ export default function AiBox() {
         const actionData: ActionCardData = {
           id: crypto.randomUUID(),
           title: "Delegate Task",
-          scope: "Selected item",
+          scope: "Selected item" as ActionScope,
           guardrailLevel: "L2",
           requiresApproval: false,
           parameters: [
@@ -999,7 +1000,7 @@ export default function AiBox() {
           blocked || "None.",
           ``,
           `## Recommended Next Action`,
-          summary.topItem ? `Start with **${summary.topItem.title}** — highest urgency pending your decision.` : "Review queue above.",
+          summary.topItem ? `Start with **${summary.topItem}** — highest urgency pending your decision.` : "Review queue above.",
         ].join("\n");
         const insightUI = (
           <InsightCard

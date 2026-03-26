@@ -247,8 +247,6 @@ export function AgentActivityIndicator({
           backgroundColor: `${colors.accent}15`,
           border: `1px solid ${colors.accent}30`,
         }}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
         onClick={onClick}
         onMouseEnter={(e) => {
           setShowTooltip(true);

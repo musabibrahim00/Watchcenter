@@ -191,7 +191,6 @@ export function ChangeStatusModal({
               backgroundColor: colors.bgDark,
               border: `1px solid ${colors.border}`,
               color: colors.textPrimary,
-              focusRingColor: colors.accent,
               minHeight: "100px",
             }}
           />

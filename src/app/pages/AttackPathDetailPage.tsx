@@ -1,15 +1,17 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router";
-import { ArrowLeft, ZoomIn, ZoomOut, Shield, Globe, Cloud, Server, Database, AlertTriangle, RotateCcw, Zap, ChevronDown, Crosshair, Bug, Settings2 } from "lucide-react";
+import { ArrowLeft, ZoomIn, ZoomOut, Shield, Globe, Cloud, Server, Database, AlertTriangle, RotateCcw, Zap, ChevronDown, Crosshair, Bug, Settings2, ExternalLink, Network, FileText } from "lucide-react";
 import { colors } from "../shared/design-system/tokens";
 import { Badge } from "../shared/components/ui/Badge";
 import { useAiBox } from "../features/ai-box";
 import { getPersonaAiBoxSuggestions } from "../shared/skills";
 import { usePersona } from "../features/persona";
-import type { PathNode, PathEdge, BlastRadiusAsset, BlastRadiusData, LayoutResult } from "./attack-path/types";
+import type { PathNode, PathEdge, BlastRadiusAsset, BlastRadiusData, LayoutResult, AttackPathData } from "./attack-path/types";
+import type { FlowSegment, ChainStep } from "./attack-path/graph-layout";
 import { ATTACK_PATHS, DEFAULT_PATH, nodeIconMap, nodeColorMap, severityAccent } from "./attack-path/data";
 import { GRID_SIZE, NODE_W, NODE_H, VULN_NODE_W, VULN_NODE_H, VULN_KEV_H, VULN_KEV_GAP, H_SPACING, V_PAIR_SPACING, MIN_ZOOM, MAX_ZOOM, FIT_PADDING, FIT_ZOOM_MIN, FIT_ZOOM_MAX, ZOOM_STEP_BUTTON, ZOOM_SENSITIVITY, PAN_MARGIN_RATIO, BR_PILL_W, BR_PILL_H, BR_PILL_GAP_X, VULN_CARD_W, VULN_CARD_H, VULN_CARD_GAP_Y, VULN_CARD_ARROW_H, CHAIN_STEP_H, CHAIN_CONNECTOR_H, CHAIN_PAD, CHAIN_HEADER_H, CHAIN_W, CHAIN_GAP_Y, BR_W, BR_GAP_X, BR_CARD_MIN, BR_CARD_H, BR_COLS, BR_GRID_GAP, BR_HEADER_H, BR_SUMMARY_H, BR_PANEL_PAD, computeGraphLayout, computeFitView, clampPan, computeAttackChainToNode, computeChainPanelHeight, computeExploitFlow, computeRevealSequence, evalCubicBezier } from "./attack-path/graph-layout";
 import { InsightsPanel } from "./attack-path/InsightsPanel";
+import { getControlsForPath } from "../shared/entity-graph";
 
 const PULSE_SEGMENT_DUR = 1100;
 const PULSE_TRAIL_COUNT = 4;
@@ -139,7 +141,7 @@ function GraphCanvas({
   zoomRef.current = zoom;
   const hasAutoFit = useRef(false);
   const [autoFitDone, setAutoFitDone] = useState(false);
-  const animTimer = useRef<ReturnType<typeof setTimeout>>();
+  const animTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const panRafId = useRef(0);
 
   /* Hover: ref-based (no React re-renders on pointer move) */
@@ -1333,6 +1335,7 @@ function AttackChainOverlay({
       label: "Exploit / Priv Escalation",
       icon: "vuln",
       isVulnerable: false,
+      cve: undefined,
       isExploit: true,
     });
     return steps;
