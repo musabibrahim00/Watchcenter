@@ -15,6 +15,7 @@ import {
   FRAMEWORKS, FRAMEWORK_CONTROLS, FRAMEWORK_POLICIES, GAPS, EVIDENCE_ITEMS, UPCOMING_AUDITS,
   type FrameworkControl, type FrameworkPolicy, type PolicyStatus, type ControlStatus, type EvidenceStatus,
 } from "./compliance-data";
+import { SOC2_FRAMEWORK } from "../../data/compliance/soc2-controls";
 
 /* ================================================================
    CONSTANTS
@@ -1523,22 +1524,71 @@ export default function ComplianceFrameworkPage() {
                     <div className="flex items-center justify-center py-[32px]">
                       <p style={{ fontSize: 12, color: colors.textDim }}>No controls match the current filter.</p>
                     </div>
-                  ) : (
-                    filteredControls.map(ctrl => {
-                      const gapOwner      = GAPS.find(g => g.id === ctrl.gapId)?.owner ?? "";
-                      const overrideOwner = getCtrlOwner(ctrl.id);
-                      const displayOwner  = overrideOwner || gapOwner;
+                  ) : (() => {
+                    // Build ordered category groups from filtered controls
+                    const groupOrder: string[] = [];
+                    const groupMap = new Map<string, FrameworkControl[]>();
+                    for (const ctrl of filteredControls) {
+                      const cat = ctrl.category ?? "Other";
+                      if (!groupMap.has(cat)) { groupOrder.push(cat); groupMap.set(cat, []); }
+                      groupMap.get(cat)!.push(ctrl);
+                    }
+                    // Lookup short category ID (e.g. "CC1") from SOC2_FRAMEWORK, else derive from name
+                    function catId(catName: string): string {
+                      const found = SOC2_FRAMEWORK.categories.find(c => c.name === catName);
+                      if (found) return found.id;
+                      const match = catName.match(/^([A-Z]+\d*)/);
+                      return match ? match[1] : catName.slice(0, 4).toUpperCase();
+                    }
+                    const isGrouped = groupOrder.length > 1;
+                    return groupOrder.map(catName => {
+                      const ctrlsInGroup = groupMap.get(catName)!;
+                      const failingInGroup = ctrlsInGroup.filter(c => c.status === "failing").length;
                       return (
-                        <ControlTableRow
-                          key={ctrl.id}
-                          ctrl={ctrl}
-                          isSelected={selectedControlId === ctrl.id}
-                          onSelect={handleSelectControl}
-                          owner={displayOwner}
-                        />
+                        <React.Fragment key={catName}>
+                          {isGrouped && (
+                            <div
+                              className="flex items-center gap-[10px] px-[12px] py-[6px]"
+                              style={{ background: "rgba(255,255,255,0.025)", borderBottom: `1px solid ${colors.border}` }}
+                            >
+                              <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "monospace", color: colors.accent, minWidth: 36 }}>
+                                {catId(catName)}
+                              </span>
+                              <span style={{ fontSize: 10, fontWeight: 600, color: colors.textMuted }}>
+                                {catName}
+                              </span>
+                              <span style={{ fontSize: 10, color: colors.textDim, marginLeft: 2 }}>
+                                · {ctrlsInGroup.length}
+                              </span>
+                              {failingInGroup > 0 && (
+                                <span
+                                  className="flex items-center gap-[3px] ml-[4px]"
+                                  style={{ fontSize: 10, color: colors.critical, fontWeight: 600 }}
+                                >
+                                  <AlertTriangle size={8} />
+                                  {failingInGroup} failing
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {ctrlsInGroup.map(ctrl => {
+                            const gapOwner      = GAPS.find(g => g.id === ctrl.gapId)?.owner ?? "";
+                            const overrideOwner = getCtrlOwner(ctrl.id);
+                            const displayOwner  = overrideOwner || gapOwner;
+                            return (
+                              <ControlTableRow
+                                key={ctrl.id}
+                                ctrl={ctrl}
+                                isSelected={selectedControlId === ctrl.id}
+                                onSelect={handleSelectControl}
+                                owner={displayOwner}
+                              />
+                            );
+                          })}
+                        </React.Fragment>
                       );
-                    })
-                  )}
+                    });
+                  })()}
                 </div>
               </div>
 

@@ -6,6 +6,8 @@
  *   - ComplianceFrameworkPage (framework detail view)
  */
 
+import { SOC2_FRAMEWORK } from "../../data/compliance/soc2-controls";
+
 export type Severity       = "critical" | "high" | "medium" | "low";
 export type EvidenceStatus = "collected" | "pending" | "overdue";
 export type MonitorStatus  = "passing" | "failing" | "warning";
@@ -135,30 +137,83 @@ export type FrameworkControl = {
   requiredEvidence?: string[]; // artifact names still needed
 };
 
+/* ================================================================
+   SOC 2 OPERATIONAL STATE OVERLAY
+   Maps control IDs to their current runtime status.
+   Any control NOT listed here defaults to status: "passing".
+   Operational fields (gapId, evidenceIds, remediation) are preserved
+   exactly as they were in the original mock layer.
+   ================================================================ */
+
+type Soc2Override = {
+  status?:           ControlStatus;
+  gapId?:            string;
+  evidenceIds?:      string[];
+  lastTested?:       string;
+  whyItMatters?:     string;
+  remediationSteps?: string[];
+  requiredEvidence?: string[];
+};
+
+const SOC2_OPERATIONAL: Record<string, Soc2Override> = {
+  "CC5.1": { status: "passing",     lastTested: "Mar 1"  },
+  "CC5.2": { status: "passing",     lastTested: "Feb 28" },
+  "CC6.1": {
+    status: "failing", gapId: "g2", evidenceIds: ["e3"], lastTested: "Mar 5",
+    whyItMatters:
+      "MFA is the primary barrier against credential-based attacks. 12 service accounts without MFA are directly exploitable via credential stuffing or phishing — each one a potential lateral movement entry point. This is the top blocker for the SOC 2 annual audit.",
+    remediationSteps: [
+      "Inventory all 12 non-compliant service accounts by owner",
+      "Enable FIDO2 MFA per the updated MFA policy (Mar 14)",
+      "Enforce MFA at the identity provider level — block auth without second factor",
+      "Re-run MFA Coverage Scan to confirm 100% enforcement",
+      "Collect MFA Enforcement Logs as audit evidence and submit to Compliance Team",
+    ],
+    requiredEvidence: [
+      "MFA Enforcement Logs (CC6.1) — due Mar 28",
+      "Updated access policy confirming FIDO2 requirement",
+      "Service account inventory with MFA status confirmed",
+    ],
+  },
+  "CC6.2": { status: "passing",     evidenceIds: ["e1"], lastTested: "Mar 15"  },
+  "CC6.3": { status: "passing",     lastTested: "2h ago"                        },
+  "CC6.7": { status: "in-progress", lastTested: "Feb 20"                        },
+  "CC7.1": { status: "passing",     lastTested: "Mar 10"                        },
+  "CC7.2": { status: "in-progress", lastTested: "Mar 8"                         },
+  "CC8.1": { status: "passing",     lastTested: "Mar 12"                        },
+  "CC9.1": { status: "passing",     lastTested: "Jan 15"                        },
+  "CC9.2": { status: "in-progress", lastTested: "Feb 10"                        },
+};
+
+/** Build the full SOC 2 control list from the real dataset, merged with
+ *  operational state. Controls without an explicit override get status
+ *  "passing" and their canonical evidence list from the PRD dataset. */
+function buildSoc2Controls(): FrameworkControl[] {
+  return SOC2_FRAMEWORK.categories.flatMap(cat =>
+    cat.controls.map((ctrl): FrameworkControl => {
+      const op = SOC2_OPERATIONAL[ctrl.id] ?? {};
+      return {
+        id:               ctrl.id,
+        name:             ctrl.title,
+        category:         cat.name,
+        description:      ctrl.description,
+        status:           op.status           ?? "passing",
+        gapId:            op.gapId,
+        evidenceIds:      op.evidenceIds,
+        lastTested:       op.lastTested,
+        whyItMatters:     op.whyItMatters,
+        remediationSteps: op.remediationSteps,
+        // requiredEvidence falls back to the canonical evidence list from the PRD
+        requiredEvidence: op.requiredEvidence  ?? ctrl.evidence,
+      };
+    })
+  );
+}
+
 export const FRAMEWORK_CONTROLS: Record<string, FrameworkControl[]> = {
 
-  "soc2": [
-    // CC5 — Control Activities
-    { id: "CC5.1", category: "Control Activities",          status: "passing",     name: "Policies and Procedures",          description: "Documented security policies cover all trust-service categories.", lastTested: "Mar 1" },
-    { id: "CC5.2", category: "Control Activities",          status: "passing",     name: "Controls Over Technology",         description: "Technical controls aligned to policies and regularly reviewed.", lastTested: "Feb 28" },
-    // CC6 — Logical and Physical Access
-    { id: "CC6.1", category: "Logical and Physical Access", status: "failing",     name: "Logical Access Controls",          description: "Multi-factor authentication required for all system access.", gapId: "g2", evidenceIds: ["e3"], lastTested: "Mar 5",
-      whyItMatters: "MFA is the primary barrier against credential-based attacks. 12 service accounts without MFA are directly exploitable via credential stuffing or phishing — each one a potential lateral movement entry point. This is the top blocker for the SOC 2 annual audit.",
-      remediationSteps: ["Inventory all 12 non-compliant service accounts by owner", "Enable FIDO2 MFA per the updated MFA policy (Mar 14)", "Enforce MFA at the identity provider level — block auth without second factor", "Re-run MFA Coverage Scan to confirm 100% enforcement", "Collect MFA Enforcement Logs as audit evidence and submit to Compliance Team"],
-      requiredEvidence: ["MFA Enforcement Logs (CC6.1) — due Mar 28", "Updated access policy confirming FIDO2 requirement", "Service account inventory with MFA status confirmed"],
-    },
-    { id: "CC6.2", category: "Logical and Physical Access", status: "passing",     name: "User Registration and De-registration", description: "Formal process for granting and revoking access.", evidenceIds: ["e1"], lastTested: "Mar 15" },
-    { id: "CC6.3", category: "Logical and Physical Access", status: "passing",     name: "Privileged Access Management",     description: "Privileged accounts are managed, monitored, and reviewed.", lastTested: "2h ago" },
-    { id: "CC6.7", category: "Logical and Physical Access", status: "in-progress", name: "Transmission Protection",          description: "Data transmitted over public networks is encrypted.", lastTested: "Feb 20" },
-    // CC7 — System Operations
-    { id: "CC7.1", category: "System Operations",           status: "passing",     name: "System and Boundary Protection",   description: "Boundaries between system components are enforced.", lastTested: "Mar 10" },
-    { id: "CC7.2", category: "System Operations",           status: "in-progress", name: "Change Detection",                 description: "System components are monitored for unauthorized changes.", lastTested: "Mar 8" },
-    // CC8 — Change Management
-    { id: "CC8.1", category: "Change Management",           status: "passing",     name: "Change Management Process",        description: "Changes to infrastructure go through a formal approval process.", lastTested: "Mar 12" },
-    // CC9 — Risk Mitigation
-    { id: "CC9.1", category: "Risk Mitigation",             status: "passing",     name: "Risk Assessment Process",          description: "Formal risk assessments are conducted at least annually.", lastTested: "Jan 15" },
-    { id: "CC9.2", category: "Risk Mitigation",             status: "in-progress", name: "Vendor Risk Management",           description: "Third-party vendors are assessed for compliance and risk.", lastTested: "Feb 10" },
-  ],
+  // SOC 2 — built from real PRD dataset (59 controls) + operational overlay
+  "soc2": buildSoc2Controls(),
 
   "iso27001": [
     // A.5 — Information Security Policies
