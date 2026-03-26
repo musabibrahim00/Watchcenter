@@ -4,7 +4,7 @@ import {
   ArrowLeft, CheckCircle2, XCircle, AlertCircle, Clock,
   FileText, Sparkles, AlertTriangle, Calendar, TrendingDown,
   ChevronRight, X, BookmarkPlus, BookmarkCheck, ListChecks, Shield,
-  FolderOpen, ClipboardList, FileCheck2, ClipboardCheck,
+  FolderOpen, ClipboardList, FileCheck2, ClipboardCheck, Search, User, StickyNote,
 } from "lucide-react";
 import { colors } from "../shared/design-system/tokens";
 import { PageHeader } from "../shared/components/ui";
@@ -32,6 +32,35 @@ function toggleFollowUp(id: string): boolean {
   if (set.has(id)) { set.delete(id); } else { set.add(id); }
   localStorage.setItem(FOLLOW_UP_KEY, JSON.stringify([...set]));
   return set.has(id);
+}
+
+const CTRL_OWNER_KEY = "wc:compliance:ctrl-owner";
+const CTRL_NOTE_KEY  = "wc:compliance:ctrl-note";
+
+function getCtrlOwner(id: string): string {
+  try { return JSON.parse(localStorage.getItem(CTRL_OWNER_KEY) ?? "{}")[id] ?? ""; }
+  catch { return ""; }
+}
+
+function setCtrlOwner(id: string, val: string) {
+  try {
+    const map = JSON.parse(localStorage.getItem(CTRL_OWNER_KEY) ?? "{}");
+    if (val) { map[id] = val; } else { delete map[id]; }
+    localStorage.setItem(CTRL_OWNER_KEY, JSON.stringify(map));
+  } catch { /* ignore */ }
+}
+
+function getCtrlNote(id: string): string {
+  try { return JSON.parse(localStorage.getItem(CTRL_NOTE_KEY) ?? "{}")[id] ?? ""; }
+  catch { return ""; }
+}
+
+function setCtrlNote(id: string, val: string) {
+  try {
+    const map = JSON.parse(localStorage.getItem(CTRL_NOTE_KEY) ?? "{}");
+    if (val) { map[id] = val; } else { delete map[id]; }
+    localStorage.setItem(CTRL_NOTE_KEY, JSON.stringify(map));
+  } catch { /* ignore */ }
 }
 
 /* ================================================================
@@ -63,88 +92,103 @@ const STATUS_SORT: Record<ControlStatus, number> = {
 };
 
 /* ================================================================
-   CONTROL ROW  (clickable, highlights when selected)
+   CONTROL TABLE ROW
    ================================================================ */
 
-function ControlRow({
-  ctrl, isSelected, onSelect,
+function ControlTableRow({
+  ctrl, isSelected, onSelect, owner,
 }: {
   ctrl: FrameworkControl;
   isSelected: boolean;
   onSelect: (ctrl: FrameworkControl) => void;
+  owner: string;
 }) {
-  const isFailingOrGap = ctrl.status === "failing";
   const statusColor    = CONTROL_STATUS_COLOR[ctrl.status];
+  const evidenceCount  = ctrl.evidenceIds?.length ?? 0;
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onSelect(ctrl)}
-      className="w-full flex items-start gap-[12px] px-[14px] py-[11px] rounded-[8px] text-left cursor-pointer transition-all"
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onSelect(ctrl); }}
+      className="flex items-center gap-0 cursor-pointer select-none transition-colors"
       style={{
         background: isSelected
-          ? `${statusColor}14`
-          : isFailingOrGap ? `${colors.critical}07` : "transparent",
-        border: `1px solid ${isSelected ? statusColor + "55" : isFailingOrGap ? colors.critical + "28" : colors.border}`,
-        marginBottom: 4,
+          ? `${statusColor}12`
+          : ctrl.status === "failing" ? `${colors.critical}06` : "transparent",
+        borderBottom: `1px solid ${colors.border}`,
         outline: "none",
       }}
       onMouseEnter={(e) => {
-        if (!isSelected) (e.currentTarget as HTMLButtonElement).style.borderColor = statusColor + "44";
+        if (!isSelected) (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.03)";
       }}
       onMouseLeave={(e) => {
-        if (!isSelected) (e.currentTarget as HTMLButtonElement).style.borderColor =
-          isFailingOrGap ? colors.critical + "28" : colors.border;
+        if (!isSelected) (e.currentTarget as HTMLDivElement).style.background =
+          ctrl.status === "failing" ? `${colors.critical}06` : "transparent";
       }}
     >
-      {/* Status icon */}
-      <div className="shrink-0 mt-[2px]">{CONTROL_STATUS_ICON[ctrl.status]}</div>
-
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-[8px]">
-          <div className="min-w-0">
-            <span className="text-[11px] font-mono mr-[7px]" style={{ color: statusColor }}>
-              {ctrl.id}
-            </span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: colors.textPrimary }}>
-              {ctrl.name}
-            </span>
-          </div>
-          <ChevronRight size={13} color={colors.textDim} className="shrink-0 mt-[2px]" />
-        </div>
-
-        <p style={{ fontSize: 11, color: colors.textMuted, marginTop: 2, lineHeight: 1.45 }}>
-          {ctrl.description}
-        </p>
-
-        <div className="flex items-center gap-[10px] mt-[6px] flex-wrap">
-          {ctrl.lastTested && (
-            <span style={{ fontSize: 10, color: colors.textDim }}>Last tested: {ctrl.lastTested}</span>
-          )}
-          {ctrl.gapId && (
-            <span
-              className="flex items-center gap-[4px] px-[6px] py-[1px] rounded-full text-[10px]"
-              style={{ background: `${colors.critical}14`, color: colors.critical, border: `1px solid ${colors.critical}28` }}
-            >
-              <AlertTriangle size={9} />
-              Open gap
-            </span>
-          )}
-          {ctrl.status !== "passing" && ctrl.status !== "not-started" && (
-            <span
-              className="px-[6px] py-[1px] rounded-full text-[10px] font-medium capitalize"
-              style={{
-                background: `${statusColor}12`,
-                color: statusColor,
-                border: `1px solid ${statusColor}28`,
-              }}
-            >
-              {ctrl.status}
-            </span>
-          )}
-        </div>
+      {/* ID */}
+      <div className="shrink-0 px-[12px] py-[10px]" style={{ width: 88 }}>
+        <span className="text-[11px] font-mono font-semibold" style={{ color: statusColor }}>
+          {ctrl.id}
+        </span>
       </div>
-    </button>
+
+      {/* Name + category */}
+      <div className="flex-1 min-w-0 px-[8px] py-[10px]">
+        <p
+          style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary, lineHeight: 1.3 }}
+          className="truncate"
+        >
+          {ctrl.name}
+        </p>
+        <p style={{ fontSize: 10, color: colors.textDim, marginTop: 1 }} className="truncate">
+          {ctrl.category}
+        </p>
+      </div>
+
+      {/* Status */}
+      <div className="shrink-0 px-[8px] py-[10px]" style={{ width: 110 }}>
+        <span
+          className="flex items-center gap-[5px] px-[7px] py-[3px] rounded-[5px] w-fit text-[10px] font-semibold capitalize"
+          style={{
+            background: `${statusColor}14`,
+            color: statusColor,
+            border: `1px solid ${statusColor}28`,
+          }}
+        >
+          {CONTROL_STATUS_ICON[ctrl.status]}
+          {ctrl.status}
+        </span>
+      </div>
+
+      {/* Owner */}
+      <div className="shrink-0 px-[8px] py-[10px]" style={{ width: 120 }}>
+        <span
+          style={{ fontSize: 11, color: owner ? colors.textMuted : colors.textDim }}
+          className="truncate block"
+        >
+          {owner || "—"}
+        </span>
+      </div>
+
+      {/* Evidence */}
+      <div className="shrink-0 px-[8px] py-[10px] flex items-center gap-[5px]" style={{ width: 80 }}>
+        <FileCheck2 size={11} color={evidenceCount > 0 ? colors.success : colors.textDim} />
+        <span style={{ fontSize: 11, color: evidenceCount > 0 ? colors.textMuted : colors.textDim }}>
+          {evidenceCount}
+        </span>
+        {ctrl.gapId && (
+          <AlertTriangle size={10} color={colors.critical} className="ml-[2px]" />
+        )}
+      </div>
+
+      {/* Chevron */}
+      <div className="shrink-0 px-[10px]">
+        <ChevronRight size={12} color={isSelected ? statusColor : colors.textDim} />
+      </div>
+    </div>
   );
 }
 
@@ -201,10 +245,14 @@ function ControlDetailPanel({
   onAskAI: (ctrl: FrameworkControl) => void;
 }) {
   const [followedUp, setFollowedUp] = React.useState(() => getFollowUps().has(ctrl.id));
+  const [owner, setOwner]           = React.useState(() => getCtrlOwner(ctrl.id));
+  const [note, setNote]             = React.useState(() => getCtrlNote(ctrl.id));
 
-  // Update follow-up state when ctrl changes
+  // Sync state when ctrl changes
   React.useEffect(() => {
     setFollowedUp(getFollowUps().has(ctrl.id));
+    setOwner(getCtrlOwner(ctrl.id));
+    setNote(getCtrlNote(ctrl.id));
   }, [ctrl.id]);
 
   const gap            = GAPS.find(g => g.id === ctrl.gapId);
@@ -416,6 +464,53 @@ function ControlDetailPanel({
             </p>
           </div>
         )}
+
+        {/* Change owner */}
+        <div>
+          <div className="flex items-center gap-[6px] mb-[7px]">
+            <User size={11} color={colors.textDim} />
+            <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, letterSpacing: "0.07em", textTransform: "uppercase" }}>
+              Owner
+            </span>
+          </div>
+          <input
+            type="text"
+            value={owner}
+            placeholder={gap?.owner ?? "Assign owner…"}
+            onChange={(e) => setOwner(e.target.value)}
+            onBlur={(e) => setCtrlOwner(ctrl.id, e.target.value)}
+            className="w-full px-[10px] py-[7px] rounded-[7px] text-[12px] outline-none"
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: `1px solid ${colors.border}`,
+              color: colors.textPrimary,
+            }}
+          />
+        </div>
+
+        {/* Add note */}
+        <div>
+          <div className="flex items-center gap-[6px] mb-[7px]">
+            <StickyNote size={11} color={colors.textDim} />
+            <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, letterSpacing: "0.07em", textTransform: "uppercase" }}>
+              Note
+            </span>
+          </div>
+          <textarea
+            value={note}
+            placeholder="Add a note…"
+            rows={3}
+            onChange={(e) => setNote(e.target.value)}
+            onBlur={(e) => setCtrlNote(ctrl.id, e.target.value)}
+            className="w-full px-[10px] py-[7px] rounded-[7px] text-[12px] outline-none resize-none"
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: `1px solid ${colors.border}`,
+              color: colors.textPrimary,
+              lineHeight: 1.5,
+            }}
+          />
+        </div>
       </div>
 
       {/* Action footer */}
@@ -1023,6 +1118,9 @@ export default function ComplianceFrameworkPage() {
   const activeTab = (searchParams.get("tab") as TabId | null) ?? "controls";
 
   const [selectedControlId, setSelectedControlId] = useState<string | null>(null);
+  const [ctrlStatusFilter, setCtrlStatusFilter]   = useState<ControlStatus | "all">("all");
+  const [ctrlSearch, setCtrlSearch]               = useState("");
+  const { items: allEvidence } = useEvidenceStore();
 
   const framework = FRAMEWORKS.find(f => f.id === frameworkId);
 
@@ -1048,10 +1146,8 @@ export default function ComplianceFrameworkPage() {
   const evidence           = EVIDENCE_ITEMS.filter(e => e.fwId === framework.id);
   const audit              = UPCOMING_AUDITS.find(a => a.fwId === framework.id);
   const gaps               = GAPS.filter(g => g.fwId === framework.id);
-  const { items: allEvidence } = useEvidenceStore();
   const missingEvidence    = allEvidence.filter(e => e.fwId === framework.id && e.status !== "collected").length;
 
-  const categories     = Array.from(new Set(controls.map(c => c.category)));
   const selectedControl = controls.find(c => c.id === selectedControlId) ?? null;
 
   const scoreColor     = framework.score >= 90 ? colors.success : framework.score >= 80 ? colors.medium : colors.critical;
@@ -1220,56 +1316,150 @@ export default function ComplianceFrameworkPage() {
         </div>
 
         {/* Controls tab */}
-        {activeTab === "controls" && (
-          <div className="flex gap-[20px] items-start">
-            {/* LEFT — controls by category */}
-            <div className="flex-1 min-w-0 flex flex-col gap-[20px]">
-              {categories.map(cat => {
-                const catControls = controls.filter(c => c.category === cat);
-                const failCount   = catControls.filter(c => c.status === "failing").length;
-                return (
-                  <div key={cat} className="flex flex-col gap-[2px]">
-                    <div className="flex items-center gap-[8px] mb-[6px]">
-                      <span style={{ fontSize: 11, fontWeight: 700, color: failCount > 0 ? colors.critical : colors.textMuted }}>
-                        {cat}
-                      </span>
-                      {failCount > 0 && (
-                        <span
-                          className="px-[6px] py-[1px] rounded-full text-[9px] font-bold"
-                          style={{ background: `${colors.critical}18`, color: colors.critical, border: `1px solid ${colors.critical}28` }}
-                        >
-                          {failCount} failing
-                        </span>
-                      )}
-                    </div>
-                    {catControls.map(ctrl => (
-                      <ControlRow
-                        key={ctrl.id}
-                        ctrl={ctrl}
-                        isSelected={selectedControlId === ctrl.id}
-                        onSelect={handleSelectControl}
-                      />
+        {activeTab === "controls" && (() => {
+          const STATUS_FILTERS: { id: ControlStatus | "all"; label: string }[] = [
+            { id: "all",          label: "All"          },
+            { id: "failing",      label: "Failing"      },
+            { id: "in-progress",  label: "In Progress"  },
+            { id: "not-started",  label: "Not Started"  },
+            { id: "passing",      label: "Passing"      },
+          ];
+
+          const filteredControls = controls.filter(c => {
+            if (ctrlStatusFilter !== "all" && c.status !== ctrlStatusFilter) return false;
+            if (ctrlSearch) {
+              const q = ctrlSearch.toLowerCase();
+              if (!c.id.toLowerCase().includes(q) && !c.name.toLowerCase().includes(q)) return false;
+            }
+            return true;
+          });
+
+          const passingCount    = controls.filter(c => c.status === "passing").length;
+          const failingCount    = controls.filter(c => c.status === "failing").length;
+          const inProgCount     = controls.filter(c => c.status === "in-progress").length;
+          const notStartedCount = controls.filter(c => c.status === "not-started").length;
+
+          return (
+            <div className="flex gap-[20px] items-start">
+              {/* LEFT — table */}
+              <div className="flex-1 min-w-0">
+
+                {/* Filter bar */}
+                <div className="flex items-center gap-[8px] mb-[12px] flex-wrap">
+                  {/* Status filters */}
+                  <div className="flex items-center gap-[4px]">
+                    {STATUS_FILTERS.map(f => (
+                      <button
+                        key={f.id}
+                        onClick={() => setCtrlStatusFilter(f.id)}
+                        className="px-[10px] py-[5px] rounded-[6px] text-[11px] font-medium cursor-pointer transition-colors"
+                        style={{
+                          background: ctrlStatusFilter === f.id ? `${colors.primary}20` : "rgba(255,255,255,0.04)",
+                          color: ctrlStatusFilter === f.id ? colors.primary : colors.textMuted,
+                          border: `1px solid ${ctrlStatusFilter === f.id ? colors.primary + "44" : "rgba(255,255,255,0.08)"}`,
+                        }}
+                      >
+                        {f.label}
+                      </button>
                     ))}
                   </div>
-                );
-              })}
-            </div>
 
-            {/* RIGHT — detail panel or default sidebar */}
-            <div className="w-[300px] shrink-0" style={{ position: "sticky", top: 0 }}>
-              {selectedControl ? (
-                <ControlDetailPanel
-                  ctrl={selectedControl}
-                  frameworkName={framework.name}
-                  onClose={() => setSelectedControlId(null)}
-                  onAskAI={handleRemediateControl}
-                />
-              ) : (
-                <DefaultSidebar evidence={evidence} audit={audit} gaps={gaps} />
-              )}
+                  {/* Search */}
+                  <div
+                    className="flex items-center gap-[6px] px-[10px] py-[5px] rounded-[6px] flex-1 min-w-[160px] max-w-[240px]"
+                    style={{ background: "rgba(255,255,255,0.04)", border: `1px solid rgba(255,255,255,0.08)` }}
+                  >
+                    <Search size={11} color={colors.textDim} />
+                    <input
+                      type="text"
+                      value={ctrlSearch}
+                      onChange={(e) => setCtrlSearch(e.target.value)}
+                      placeholder="Search ID or name…"
+                      className="flex-1 bg-transparent outline-none"
+                      style={{ fontSize: 11, color: colors.textPrimary }}
+                    />
+                  </div>
+                </div>
+
+                {/* Summary strip */}
+                <div className="flex items-center gap-[14px] mb-[10px]">
+                  <span style={{ fontSize: 11, color: colors.success  }}>{passingCount} passing</span>
+                  <span style={{ fontSize: 11, color: colors.critical }}>{failingCount} failing</span>
+                  <span style={{ fontSize: 11, color: colors.medium   }}>{inProgCount} in progress</span>
+                  <span style={{ fontSize: 11, color: colors.textDim  }}>{notStartedCount} not started</span>
+                  {(ctrlStatusFilter !== "all" || ctrlSearch) && (
+                    <span style={{ fontSize: 11, color: colors.textDim }}>· {filteredControls.length} shown</span>
+                  )}
+                </div>
+
+                {/* Table */}
+                <div
+                  className="rounded-[10px] overflow-hidden"
+                  style={{ border: `1px solid ${colors.border}`, background: colors.bgCard }}
+                >
+                  {/* Table header */}
+                  <div
+                    className="flex items-center gap-0"
+                    style={{ borderBottom: `1px solid ${colors.border}`, background: "rgba(255,255,255,0.02)" }}
+                  >
+                    <div className="shrink-0 px-[12px] py-[8px]" style={{ width: 88 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>ID</span>
+                    </div>
+                    <div className="flex-1 min-w-0 px-[8px] py-[8px]">
+                      <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>Name</span>
+                    </div>
+                    <div className="shrink-0 px-[8px] py-[8px]" style={{ width: 110 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>Status</span>
+                    </div>
+                    <div className="shrink-0 px-[8px] py-[8px]" style={{ width: 120 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>Owner</span>
+                    </div>
+                    <div className="shrink-0 px-[8px] py-[8px]" style={{ width: 80 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: "uppercase", letterSpacing: "0.07em" }}>Evidence</span>
+                    </div>
+                    <div className="shrink-0" style={{ width: 32 }} />
+                  </div>
+
+                  {/* Table rows */}
+                  {filteredControls.length === 0 ? (
+                    <div className="flex items-center justify-center py-[32px]">
+                      <p style={{ fontSize: 12, color: colors.textDim }}>No controls match the current filter.</p>
+                    </div>
+                  ) : (
+                    filteredControls.map(ctrl => {
+                      const gapOwner      = GAPS.find(g => g.id === ctrl.gapId)?.owner ?? "";
+                      const overrideOwner = getCtrlOwner(ctrl.id);
+                      const displayOwner  = overrideOwner || gapOwner;
+                      return (
+                        <ControlTableRow
+                          key={ctrl.id}
+                          ctrl={ctrl}
+                          isSelected={selectedControlId === ctrl.id}
+                          onSelect={handleSelectControl}
+                          owner={displayOwner}
+                        />
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* RIGHT — detail panel or default sidebar */}
+              <div className="w-[320px] shrink-0" style={{ position: "sticky", top: 0 }}>
+                {selectedControl ? (
+                  <ControlDetailPanel
+                    ctrl={selectedControl}
+                    frameworkName={framework.name}
+                    onClose={() => setSelectedControlId(null)}
+                    onAskAI={handleRemediateControl}
+                  />
+                ) : (
+                  <DefaultSidebar evidence={evidence} audit={audit} gaps={gaps} />
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Policies tab */}
         {activeTab === "policies" && (
