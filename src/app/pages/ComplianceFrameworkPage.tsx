@@ -1045,9 +1045,11 @@ export default function ComplianceFrameworkPage() {
     (a, b) => STATUS_SORT[a.status] - STATUS_SORT[b.status]
   );
 
-  const evidence = EVIDENCE_ITEMS.filter(e => e.fwId === framework.id);
-  const audit    = UPCOMING_AUDITS.find(a => a.fwId === framework.id);
-  const gaps     = GAPS.filter(g => g.fwId === framework.id);
+  const evidence           = EVIDENCE_ITEMS.filter(e => e.fwId === framework.id);
+  const audit              = UPCOMING_AUDITS.find(a => a.fwId === framework.id);
+  const gaps               = GAPS.filter(g => g.fwId === framework.id);
+  const { items: allEvidence } = useEvidenceStore();
+  const missingEvidence    = allEvidence.filter(e => e.fwId === framework.id && e.status !== "collected").length;
 
   const categories     = Array.from(new Set(controls.map(c => c.category)));
   const selectedControl = controls.find(c => c.id === selectedControlId) ?? null;
@@ -1153,11 +1155,12 @@ export default function ComplianceFrameworkPage() {
           <div style={{ width: 1, height: 40, background: colors.border }} />
 
           {[
-            { label: "Total controls", value: framework.controls,   color: colors.textPrimary },
-            { label: "Passing",        value: framework.passing,    color: colors.success     },
-            { label: "In progress",    value: framework.inProgress, color: colors.medium      },
-            { label: "Failing",        value: framework.failing,    color: colors.critical    },
-            { label: "Open gaps",      value: gaps.length,          color: gaps.length > 0 ? colors.critical : colors.success },
+            { label: "Total controls",    value: framework.controls,    color: colors.textPrimary },
+            { label: "Passing",           value: framework.passing,     color: colors.success     },
+            { label: "In progress",       value: framework.inProgress,  color: colors.medium      },
+            { label: "Failing",           value: framework.failing,     color: colors.critical    },
+            { label: "Open gaps",         value: gaps.length,           color: gaps.length > 0 ? colors.critical : colors.success },
+            { label: "Missing evidence",  value: missingEvidence,       color: missingEvidence > 0 ? colors.medium : colors.success },
           ].map(s => (
             <div key={s.label} className="flex flex-col gap-[2px]">
               <span style={{ fontSize: 11, color: colors.textDim }}>{s.label}</span>
