@@ -2200,7 +2200,16 @@ function GlobalAIBoxInner() {
     // On any context switch (including first load): sync from shared session if it has more
     // messages than current state — this picks up conversation history from Watch Center AiBox
     const restored = loadMessagesFromSession();
-    if (restored.length > 0) {
+    const isComplianceFrame = contextKey.startsWith("compliance-framework-");
+    if (isComplianceFrame && pageContext?.greeting) {
+      // Always show fresh structured compliance summary on framework tab switches
+      setMessages([{
+        id: crypto.randomUUID(),
+        role: "agent",
+        text: pageContext.greeting,
+        timestamp: new Date(),
+      }]);
+    } else if (restored.length > 0) {
       // Always restore from session — session is the unified source of truth across Watch Center and all other pages
       setMessages(restored);
     } else if (isFirstLoad && pageContext?.greeting) {

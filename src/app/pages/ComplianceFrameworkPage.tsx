@@ -305,7 +305,7 @@ function ControlDrawer({
       <div
         className="flex flex-col overflow-hidden shrink-0"
         style={{
-          width: 340,
+          width: 280,
           height: "100%",
           background: colors.bgCard,
           borderRight: `1px solid ${hasCritical && ctrl.status === "failing" ? colors.critical + "44" : colors.border}`,
@@ -408,7 +408,7 @@ function ControlDrawer({
         </div>
 
         {/* Drawer body */}
-        <div className="flex-1 overflow-y-auto px-[20px] py-[16px] flex flex-col gap-[16px]">
+        <div className="flex-1 overflow-y-auto px-[16px] py-[14px] flex flex-col gap-[18px]">
 
           {/* ── MAPPED ELEMENTS TAB ── */}
           {drawerTab === "mapped" && (
@@ -449,7 +449,7 @@ function ControlDrawer({
                       const urgency = getGapUrgency(gap.dueDate);
                       const sc = gap.severity === "critical" ? colors.critical : gap.severity === "high" ? colors.high : colors.medium;
                       return (
-                        <div key={gap.id} className="flex flex-col gap-[8px] p-[11px] rounded-[9px]"
+                        <div key={gap.id} className="flex flex-col gap-[6px] p-[9px] rounded-[9px]"
                           style={{ background: `${sc}08`, border: `1px solid ${sc}${urgency === "overdue" ? "44" : "28"}` }}>
                           <div className="flex items-center gap-[6px] flex-wrap">
                             <span className="px-[6px] py-[1px] rounded-full text-[9px] font-bold uppercase"
@@ -620,11 +620,14 @@ function ControlDrawer({
                 )}
               </div>
 
+              {/* Secondary section divider */}
+              <div style={{ borderTop: `1px solid ${colors.border}`, opacity: 0.5 }} />
+
               {/* Frameworks */}
               <div>
                 <div className="flex items-center gap-[6px] mb-[8px]">
                   <Layers size={11} color={colors.textDim} />
-                  <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, letterSpacing: "0.07em", textTransform: "uppercase" }}>
+                  <span style={{ fontSize: 9, fontWeight: 600, color: colors.textDim, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                     Frameworks
                   </span>
                 </div>
@@ -641,7 +644,7 @@ function ControlDrawer({
               <div>
                 <div className="flex items-center gap-[6px] mb-[8px]">
                   <AlertTriangle size={11} color={colors.textDim} />
-                  <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, letterSpacing: "0.07em", textTransform: "uppercase" }}>
+                  <span style={{ fontSize: 9, fontWeight: 600, color: colors.textDim, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                     Risk scenarios
                   </span>
                 </div>
@@ -682,7 +685,7 @@ function ControlDrawer({
                 <div>
                   <div className="flex items-center gap-[6px] mb-[6px]">
                     <Shield size={11} color={colors.textDim} />
-                    <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, letterSpacing: "0.07em", textTransform: "uppercase" }}>Why this matters</span>
+                    <span style={{ fontSize: 9, fontWeight: 600, color: colors.textDim, letterSpacing: "0.06em", textTransform: "uppercase" }}>Why this matters</span>
                   </div>
                   <p style={{ fontSize: 12, color: colors.textMuted, lineHeight: 1.6 }}>{ctrl.whyItMatters}</p>
                 </div>
@@ -693,7 +696,7 @@ function ControlDrawer({
                 <div>
                   <div className="flex items-center gap-[6px] mb-[8px]">
                     <ListChecks size={11} color={colors.textDim} />
-                    <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, letterSpacing: "0.07em", textTransform: "uppercase" }}>Remediation steps</span>
+                    <span style={{ fontSize: 9, fontWeight: 600, color: colors.textDim, letterSpacing: "0.06em", textTransform: "uppercase" }}>Remediation steps</span>
                   </div>
                   <ol className="flex flex-col gap-[6px]">
                     {ctrl.remediationSteps.map((step, i) => (
@@ -1639,6 +1642,114 @@ export default function ComplianceFrameworkPage() {
   // Auto-update AIBox context when framework or tab changes
   React.useEffect(() => {
     if (!framework) return;
+    // Compute greeting data
+    const failingCtrls = controls.filter(c => c.status === "failing");
+    const criticalGaps = gaps.filter(g => g.severity === "critical");
+    const trendN = parseInt(framework.trend);
+    const trendStr = trendN > 0 ? `(+${framework.trend} ↑)` : trendN < 0 ? `(${framework.trend} ↓)` : "";
+    const fwEvidence = allEvidence.filter(e => e.fwId === framework.id);
+    const evOK      = fwEvidence.filter(e => e.status === "collected").length;
+    const evPending = fwEvidence.filter(e => e.status === "pending").length;
+    const evOverdue = fwEvidence.filter(e => e.status === "overdue").length;
+
+    const GREETINGS: Record<string, string> = {
+      overview: [
+        `**${framework.name} — Readiness Summary**`,
+        ``,
+        `Score **${framework.score}%** ${trendStr} — ${failingCtrls.length} failing · ${framework.inProgress} in progress · ${framework.passing} of ${framework.controls} passing${gaps.length > 0 ? ` · ${gaps.length} open gap${gaps.length !== 1 ? "s" : ""}` : ""}`,
+        ``,
+        `**Blockers to address**`,
+        ...(failingCtrls.length > 0
+          ? [`· ${failingCtrls.length} failing control${failingCtrls.length !== 1 ? "s" : ""}${failingCtrls.slice(0, 2).map(c => ` (${c.id})`).join("")}`]
+          : []),
+        ...(criticalGaps.length > 0
+          ? [`· ${criticalGaps.length} critical gap${criticalGaps.length !== 1 ? "s" : ""} open`]
+          : []),
+        ...(missingEvidence > 0
+          ? [`· ${missingEvidence} evidence item${missingEvidence !== 1 ? "s" : ""} missing`]
+          : []),
+        ...(failingCtrls.length === 0 && criticalGaps.length === 0 && missingEvidence === 0
+          ? ["· No critical blockers — maintain current posture"]
+          : []),
+        ``,
+        `**Suggested focus**`,
+        framework.score < 70
+          ? `Score is below 70% — prioritise failing controls and critical gaps immediately.`
+          : framework.score < 85
+            ? `Push failing controls to in-progress and close open gaps. Evidence collection will drive the score up.`
+            : `You are close to 90%+. Collect remaining evidence and close open gaps to reach audit readiness.`,
+        ``,
+        `Ask me for a remediation plan, evidence priorities, or an audit readiness briefing.`,
+      ].join("\n"),
+
+      controls: [
+        `**${framework.name} — Controls**`,
+        ``,
+        `${failingCtrls.length} failing · ${framework.inProgress} in progress · ${framework.passing} of ${framework.controls} passing`,
+        ``,
+        `**Needs immediate action**`,
+        ...(failingCtrls.length > 0
+          ? failingCtrls.slice(0, 4).map(c => `· ${c.id} — ${c.name}`)
+          : ["· No failing controls"]),
+        ...(missingEvidence > 0
+          ? [``, `**${missingEvidence} evidence item${missingEvidence !== 1 ? "s" : ""} missing**`, `Select a control to see which evidence is required.`]
+          : []),
+        ``,
+        `Ask me to prioritise remediation, explain a failing control, or generate a fix plan.`,
+      ].join("\n"),
+
+      policies: [
+        `**${framework.name} — Policies**`,
+        ``,
+        `Policies are the documented foundation of your compliance programme. Each control depends on approved, current policies.`,
+        ``,
+        `**What to check**`,
+        `· Expired or under-review policies block control compliance`,
+        `· Policies without an owner have no renewal accountability`,
+        `· Unapproved policies cannot be used as audit evidence`,
+        ``,
+        `Ask me which policies need renewal, what's missing, or how policies map to failing controls.`,
+      ].join("\n"),
+
+      documents: [
+        `**${framework.name} — Evidence & Documents**`,
+        ``,
+        `${evOK} collected · ${evPending} pending${evOverdue > 0 ? ` · ${evOverdue} overdue` : ""} · ${missingEvidence} unlinked`,
+        ``,
+        `**Priority actions**`,
+        ...(evOverdue > 0 ? [`· ${evOverdue} overdue item${evOverdue !== 1 ? "s" : ""} — collect immediately`] : []),
+        ...(evPending > 0 ? [`· ${evPending} pending item${evPending !== 1 ? "s" : ""} in progress`] : []),
+        ...(missingEvidence > 0 ? [`· ${missingEvidence} item${missingEvidence !== 1 ? "s" : ""} not yet linked to a control`] : []),
+        ...(evOK > 0 && evPending === 0 && evOverdue === 0 && missingEvidence === 0
+          ? ["· Evidence collection is complete for this framework"]
+          : []),
+        ``,
+        `Ask me what to collect next, who owns pending items, or how to prioritise before your next audit.`,
+      ].join("\n"),
+
+      audit: [
+        `**${framework.name} — Audit Readiness**`,
+        ``,
+        ...(audit
+          ? [`**${audit.name}** — ${audit.date} · ${audit.daysUntil} days away · Readiness ${audit.readiness}%`]
+          : ["No upcoming audit scheduled."]),
+        ``,
+        `**Readiness blockers**`,
+        `· ${failingCtrls.length} failing control${failingCtrls.length !== 1 ? "s" : ""} not remediated`,
+        `· ${missingEvidence} evidence item${missingEvidence !== 1 ? "s" : ""} not yet collected`,
+        ...(criticalGaps.length > 0
+          ? [`· ${criticalGaps.length} critical gap${criticalGaps.length !== 1 ? "s" : ""} still open`]
+          : []),
+        ``,
+        `**Preparation guidance**`,
+        audit && audit.daysUntil < 30
+          ? `Audit is less than 30 days away. Prioritise evidence collection and close failing controls now.`
+          : `Focus on systematic evidence gathering and resolving failing controls before the audit window opens.`,
+        ``,
+        `Ask me for an audit readiness briefing, what auditors will check, or how to prepare this week.`,
+      ].join("\n"),
+    };
+
     const tabCtx: Record<string, { sublabel: string; suggestions: { label: string; prompt: string }[] }> = {
       overview:  {
         sublabel: "Framework Overview",
@@ -1685,7 +1796,7 @@ export default function ComplianceFrameworkPage() {
       sublabel: ctx.sublabel,
       contextKey: `compliance-framework-${framework.id}-${activeTab}`,
       suggestions: ctx.suggestions,
-      greeting: `${framework.name} is at ${framework.score}%${parseInt(framework.trend) !== 0 ? ` (${framework.trend} trending)` : ""}. ${framework.failing} control${(framework.failing as number) !== 1 ? "s" : ""} failing, ${gaps.length} open gap${gaps.length !== 1 ? "s" : ""}. You're on the ${ctx.sublabel} tab — what would you like to work on?`,
+      greeting: GREETINGS[activeTab] ?? GREETINGS["overview"],
     });
     open();
   }, [framework?.id, activeTab]);

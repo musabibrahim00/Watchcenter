@@ -46,6 +46,9 @@ function getPageTitle(pathname: string): string {
   if (pathname.startsWith("/attack-path/")) return "Attack Path Detail";
   if (pathname.startsWith("/agent/")) return "Agent Detail";
   if (pathname.startsWith("/case-management/")) return "Case Detail";
+  if (pathname.startsWith("/compliance/")) return "Compliance";
+  if (pathname.startsWith("/asset-register")) return "Asset Register";
+  if (pathname.startsWith("/workflows/")) return "Workflows";
   return "Watch Center";
 }
 
