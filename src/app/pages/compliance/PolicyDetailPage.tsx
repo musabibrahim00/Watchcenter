@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router";
 import {
   ArrowLeft, CheckCircle2, XCircle, AlertCircle, Clock,
   FileText, Download, MoreHorizontal, RefreshCw, Shield,
-  Calendar, User, Tag, ChevronDown, ChevronRight, FileCheck2,
+  Calendar, User, ChevronDown, ChevronRight,
 } from "lucide-react";
 import { colors } from "../../shared/design-system/tokens";
 import { FRAMEWORK_POLICIES, FRAMEWORKS, FRAMEWORK_CONTROLS, type PolicyStatus } from "../compliance-data";

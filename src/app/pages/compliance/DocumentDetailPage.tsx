@@ -22,12 +22,6 @@ const EV_STATUS_ICON: Record<EvidenceStatus, React.ReactNode> = {
   overdue:   <XCircle      size={13} color={colors.critical} />,
 };
 
-const EV_STATUS_LABEL: Record<EvidenceStatus, string> = {
-  collected: "OK",
-  pending:   "Pending",
-  overdue:   "Overdue",
-};
-
 /* ================================================================
    DOCUMENT DETAIL PAGE
    ================================================================ */
