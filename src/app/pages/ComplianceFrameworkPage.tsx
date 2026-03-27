@@ -16,7 +16,7 @@ import {
   FRAMEWORKS, FRAMEWORK_CONTROLS, FRAMEWORK_POLICIES, GAPS, EVIDENCE_ITEMS, UPCOMING_AUDITS,
   type FrameworkControl, type FrameworkPolicy, type PolicyStatus, type ControlStatus, type EvidenceStatus,
 } from "./compliance-data";
-import { SOC2_FRAMEWORK } from "../../data/compliance/soc2-controls";
+import { getComplianceFramework } from "../../data/compliance/frameworks";
 
 /* ================================================================
    CONSTANTS
@@ -1654,9 +1654,10 @@ export default function ComplianceFrameworkPage() {
                       if (!groupMap.has(cat)) { groupOrder.push(cat); groupMap.set(cat, []); }
                       groupMap.get(cat)!.push(ctrl);
                     }
-                    // Lookup short category ID (e.g. "CC1") from SOC2_FRAMEWORK, else derive from name
+                    // Lookup short category ID (e.g. "CC1") from the framework registry, else derive from name
                     function catId(catName: string): string {
-                      const found = SOC2_FRAMEWORK.categories.find(c => c.name === catName);
+                      const fw = getComplianceFramework(framework.id);
+                      const found = fw?.categories.find(c => c.name === catName);
                       if (found) return found.id;
                       const match = catName.match(/^([A-Z]+\d*)/);
                       return match ? match[1] : catName.slice(0, 4).toUpperCase();

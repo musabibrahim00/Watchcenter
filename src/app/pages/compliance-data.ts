@@ -6,7 +6,7 @@
  *   - ComplianceFrameworkPage (framework detail view)
  */
 
-import { SOC2_FRAMEWORK } from "../../data/compliance/soc2-controls";
+import { SOC2_FRAMEWORK } from "../../data/compliance/frameworks";
 
 export type Severity       = "critical" | "high" | "medium" | "low";
 export type EvidenceStatus = "collected" | "pending" | "overdue";
