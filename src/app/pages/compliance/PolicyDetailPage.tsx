@@ -174,12 +174,12 @@ export default function PolicyDetailPage() {
 
         {/* ── POLICY VERSIONS TAB ── */}
         {activeTab === "versions" && (
-          <div className="flex flex-col gap-[12px] max-w-[680px]">
+          <div className="flex flex-col gap-[12px]">
 
             {/* Renew card */}
             {policy.status !== "approved" && (
               <div
-                className="rounded-[10px] overflow-hidden"
+                className="rounded-[8px] overflow-hidden"
                 style={{ border: `1px solid ${statusColor}33`, background: `${statusColor}06` }}
               >
                 <button
@@ -226,8 +226,8 @@ export default function PolicyDetailPage() {
 
             {/* Approved version card */}
             <div
-              className="rounded-[10px] overflow-hidden"
-              style={{ border: `1px solid ${colors.border}`, background: colors.bgCard }}
+              className="rounded-[8px] overflow-hidden"
+              style={{ border: `1px solid ${colors.border}`, background: "rgba(87,177,255,0.015)" }}
             >
               <button
                 className="w-full flex items-center gap-[10px] px-[16px] py-[14px] cursor-pointer"
@@ -288,8 +288,8 @@ export default function PolicyDetailPage() {
 
             {/* No prior versions */}
             <div
-              className="flex items-center gap-[10px] p-[16px] rounded-[10px]"
-              style={{ border: `1px solid ${colors.border}`, background: colors.bgCard }}
+              className="flex items-center gap-[10px] p-[16px] rounded-[8px]"
+              style={{ border: `1px solid ${colors.border}`, background: "rgba(87,177,255,0.015)" }}
             >
               <div className="flex items-center justify-center size-[32px] rounded-[7px] shrink-0"
                 style={{ background: "rgba(255,255,255,0.04)" }}>
@@ -305,18 +305,18 @@ export default function PolicyDetailPage() {
 
         {/* ── CONTROLS TAB ── */}
         {activeTab === "controls" && (
-          <div className="flex flex-col gap-[8px] max-w-[680px]">
+          <div className="flex flex-col gap-[8px]">
             <p style={{ fontSize: 11, color: colors.textDim, marginBottom: 4 }}>
               {linkedControls.length} control{linkedControls.length !== 1 ? "s" : ""} mapped to this policy
             </p>
             {linkedControls.length === 0 ? (
-              <div className="flex items-center justify-center p-[32px] rounded-[10px]"
-                style={{ background: colors.bgCard, border: `1px solid ${colors.border}` }}>
+              <div className="flex items-center justify-center p-[32px] rounded-[8px]"
+                style={{ background: "rgba(87,177,255,0.015)", border: `1px solid ${colors.border}` }}>
                 <p style={{ fontSize: 12, color: colors.textDim }}>No controls linked to this policy.</p>
               </div>
             ) : (
-              <div className="rounded-[10px] overflow-hidden"
-                style={{ border: `1px solid ${colors.border}`, background: colors.bgCard }}>
+              <div className="rounded-[8px] overflow-hidden"
+                style={{ border: `1px solid ${colors.border}`, background: "rgba(87,177,255,0.015)" }}>
                 {linkedControls.map((ctrl, i) => (
                   <div key={ctrl.id}
                     className="flex items-center gap-[12px] px-[14px] py-[11px]"
@@ -346,8 +346,8 @@ export default function PolicyDetailPage() {
 
         {/* ── AUDITS TAB ── */}
         {activeTab === "audits" && (
-          <div className="flex items-center justify-center p-[48px] rounded-[10px] max-w-[680px]"
-            style={{ background: colors.bgCard, border: `1px solid ${colors.border}` }}>
+          <div className="flex items-center justify-center p-[48px] rounded-[8px]"
+            style={{ background: "rgba(87,177,255,0.015)", border: `1px solid ${colors.border}` }}>
             <div className="flex flex-col items-center gap-[6px]">
               <Calendar size={20} color={colors.textDim} />
               <p style={{ fontSize: 12, color: colors.textDim }}>No audit entries for this policy yet.</p>
@@ -357,15 +357,15 @@ export default function PolicyDetailPage() {
 
         {/* ── COMMENTS TAB ── */}
         {activeTab === "comments" && (
-          <div className="flex flex-col gap-[12px] max-w-[680px]">
+          <div className="flex flex-col gap-[12px]">
             <textarea
               placeholder="Add a comment…"
               rows={3}
               className="w-full px-[12px] py-[10px] rounded-[8px] text-[12px] outline-none resize-none"
-              style={{ background: colors.bgCard, border: `1px solid ${colors.border}`, color: colors.textPrimary, lineHeight: 1.5 }}
+              style={{ background: "rgba(87,177,255,0.015)", border: `1px solid ${colors.border}`, color: colors.textPrimary, lineHeight: 1.5 }}
             />
-            <div className="flex items-center justify-center p-[32px] rounded-[10px]"
-              style={{ background: colors.bgCard, border: `1px solid ${colors.border}` }}>
+            <div className="flex items-center justify-center p-[32px] rounded-[8px]"
+              style={{ background: "rgba(87,177,255,0.015)", border: `1px solid ${colors.border}` }}>
               <p style={{ fontSize: 12, color: colors.textDim }}>No comments yet.</p>
             </div>
           </div>
