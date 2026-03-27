@@ -13,6 +13,20 @@ export type EvidenceStatus = "collected" | "pending" | "overdue";
 export type MonitorStatus  = "passing" | "failing" | "warning";
 export type ControlStatus  = "passing" | "failing" | "in-progress" | "not-started";
 
+/**
+ * A single required evidence artifact for a control.
+ * - `label`      — short artifact name shown in the UI
+ * - `evidenceId` — links to EVIDENCE_ITEMS[id] when the artifact has been
+ *                  collected, submitted, or is pending/overdue
+ * - `assumed`    — true when the artifact name was derived operationally,
+ *                  not extracted directly from the source document (PRD)
+ */
+export type EvidenceRequirement = {
+  label:       string;
+  evidenceId?: string;
+  assumed?:    boolean;
+};
+
 /* ── Frameworks ── */
 
 export const FRAMEWORKS = [
@@ -134,7 +148,7 @@ export type FrameworkControl = {
   // Detail view fields — present for failing / in-progress controls
   whyItMatters?: string;
   remediationSteps?: string[];
-  requiredEvidence?: string[]; // artifact names still needed
+  requiredEvidence?: EvidenceRequirement[];
 };
 
 /* ================================================================
@@ -152,7 +166,7 @@ type Soc2Override = {
   lastTested?:       string;
   whyItMatters?:     string;
   remediationSteps?: string[];
-  requiredEvidence?: string[];
+  requiredEvidence?: EvidenceRequirement[];
 };
 
 const SOC2_OPERATIONAL: Record<string, Soc2Override> = {
@@ -170,19 +184,55 @@ const SOC2_OPERATIONAL: Record<string, Soc2Override> = {
       "Collect MFA Enforcement Logs as audit evidence and submit to Compliance Team",
     ],
     requiredEvidence: [
-      "MFA Enforcement Logs (CC6.1) — due Mar 28",
-      "Updated access policy confirming FIDO2 requirement",
-      "Service account inventory with MFA status confirmed",
+      { label: "MFA Enforcement Logs",                              evidenceId: "e3"             },
+      { label: "Updated access policy confirming FIDO2 requirement",                assumed: true },
+      { label: "Service account inventory with MFA status confirmed",               assumed: true },
     ],
   },
-  "CC6.2": { status: "passing",     evidenceIds: ["e1"], lastTested: "Mar 15"  },
-  "CC6.3": { status: "passing",     lastTested: "2h ago"                        },
-  "CC6.7": { status: "in-progress", lastTested: "Feb 20"                        },
-  "CC7.1": { status: "passing",     lastTested: "Mar 10"                        },
-  "CC7.2": { status: "in-progress", lastTested: "Mar 8"                         },
-  "CC8.1": { status: "passing",     lastTested: "Mar 12"                        },
-  "CC9.1": { status: "passing",     lastTested: "Jan 15"                        },
-  "CC9.2": { status: "in-progress", lastTested: "Feb 10"                        },
+  "CC6.2": {
+    status: "passing", evidenceIds: ["e1"], lastTested: "Mar 15",
+    requiredEvidence: [
+      { label: "Access Review Q1 2026",      evidenceId: "e1" },
+      { label: "User provisioning procedures"                  },
+      { label: "Access request ticket samples", assumed: true  },
+    ],
+  },
+  "CC6.3": { status: "passing",     lastTested: "2h ago"  },
+  "CC6.7": {
+    status: "in-progress", lastTested: "Feb 20",
+    requiredEvidence: [
+      { label: "DLP configuration documentation",     assumed: true },
+      { label: "Encryption-in-transit certificate",   assumed: true },
+      { label: "Data transfer authorization policy",  assumed: true },
+    ],
+  },
+  "CC7.1": { status: "passing",     lastTested: "Mar 10"  },
+  "CC7.2": {
+    status: "in-progress", lastTested: "Mar 8",
+    requiredEvidence: [
+      { label: "SIEM dashboard configuration",          assumed: true },
+      { label: "Anomaly detection rules documentation", assumed: true },
+      { label: "Alert escalation runbook",              assumed: true },
+    ],
+  },
+  "CC8.1": {
+    status: "passing", lastTested: "Mar 12",
+    requiredEvidence: [
+      { label: "Change management policy"                    },
+      { label: "Change ticket samples (last 90 days)", assumed: true },
+      { label: "CAB meeting records",                  assumed: true },
+      { label: "Deployment logs",                      assumed: true },
+    ],
+  },
+  "CC9.1": { status: "passing",     lastTested: "Jan 15"  },
+  "CC9.2": {
+    status: "in-progress", lastTested: "Feb 10",
+    requiredEvidence: [
+      { label: "Vendor risk assessments"                            },
+      { label: "Third-party audit reports or SOC 2 reports", assumed: true },
+      { label: "Vendor contract security clauses",           assumed: true },
+    ],
+  },
 };
 
 /** Build the full SOC 2 control list from the real dataset, merged with
@@ -204,7 +254,7 @@ function buildSoc2Controls(): FrameworkControl[] {
         whyItMatters:     op.whyItMatters,
         remediationSteps: op.remediationSteps,
         // requiredEvidence falls back to the canonical evidence list from the PRD
-        requiredEvidence: op.requiredEvidence  ?? ctrl.evidence,
+        requiredEvidence: op.requiredEvidence  ?? ctrl.evidence.map(label => ({ label })),
       };
     })
   );
@@ -228,17 +278,33 @@ export const FRAMEWORK_CONTROLS: Record<string, FrameworkControl[]> = {
     { id: "A.9.4",  category: "Access Control",                  status: "failing",     name: "System and Application Access Control", description: "Cryptographic key rotation and access controls enforced per policy.", gapId: "g3", lastTested: "Mar 1",
       whyItMatters: "Key rotation limits the blast radius of a compromised key. Without enforcement, stale keys may have been exposed without detection. This is 22 days open and is the primary blocker for the ISO 27001 surveillance audit in 56 days.",
       remediationSteps: ["Audit all encryption keys against the rotation policy deadline", "Identify keys past their rotation date in the key management system", "Rotate overdue keys and document each rotation event", "Implement automated rotation scheduling with failure alerts", "Generate and submit the Encryption Key Audit Trail as evidence"],
-      requiredEvidence: ["Encryption Key Audit Trail (A.10.1) — currently overdue", "Key rotation policy document with sign-off", "Automated rotation confirmation logs from KMS"],
+      requiredEvidence: [
+        { label: "Encryption Key Audit Trail",                 evidenceId: "e4"             },
+        { label: "Key rotation policy document with sign-off", assumed: true                },
+        { label: "Automated rotation confirmation logs (KMS)", assumed: true                },
+      ],
     },
     // A.10 — Cryptography
-    { id: "A.10.1", category: "Cryptography",                    status: "in-progress", name: "Policy on Cryptographic Controls",     description: "Controls for the use of cryptography to protect information.", evidenceIds: ["e4"], lastTested: "Feb 15" },
+    { id: "A.10.1", category: "Cryptography",                    status: "in-progress", name: "Policy on Cryptographic Controls",     description: "Controls for the use of cryptography to protect information.", evidenceIds: ["e4"], lastTested: "Feb 15",
+      requiredEvidence: [
+        { label: "Encryption Key Audit Trail",              evidenceId: "e4"             },
+        { label: "Key management system configuration",     assumed: true                },
+        { label: "Cryptographic algorithm inventory",       assumed: true                },
+      ],
+    },
     // A.12 — Operations Security
     { id: "A.12.1", category: "Operations Security",             status: "passing",     name: "Documented Operating Procedures",      description: "Operating procedures are documented and available.", lastTested: "Mar 8" },
     { id: "A.12.6", category: "Operations Security",             status: "in-progress", name: "Technical Vulnerability Management",   description: "Technical vulnerabilities are identified and remediated.", lastTested: "Mar 10" },
     // A.14 — System Acquisition
     { id: "A.14.2", category: "System Acquisition & Development",status: "passing",     name: "Security in Development Processes",    description: "Secure development rules are applied to internal systems.", evidenceIds: ["e2"], lastTested: "Feb 28" },
     // A.15 — Supplier Relationships
-    { id: "A.15.2", category: "Supplier Relationships",          status: "in-progress", name: "Supplier Service Delivery Management", description: "Supplier delivery and performance are regularly monitored.", evidenceIds: ["e5"], lastTested: "Mar 1" },
+    { id: "A.15.2", category: "Supplier Relationships",          status: "in-progress", name: "Supplier Service Delivery Management", description: "Supplier delivery and performance are regularly monitored.", evidenceIds: ["e5"], lastTested: "Mar 1",
+      requiredEvidence: [
+        { label: "Vendor Risk Assessments",              evidenceId: "e5"             },
+        { label: "Third-party SLA monitoring records",   assumed: true                },
+        { label: "Supplier audit or certification",      assumed: true                },
+      ],
+    },
     // A.18 — Compliance
     { id: "A.18.1", category: "Compliance",                      status: "passing",     name: "Compliance with Legal Requirements",   description: "Legal, regulatory, and contractual requirements are identified.", lastTested: "Jan 30" },
   ],
@@ -254,7 +320,11 @@ export const FRAMEWORK_CONTROLS: Record<string, FrameworkControl[]> = {
     { id: "AC-2",    category: "Protect — Account Management",   status: "failing",     name: "Account Management",                   description: "User accounts are managed across the account lifecycle.", gapId: "g1", lastTested: "Mar 10",
       whyItMatters: "Stale privileged accounts are one of the most exploited attack vectors. Without lifecycle enforcement, deprovisioned employees or contractors may retain access — directly expanding the blast radius of any breach. This gap has been open 14 days.",
       remediationSteps: ["Run a full privileged account audit to identify all active accounts", "Disable or remove accounts inactive for 90+ days", "Implement automated deprovisioning triggers tied to HR offboarding events", "Schedule and document quarterly access reviews in the compliance calendar", "Update and re-approve the account lifecycle policy"],
-      requiredEvidence: ["Privileged account audit report showing active status per account", "Deprovisioning workflow documentation with automation confirmation", "Quarterly access review records from the most recent cycle"],
+      requiredEvidence: [
+        { label: "Privileged account audit report",                    assumed: true },
+        { label: "Deprovisioning workflow documentation",              assumed: true },
+        { label: "Quarterly access review records (most recent cycle)",assumed: true },
+      ],
     },
     // PR.DS — Data Security
     { id: "PR.DS-1", category: "Protect — Data Security",        status: "passing",     name: "Data at rest protection",              description: "Data at rest is protected using encryption.", lastTested: "Mar 1" },
@@ -262,7 +332,11 @@ export const FRAMEWORK_CONTROLS: Record<string, FrameworkControl[]> = {
     { id: "PR.IP-1", category: "Protect — Information Protection",status: "failing",    name: "Baseline configuration",               description: "Baseline configurations documented for all IT/OT/ICS systems.", gapId: "g5", lastTested: "Feb 22",
       whyItMatters: "Without documented baselines, configuration drift goes undetected and deviations from secure state cannot be verified or audited. This gap affects 3 asset classes and weakens the foundation for detecting attack paths across the environment.",
       remediationSteps: ["Identify the 3 asset classes missing approved baseline documentation", "Export current configurations as candidate baselines for review", "Review and formally approve baselines with the Configuration Team", "Implement continuous drift monitoring against each approved baseline", "Record approved baselines in the CMDB and link to asset inventory"],
-      requiredEvidence: ["Approved baseline configuration documents per affected asset class", "CMDB records linking each asset to its approved baseline", "Drift monitoring configuration confirmation showing active coverage"],
+      requiredEvidence: [
+        { label: "Approved baseline configuration documents (per asset class)", assumed: true },
+        { label: "CMDB records linking each asset to its baseline",             assumed: true },
+        { label: "Drift monitoring configuration confirmation",                  assumed: true },
+      ],
     },
     { id: "PR.IP-3", category: "Protect — Information Protection",status: "passing",    name: "Configuration change control",          description: "Configuration change control processes are in place.", lastTested: "Mar 10" },
     // DE.CM — Detect: Monitoring
@@ -283,7 +357,11 @@ export const FRAMEWORK_CONTROLS: Record<string, FrameworkControl[]> = {
     { id: "Req 6.3",  category: "Develop and Maintain Secure Systems", status: "failing", name: "Address security vulnerabilities",   description: "Vulnerabilities must be ranked and scanned quarterly.", gapId: "g4", lastTested: "Mar 22",
       whyItMatters: "PCI-DSS requires quarterly scans of the cardholder data environment. An overdue scan means known vulnerabilities may exist in scope — a direct QSA finding that could fail the assessment. The QSA assessment is in 127 days.",
       remediationSteps: ["Initiate an internal vulnerability scan on the cardholder segment immediately", "Triage all critical and high findings and assign remediation owners", "Remediate all critical findings within 30 days", "Engage an approved ASV for the required external scan", "Archive scan reports and remediation evidence for the QSA assessment"],
-      requiredEvidence: ["Internal vulnerability scan report (cardholder segment)", "ASV external scan certificate", "Remediation closure records for critical findings"],
+      requiredEvidence: [
+        { label: "Internal vulnerability scan report (cardholder segment)", assumed: true },
+        { label: "ASV external scan certificate",                           assumed: true },
+        { label: "Remediation closure records for critical findings",       assumed: true },
+      ],
     },
     { id: "Req 6.4",  category: "Develop and Maintain Secure Systems", status: "passing","name": "Protect public-facing web apps",     description: "Public web apps are protected via WAF or code review.", lastTested: "Mar 9" },
     // Req 8 — Authentication
@@ -293,7 +371,12 @@ export const FRAMEWORK_CONTROLS: Record<string, FrameworkControl[]> = {
     { id: "Req 10.1", category: "Log and Monitor All Access",      status: "passing",     name: "Audit trail for all access",           description: "Audit trails are implemented to link all access to individual users.", lastTested: "3d ago" },
     { id: "Req 11.2", category: "Test Security Regularly",         status: "in-progress", name: "Vulnerability scans",                  description: "Internal and external scans are run at least quarterly.", lastTested: "3d ago" },
     // Req 12 — Policy
-    { id: "Req 12.5", category: "Support Security with Policies",  status: "passing",     name: "Assign information security responsibilities","description": "Security responsibilities formally assigned to individuals.", evidenceIds: ["e6"], lastTested: "Mar 9" },
+    { id: "Req 12.5", category: "Support Security with Policies",  status: "passing",     name: "Assign information security responsibilities","description": "Security responsibilities formally assigned to individuals.", evidenceIds: ["e6"], lastTested: "Mar 9",
+      requiredEvidence: [
+        { label: "Cardholder Scope Map", evidenceId: "e6" },
+        { label: "Assigned security roles documentation", assumed: true },
+      ],
+    },
     { id: "Req 12.10",category: "Support Security with Policies",  status: "passing",     name: "Implement incident response plan",     description: "Incident response plan is tested at least annually.", lastTested: "Feb 1" },
   ],
 

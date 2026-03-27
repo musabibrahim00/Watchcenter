@@ -265,9 +265,21 @@ function ControlDetailPanel({
     setNote(getCtrlNote(ctrl.id));
   }, [ctrl.id]);
 
-  const gap            = GAPS.find(g => g.id === ctrl.gapId);
-  const linkedEvidence = EVIDENCE_ITEMS.filter(e => ctrl.evidenceIds?.includes(e.id));
-  const statusColor    = CONTROL_STATUS_COLOR[ctrl.status];
+  const { items: evidenceStore } = useEvidenceStore();
+
+  const gap         = GAPS.find(g => g.id === ctrl.gapId);
+  const statusColor = CONTROL_STATUS_COLOR[ctrl.status];
+
+  // Build enriched evidence — each required artifact paired with its store item (if collected)
+  const reqEvidence       = ctrl.requiredEvidence ?? [];
+  const enrichedEvidence  = reqEvidence.map(req => ({
+    ...req,
+    storeItem: req.evidenceId ? evidenceStore.find(e => e.id === req.evidenceId) ?? null : null,
+  }));
+  const evCollected   = enrichedEvidence.filter(r => r.storeItem?.status === "collected").length;
+  const evPending     = enrichedEvidence.filter(r => r.storeItem && r.storeItem.status !== "collected").length;
+  const evMissing     = enrichedEvidence.filter(r => !r.storeItem).length;
+  const isActiveGap   = ctrl.status === "failing" || ctrl.status === "in-progress";
   const audit          = UPCOMING_AUDITS.find(a =>
     FRAMEWORK_CONTROLS[a.fwId]?.some(c => c.id === ctrl.id)
   );
@@ -427,39 +439,107 @@ function ControlDetailPanel({
           </div>
         )}
 
-        {/* Required evidence */}
-        {ctrl.requiredEvidence && ctrl.requiredEvidence.length > 0 && (
+        {/* Evidence — unified required + collection status */}
+        {reqEvidence.length > 0 && (
           <div>
-            <div className="flex items-center gap-[6px] mb-[8px]">
-              <FileText size={11} color={colors.textDim} />
-              <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, letterSpacing: "0.07em", textTransform: "uppercase" }}>
-                Required evidence
+            {/* Section header */}
+            <div className="flex items-center justify-between mb-[8px]">
+              <div className="flex items-center gap-[6px]">
+                <FileText size={11} color={colors.textDim} />
+                <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, letterSpacing: "0.07em", textTransform: "uppercase" }}>
+                  Evidence
+                </span>
+              </div>
+              <span style={{ fontSize: 10, color: colors.textDim }}>
+                {evCollected + evPending}/{reqEvidence.length} linked
+                {evPending > 0 && (
+                  <span style={{ color: colors.medium }}> · {evPending} pending</span>
+                )}
               </span>
             </div>
-            <div className="flex flex-col gap-[4px]">
-              {ctrl.requiredEvidence.map((ev, i) => (
-                <div key={i} className="flex items-start gap-[7px]">
-                  <div
-                    className="shrink-0 size-[5px] rounded-full mt-[6px]"
-                    style={{ background: colors.medium }}
-                  />
-                  <span style={{ fontSize: 11, color: colors.textMuted, lineHeight: 1.5 }}>{ev}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* Linked evidence (already collected) */}
-        {linkedEvidence.length > 0 && (
-          <div>
-            <div className="flex items-center gap-[6px] mb-[8px]">
-              <CheckCircle2 size={11} color={colors.textDim} />
-              <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, letterSpacing: "0.07em", textTransform: "uppercase" }}>
-                Collected evidence
-              </span>
+            {/* Missing evidence alert */}
+            {evMissing > 0 && isActiveGap && (
+              <div
+                className="flex items-center gap-[7px] px-[10px] py-[7px] rounded-[7px] mb-[8px]"
+                style={{ background: `${colors.critical}08`, border: `1px solid ${colors.critical}28` }}
+              >
+                <AlertTriangle size={11} color={colors.critical} className="shrink-0" />
+                <p style={{ fontSize: 11, color: colors.critical, lineHeight: 1.4 }}>
+                  {evMissing} item{evMissing !== 1 ? "s" : ""} missing — required to close this gap
+                </p>
+              </div>
+            )}
+
+            {/* Evidence rows */}
+            <div className="flex flex-col gap-[2px]">
+              {enrichedEvidence.map((req, i) => {
+                const item    = req.storeItem;
+                const missing = !item;
+                const sc = item
+                  ? EVIDENCE_STATUS_COLOR[item.status]
+                  : isActiveGap ? colors.critical : colors.textDim;
+                return (
+                  <div
+                    key={i}
+                    className="flex items-start gap-[8px] px-[8px] py-[6px] rounded-[6px]"
+                    style={{
+                      background: missing && isActiveGap ? `${colors.critical}07` : "transparent",
+                      border: `1px solid ${missing && isActiveGap ? colors.critical + "18" : "transparent"}`,
+                    }}
+                  >
+                    {/* Status icon */}
+                    <span className="shrink-0 mt-[1px]">
+                      {item
+                        ? item.status === "collected" ? <CheckCircle2 size={12} color={colors.success}  />
+                        : item.status === "pending"   ? <Clock        size={12} color={colors.medium}   />
+                                                      : <AlertTriangle size={12} color={colors.critical} />
+                        : isActiveGap
+                          ? <XCircle size={12} color={colors.critical} />
+                          : <div className="size-[5px] rounded-full mt-[4px] shrink-0" style={{ background: colors.textDim }} />
+                      }
+                    </span>
+
+                    {/* Label + metadata */}
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className="truncate"
+                        style={{
+                          fontSize: 11,
+                          fontWeight: missing && isActiveGap ? 600 : 400,
+                          color: missing && isActiveGap ? colors.critical : item ? colors.textPrimary : colors.textMuted,
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {req.label}
+                        {req.assumed && (
+                          <span style={{ fontSize: 9, color: colors.textDim, marginLeft: 5, fontWeight: 400 }}>~assumed</span>
+                        )}
+                      </p>
+                      {item && (
+                        <p style={{ fontSize: 10, color: colors.textDim, marginTop: 1 }}>
+                          {item.collector}{item.dueDate ? ` · due ${item.dueDate}` : ""}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Status badge */}
+                    {item ? (
+                      <span
+                        className="shrink-0 px-[5px] py-[1px] rounded-full text-[9px] font-medium capitalize"
+                        style={{ background: `${sc}14`, color: sc, border: `1px solid ${sc}22` }}
+                      >
+                        {item.status}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: 9, fontWeight: 600, color: sc, flexShrink: 0 }}>
+                        {isActiveGap ? "missing" : "unlinked"}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-            {linkedEvidence.map(ev => <EvidenceRow key={ev.id} ev={ev} />)}
           </div>
         )}
 
