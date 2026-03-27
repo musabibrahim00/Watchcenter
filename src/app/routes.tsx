@@ -78,6 +78,8 @@ export const router = createBrowserRouter(
         },
         { path: "compliance", lazy: () => import("./pages/CompliancePage").then(m => ({ Component: m.default })) },
         { path: "compliance/:frameworkId", lazy: () => import("./pages/ComplianceFrameworkPage").then(m => ({ Component: m.default })) },
+        { path: "compliance/:frameworkId/policies/:policyId", lazy: () => import("./pages/compliance/PolicyDetailPage").then(m => ({ Component: m.default })) },
+        { path: "compliance/:frameworkId/documents/:documentId", lazy: () => import("./pages/compliance/DocumentDetailPage").then(m => ({ Component: m.default })) },
         {
           path: "misconfigurations",
           element: <PlaceholderPage title="Misconfigurations" />,
