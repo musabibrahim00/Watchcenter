@@ -10,6 +10,7 @@ import { colors } from "../shared/design-system/tokens";
 import { PageHeader } from "../shared/components/ui";
 import { useAiBox } from "../features/ai-box";
 import { useEvidenceStore } from "../features/compliance/evidence-store";
+import { useControlStatusStore } from "../features/compliance/control-store";
 import { ActionableEvidenceRow } from "../features/compliance/ActionableEvidenceRow";
 import {
   FRAMEWORKS, FRAMEWORK_CONTROLS, FRAMEWORK_POLICIES, GAPS, EVIDENCE_ITEMS, UPCOMING_AUDITS,
@@ -97,15 +98,16 @@ const STATUS_SORT: Record<ControlStatus, number> = {
    ================================================================ */
 
 function ControlTableRow({
-  ctrl, isSelected, onSelect, owner,
+  ctrl, isSelected, onSelect, owner, evidenceCount, gapCount,
 }: {
   ctrl: FrameworkControl;
   isSelected: boolean;
   onSelect: (ctrl: FrameworkControl) => void;
   owner: string;
+  evidenceCount: number;
+  gapCount: number;
 }) {
-  const statusColor    = CONTROL_STATUS_COLOR[ctrl.status];
-  const evidenceCount  = ctrl.evidenceIds?.length ?? 0;
+  const statusColor = CONTROL_STATUS_COLOR[ctrl.status];
 
   return (
     <div
@@ -180,8 +182,13 @@ function ControlTableRow({
         <span style={{ fontSize: 11, color: evidenceCount > 0 ? colors.textMuted : colors.textDim }}>
           {evidenceCount}
         </span>
-        {ctrl.gapId && (
-          <AlertTriangle size={10} color={colors.critical} className="ml-[2px]" />
+        {gapCount > 0 && (
+          <span className="flex items-center gap-[2px] ml-[2px]">
+            <AlertTriangle size={10} color={colors.critical} />
+            {gapCount > 1 && (
+              <span style={{ fontSize: 9, fontWeight: 700, color: colors.critical }}>{gapCount}</span>
+            )}
+          </span>
         )}
       </div>
 
@@ -239,11 +246,13 @@ function ControlDetailPanel({
   frameworkName,
   onClose,
   onAskAI,
+  onStatusChange,
 }: {
   ctrl: FrameworkControl;
   frameworkName: string;
   onClose: () => void;
   onAskAI: (ctrl: FrameworkControl) => void;
+  onStatusChange: (status: ControlStatus) => void;
 }) {
   const [followedUp, setFollowedUp] = React.useState(() => getFollowUps().has(ctrl.id));
   const [owner, setOwner]           = React.useState(() => getCtrlOwner(ctrl.id));
@@ -316,6 +325,35 @@ function ControlDetailPanel({
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto px-[16px] py-[14px] flex flex-col gap-[16px]">
+
+        {/* Status selector */}
+        <div>
+          <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, letterSpacing: "0.07em", textTransform: "uppercase", display: "block", marginBottom: 7 }}>
+            Status
+          </span>
+          <div className="flex gap-[4px] flex-wrap">
+            {(["passing", "in-progress", "not-started", "failing"] as ControlStatus[]).map(s => {
+              const sc = CONTROL_STATUS_COLOR[s];
+              const isActive = ctrl.status === s;
+              const label = s === "in-progress" ? "In Progress" : s === "not-started" ? "Not Started" : s.charAt(0).toUpperCase() + s.slice(1);
+              return (
+                <button
+                  key={s}
+                  onClick={() => onStatusChange(s)}
+                  className="flex items-center gap-[5px] px-[9px] py-[4px] rounded-[6px] text-[10px] font-semibold cursor-pointer"
+                  style={{
+                    background: isActive ? `${sc}20` : "rgba(255,255,255,0.04)",
+                    color: isActive ? sc : colors.textDim,
+                    border: `1px solid ${isActive ? sc + "44" : "rgba(255,255,255,0.08)"}`,
+                  }}
+                >
+                  {CONTROL_STATUS_ICON[s]}
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Why it matters */}
         {ctrl.whyItMatters && (
@@ -1202,7 +1240,9 @@ export default function ComplianceFrameworkPage() {
   const [selectedControlId, setSelectedControlId] = useState<string | null>(null);
   const [ctrlStatusFilter, setCtrlStatusFilter]   = useState<ControlStatus | "all">("all");
   const [ctrlSearch, setCtrlSearch]               = useState("");
-  const { items: allEvidence } = useEvidenceStore();
+  const { items: allEvidence }               = useEvidenceStore();
+  const { allStatuses: ctrlStatusOverrides,
+          setStatus:   setCtrlStatus }         = useControlStatusStore();
 
   const framework = FRAMEWORKS.find(f => f.id === frameworkId);
 
@@ -1221,9 +1261,10 @@ export default function ComplianceFrameworkPage() {
     );
   }
 
-  const controls = (FRAMEWORK_CONTROLS[framework.id] ?? []).slice().sort(
-    (a, b) => STATUS_SORT[a.status] - STATUS_SORT[b.status]
-  );
+  // Merge stored status overrides so all consumers (counts, table, detail) stay in sync
+  const controls = (FRAMEWORK_CONTROLS[framework.id] ?? [])
+    .map(c => ({ ...c, status: ctrlStatusOverrides[c.id] ?? c.status }))
+    .sort((a, b) => STATUS_SORT[a.status] - STATUS_SORT[b.status]);
 
   const evidence           = EVIDENCE_ITEMS.filter(e => e.fwId === framework.id);
   const audit              = UPCOMING_AUDITS.find(a => a.fwId === framework.id);
@@ -1575,6 +1616,8 @@ export default function ComplianceFrameworkPage() {
                             const gapOwner      = GAPS.find(g => g.id === ctrl.gapId)?.owner ?? "";
                             const overrideOwner = getCtrlOwner(ctrl.id);
                             const displayOwner  = overrideOwner || gapOwner;
+                            const evCount       = allEvidence.filter(e => (e.control as string) === ctrl.id).length;
+                            const gCount        = GAPS.filter(g => g.control === ctrl.id).length;
                             return (
                               <ControlTableRow
                                 key={ctrl.id}
@@ -1582,6 +1625,8 @@ export default function ComplianceFrameworkPage() {
                                 isSelected={selectedControlId === ctrl.id}
                                 onSelect={handleSelectControl}
                                 owner={displayOwner}
+                                evidenceCount={evCount}
+                                gapCount={gCount}
                               />
                             );
                           })}
@@ -1600,6 +1645,7 @@ export default function ComplianceFrameworkPage() {
                     frameworkName={framework.name}
                     onClose={() => setSelectedControlId(null)}
                     onAskAI={handleRemediateControl}
+                    onStatusChange={(s) => setCtrlStatus(selectedControl.id, s)}
                   />
                 ) : (
                   <DefaultSidebar evidence={evidence} audit={audit} gaps={gaps} />
