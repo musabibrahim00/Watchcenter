@@ -302,22 +302,13 @@ function ControlDrawer({
   ] as const;
 
   return (
-    <>
-      {/* Backdrop */}
       <div
-        className="fixed inset-0 z-[40]"
-        style={{ background: "rgba(0,0,0,0.45)" }}
-        onClick={onClose}
-      />
-
-      {/* Drawer panel */}
-      <div
-        className="fixed top-0 right-0 h-full z-[50] flex flex-col overflow-hidden"
+        className="flex flex-col overflow-hidden shrink-0"
         style={{
-          width: 480,
+          width: 340,
+          height: "100%",
           background: colors.bgCard,
-          borderLeft: `1px solid ${hasCritical && ctrl.status === "failing" ? colors.critical + "44" : colors.border}`,
-          boxShadow: "-8px 0 40px rgba(0,0,0,0.5)",
+          borderRight: `1px solid ${hasCritical && ctrl.status === "failing" ? colors.critical + "44" : colors.border}`,
         }}
       >
         {/* Drawer header */}
@@ -813,7 +804,6 @@ function ControlDrawer({
           </button>
         </div>
       </div>
-    </>
   );
 }
 
@@ -840,9 +830,6 @@ function OverviewTab({
   const ctrlFailing   = controls.filter(c => c.status === "failing").length;
   const ctrlInProg    = controls.filter(c => c.status === "in-progress").length;
   const ctrlPassing   = controls.filter(c => c.status === "passing").length;
-  const scoreColor    = framework.score >= 90 ? colors.success : framework.score >= 80 ? colors.medium : colors.critical;
-  const trendNum      = parseInt(framework.trend);
-
   const SOC2_TRUST_SERVICES = ["Security", "Availability", "Confidentiality", "Processing Integrity", "Privacy"];
 
   const INDUSTRIES_BY_FW: Record<string, string[]> = {
@@ -876,25 +863,7 @@ function OverviewTab({
     <div className="flex flex-col gap-[20px] max-w-[900px]">
 
       {/* Health summary cards */}
-      <div className="grid grid-cols-3 gap-[12px]">
-        {/* Score card */}
-        <div className="flex flex-col gap-[10px] p-[16px] rounded-[10px]"
-          style={{ background: colors.bgCard, border: `1px solid ${colors.border}` }}>
-          <p style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, letterSpacing: "0.07em", textTransform: "uppercase" }}>Overall Score</p>
-          <div className="flex items-baseline gap-[6px]">
-            <span style={{ fontSize: 28, fontWeight: 700, color: scoreColor, lineHeight: 1 }}>{framework.score}%</span>
-            {trendNum !== 0 && (
-              <span style={{ fontSize: 11, color: trendNum > 0 ? colors.success : colors.critical }}>
-                {trendNum > 0 ? "+" : ""}{framework.trend}
-              </span>
-            )}
-          </div>
-          <div className="h-[4px] rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-            <div style={{ width: `${framework.score}%`, height: "100%", background: scoreColor, borderRadius: 999 }} />
-          </div>
-          <p style={{ fontSize: 10, color: colors.textDim }}>{gaps.length} open gap{gaps.length !== 1 ? "s" : ""}</p>
-        </div>
-
+      <div className="grid grid-cols-2 gap-[12px]">
         {/* Controls card */}
         <div className="flex flex-col gap-[10px] p-[16px] rounded-[10px]"
           style={{ background: colors.bgCard, border: `1px solid ${colors.border}` }}>
@@ -1626,7 +1595,7 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
 export default function ComplianceFrameworkPage() {
   const { frameworkId } = useParams<{ frameworkId: string }>();
   const navigate        = useNavigate();
-  const { openWithContext, setPageContext } = useAiBox();
+  const { openWithContext, setPageContext, open } = useAiBox();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const activeTab = (searchParams.get("tab") as TabId | null) ?? "overview";
@@ -1718,6 +1687,7 @@ export default function ComplianceFrameworkPage() {
       suggestions: ctx.suggestions,
       greeting: `${framework.name} is at ${framework.score}%${parseInt(framework.trend) !== 0 ? ` (${framework.trend} trending)` : ""}. ${framework.failing} control${(framework.failing as number) !== 1 ? "s" : ""} failing, ${gaps.length} open gap${gaps.length !== 1 ? "s" : ""}. You're on the ${ctx.sublabel} tab — what would you like to work on?`,
     });
+    open();
   }, [framework?.id, activeTab]);
 
   const scoreColor     = framework.score >= 90 ? colors.success : framework.score >= 80 ? colors.medium : colors.critical;
@@ -1958,8 +1928,21 @@ export default function ComplianceFrameworkPage() {
           const notStartedCount = controls.filter(c => c.status === "not-started").length;
 
           return (
-            <div className="flex-1 min-w-0">
-              {/* Full-width controls table */}
+            <div className="flex flex-1 min-w-0" style={{ minHeight: 0 }}>
+              {/* Inline drawer — left column */}
+              {drawerControl && (
+                <ControlDrawer
+                  ctrl={drawerControl}
+                  frameworkId={framework.id}
+                  frameworkName={framework.name}
+                  onClose={() => setDrawerControlId(null)}
+                  onAskAI={handleRemediateControl}
+                  onStatusChange={(s) => setCtrlStatus(drawerControl.id, s)}
+                />
+              )}
+              {/* Table — right column */}
+              <div className="flex-1 min-w-0 overflow-y-auto">
+              {/* Controls table */}
               <div>
 
                 {/* Filter bar */}
@@ -2124,7 +2107,7 @@ export default function ComplianceFrameworkPage() {
                 </div>
               </div>
 
-              {/* ControlDrawer rendered at viewport level — see below */}
+              </div>
             </div>
           );
         })()}
@@ -2157,17 +2140,6 @@ export default function ComplianceFrameworkPage() {
         )}
       </div>
 
-      {/* Control Drawer — viewport overlay */}
-      {drawerControl && (
-        <ControlDrawer
-          ctrl={drawerControl}
-          frameworkId={framework.id}
-          frameworkName={framework.name}
-          onClose={() => setDrawerControlId(null)}
-          onAskAI={handleRemediateControl}
-          onStatusChange={(s) => setCtrlStatus(drawerControl.id, s)}
-        />
-      )}
     </div>
   );
 }
