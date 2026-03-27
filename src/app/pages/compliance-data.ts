@@ -12,6 +12,7 @@ export type Severity       = "critical" | "high" | "medium" | "low";
 export type EvidenceStatus = "collected" | "pending" | "overdue";
 export type MonitorStatus  = "passing" | "failing" | "warning";
 export type ControlStatus  = "passing" | "failing" | "in-progress" | "not-started";
+export type GapStatus      = "open" | "in_progress" | "resolved";
 
 /**
  * A single required evidence artifact for a control.
@@ -42,11 +43,36 @@ export type FrameworkId = typeof FRAMEWORKS[number]["id"];
 /* ── Open Gaps ── */
 
 export const GAPS = [
-  { id: "g1", severity: "critical" as Severity, control: "AC-2",    framework: "NIST CSF",  fwId: "nist-csf", title: "Privileged account lifecycle not enforced",                 daysOpen: 14, owner: "Identity Team" },
-  { id: "g2", severity: "critical" as Severity, control: "CC6.1",   framework: "SOC 2",     fwId: "soc2",     title: "MFA not required on 12 service accounts",                   daysOpen: 8,  owner: "Platform Engineering" },
-  { id: "g3", severity: "high"     as Severity, control: "A.9.4",   framework: "ISO 27001", fwId: "iso27001", title: "Encryption key rotation policy not enforced",               daysOpen: 22, owner: "Security Operations" },
-  { id: "g4", severity: "high"     as Severity, control: "Req 6.3", framework: "PCI-DSS",   fwId: "pci-dss",  title: "Vulnerability scan overdue on cardholder segment",          daysOpen: 5,  owner: "Vulnerability Team" },
-  { id: "g5", severity: "medium"   as Severity, control: "PR.IP-1", framework: "NIST CSF",  fwId: "nist-csf", title: "Configuration baseline not documented for 3 asset classes", daysOpen: 31, owner: "Configuration Team" },
+  {
+    id: "g1", severity: "critical" as Severity, control: "AC-2", framework: "NIST CSF", fwId: "nist-csf",
+    title:       "Privileged account lifecycle not enforced",
+    description: "23 former employee accounts remain active with privileged access. No automated deprovisioning is tied to HR offboarding. Each account is a live lateral movement risk.",
+    daysOpen: 14, owner: "Identity Team", dueDate: "Apr 3, 2026", status: "open" as GapStatus,
+  },
+  {
+    id: "g2", severity: "critical" as Severity, control: "CC6.1", framework: "SOC 2", fwId: "soc2",
+    title:       "MFA not required on 12 service accounts",
+    description: "12 service accounts bypass MFA enforcement. All have production access and are directly exploitable via credential stuffing. Blocking the SOC 2 annual audit.",
+    daysOpen: 8,  owner: "Platform Engineering", dueDate: "Mar 31, 2026", status: "open" as GapStatus,
+  },
+  {
+    id: "g3", severity: "high" as Severity, control: "A.9.4", framework: "ISO 27001", fwId: "iso27001",
+    title:       "Encryption key rotation policy not enforced",
+    description: "7 encryption keys are past their 90-day rotation deadline. Key management system has no automated enforcement or alerting configured.",
+    daysOpen: 22, owner: "Security Operations", dueDate: "Apr 15, 2026", status: "open" as GapStatus,
+  },
+  {
+    id: "g4", severity: "high" as Severity, control: "Req 6.3", framework: "PCI-DSS", fwId: "pci-dss",
+    title:       "Vulnerability scan overdue on cardholder segment",
+    description: "Quarterly ASV scan of the cardholder data environment is 5 days overdue. QSA assessment will flag any gap in scan cadence as a direct finding.",
+    daysOpen: 5,  owner: "Vulnerability Team", dueDate: "Apr 5, 2026", status: "open" as GapStatus,
+  },
+  {
+    id: "g5", severity: "medium" as Severity, control: "PR.IP-1", framework: "NIST CSF", fwId: "nist-csf",
+    title:       "Configuration baseline not documented for 3 asset classes",
+    description: "Servers, containers, and network devices lack approved baseline configurations. Drift detection is disabled for these asset classes, making deviation undetectable.",
+    daysOpen: 31, owner: "Configuration Team", dueDate: "May 1, 2026", status: "in_progress" as GapStatus,
+  },
 ];
 
 /* ── Evidence Items ── */

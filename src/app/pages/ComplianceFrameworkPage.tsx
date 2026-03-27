@@ -5,16 +5,18 @@ import {
   FileText, Sparkles, AlertTriangle, Calendar, TrendingDown,
   ChevronRight, X, BookmarkPlus, BookmarkCheck, ListChecks, Shield,
   FolderOpen, ClipboardList, FileCheck2, ClipboardCheck, Search, User, StickyNote,
+  Target, Zap, CheckCheck, CircleDot, Flag,
 } from "lucide-react";
 import { colors } from "../shared/design-system/tokens";
 import { PageHeader } from "../shared/components/ui";
 import { useAiBox } from "../features/ai-box";
 import { useEvidenceStore } from "../features/compliance/evidence-store";
 import { useControlStatusStore } from "../features/compliance/control-store";
+import { useGapStatusStore } from "../features/compliance/gap-store";
 import { ActionableEvidenceRow } from "../features/compliance/ActionableEvidenceRow";
 import {
   FRAMEWORKS, FRAMEWORK_CONTROLS, FRAMEWORK_POLICIES, GAPS, EVIDENCE_ITEMS, UPCOMING_AUDITS,
-  type FrameworkControl, type FrameworkPolicy, type PolicyStatus, type ControlStatus, type EvidenceStatus,
+  type FrameworkControl, type FrameworkPolicy, type PolicyStatus, type ControlStatus, type EvidenceStatus, type GapStatus,
 } from "./compliance-data";
 import { getComplianceFramework } from "../../data/compliance/frameworks";
 
@@ -93,12 +95,33 @@ const STATUS_SORT: Record<ControlStatus, number> = {
   failing: 0, "in-progress": 1, "not-started": 2, passing: 3,
 };
 
+/** Returns urgency tier for a gap based on its due date. */
+function getGapUrgency(dueDate: string): "overdue" | "due-soon" | "normal" {
+  const d = new Date(dueDate);
+  const diffDays = Math.ceil((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return "overdue";
+  if (diffDays <= 7) return "due-soon";
+  return "normal";
+}
+
+const GAP_STATUS_LABELS: Record<GapStatus, string> = {
+  open:        "Open",
+  in_progress: "In Progress",
+  resolved:    "Resolved",
+};
+
+const GAP_STATUS_ICONS: Record<GapStatus, React.ReactNode> = {
+  open:        <CircleDot  size={10} />,
+  in_progress: <AlertCircle size={10} />,
+  resolved:    <CheckCheck  size={10} />,
+};
+
 /* ================================================================
    CONTROL TABLE ROW
    ================================================================ */
 
 function ControlTableRow({
-  ctrl, isSelected, onSelect, owner, evidenceCount, gapCount,
+  ctrl, isSelected, onSelect, owner, evidenceCount, gapCount, gapUrgency,
 }: {
   ctrl: FrameworkControl;
   isSelected: boolean;
@@ -106,6 +129,7 @@ function ControlTableRow({
   owner: string;
   evidenceCount: number;
   gapCount: number;
+  gapUrgency: "overdue" | "due-soon" | null;
 }) {
   const statusColor = CONTROL_STATUS_COLOR[ctrl.status];
 
@@ -176,7 +200,7 @@ function ControlTableRow({
         </span>
       </div>
 
-      {/* Evidence */}
+      {/* Evidence + gap urgency */}
       <div className="shrink-0 px-[8px] py-[8px] flex items-center gap-[5px]" style={{ width: 80 }}>
         <FileCheck2 size={11} color={evidenceCount > 0 ? colors.success : colors.textDim} />
         <span style={{ fontSize: 11, color: evidenceCount > 0 ? colors.textMuted : colors.textDim }}>
@@ -184,11 +208,24 @@ function ControlTableRow({
         </span>
         {gapCount > 0 && (
           <span className="flex items-center gap-[2px] ml-[2px]">
-            <AlertTriangle size={10} color={colors.critical} />
+            <AlertTriangle
+              size={10}
+              color={gapUrgency === "overdue" ? colors.critical : gapUrgency === "due-soon" ? colors.medium : colors.critical}
+            />
             {gapCount > 1 && (
-              <span style={{ fontSize: 9, fontWeight: 700, color: colors.critical }}>{gapCount}</span>
+              <span style={{ fontSize: 9, fontWeight: 700, color: gapUrgency === "due-soon" ? colors.medium : colors.critical }}>{gapCount}</span>
             )}
           </span>
+        )}
+        {/* Urgency dot */}
+        {gapUrgency === "overdue" && (
+          <span
+            className="size-[5px] rounded-full shrink-0"
+            style={{ background: colors.critical, boxShadow: `0 0 4px ${colors.critical}` }}
+          />
+        )}
+        {gapUrgency === "due-soon" && (
+          <span className="size-[5px] rounded-full shrink-0" style={{ background: colors.medium }} />
         )}
       </div>
 
@@ -265,34 +302,52 @@ function ControlDetailPanel({
     setNote(getCtrlNote(ctrl.id));
   }, [ctrl.id]);
 
-  const { items: evidenceStore } = useEvidenceStore();
+  const { items: evidenceStore }                      = useEvidenceStore();
+  const { allStatuses: gapStatuses, setStatus: setGapStatus } = useGapStatusStore();
 
-  const gap         = GAPS.find(g => g.id === ctrl.gapId);
   const statusColor = CONTROL_STATUS_COLOR[ctrl.status];
+  const isActiveGap = ctrl.status === "failing" || ctrl.status === "in-progress";
+
+  // All gaps for this control, with live status from store
+  const controlGaps = GAPS
+    .filter(g => g.control === ctrl.id)
+    .map(g => ({ ...g, status: (gapStatuses[g.id] ?? g.status) as GapStatus }));
+
+  const openGaps = controlGaps.filter(g => g.status !== "resolved");
 
   // Build enriched evidence — each required artifact paired with its store item (if collected)
-  const reqEvidence       = ctrl.requiredEvidence ?? [];
-  const enrichedEvidence  = reqEvidence.map(req => ({
+  const reqEvidence      = ctrl.requiredEvidence ?? [];
+  const enrichedEvidence = reqEvidence.map(req => ({
     ...req,
     storeItem: req.evidenceId ? evidenceStore.find(e => e.id === req.evidenceId) ?? null : null,
   }));
-  const evCollected   = enrichedEvidence.filter(r => r.storeItem?.status === "collected").length;
-  const evPending     = enrichedEvidence.filter(r => r.storeItem && r.storeItem.status !== "collected").length;
-  const evMissing     = enrichedEvidence.filter(r => !r.storeItem).length;
-  const isActiveGap   = ctrl.status === "failing" || ctrl.status === "in-progress";
-  const audit          = UPCOMING_AUDITS.find(a =>
+  const evCollected = enrichedEvidence.filter(r => r.storeItem?.status === "collected").length;
+  const evPending   = enrichedEvidence.filter(r => r.storeItem && r.storeItem.status !== "collected").length;
+  const evMissing   = enrichedEvidence.filter(r => !r.storeItem).length;
+
+  const audit = UPCOMING_AUDITS.find(a =>
     FRAMEWORK_CONTROLS[a.fwId]?.some(c => c.id === ctrl.id)
   );
+
+  // Urgency state across all open gaps
+  const hasCriticalGap = openGaps.some(g => g.severity === "critical");
+  const hasOverdueGap  = openGaps.some(g => getGapUrgency(g.dueDate) === "overdue");
+  const hasDueSoonGap  = openGaps.some(g => getGapUrgency(g.dueDate) === "due-soon");
 
   function handleToggleFollowUp() {
     const next = toggleFollowUp(ctrl.id);
     setFollowedUp(next);
   }
 
+  // Urgency border on the panel itself when critical + failing
+  const panelBorderColor = (ctrl.status === "failing" && hasCriticalGap)
+    ? colors.critical
+    : statusColor;
+
   return (
     <div
       className="flex flex-col h-full rounded-[12px] overflow-hidden"
-      style={{ background: colors.bgCard, border: `1px solid ${statusColor}33` }}
+      style={{ background: colors.bgCard, border: `1px solid ${panelBorderColor}44` }}
     >
       {/* Panel header */}
       <div
@@ -302,22 +357,32 @@ function ControlDetailPanel({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-[7px] mb-[3px]">
             {CONTROL_STATUS_ICON[ctrl.status]}
-            <span
-              className="text-[11px] font-mono font-semibold"
-              style={{ color: statusColor }}
-            >
+            <span className="text-[11px] font-mono font-semibold" style={{ color: statusColor }}>
               {ctrl.id}
             </span>
             <span
               className="px-[6px] py-[1px] rounded-full text-[9px] font-bold uppercase"
-              style={{
-                background: `${statusColor}14`,
-                color: statusColor,
-                border: `1px solid ${statusColor}28`,
-              }}
+              style={{ background: `${statusColor}14`, color: statusColor, border: `1px solid ${statusColor}28` }}
             >
               {ctrl.status}
             </span>
+            {/* Urgency pill */}
+            {hasOverdueGap && (
+              <span
+                className="flex items-center gap-[3px] px-[5px] py-[1px] rounded-full text-[9px] font-bold uppercase"
+                style={{ background: `${colors.critical}20`, color: colors.critical, border: `1px solid ${colors.critical}40` }}
+              >
+                <AlertTriangle size={8} /> OVERDUE
+              </span>
+            )}
+            {!hasOverdueGap && hasDueSoonGap && (
+              <span
+                className="flex items-center gap-[3px] px-[5px] py-[1px] rounded-full text-[9px] font-bold uppercase"
+                style={{ background: `${colors.medium}18`, color: colors.medium, border: `1px solid ${colors.medium}38` }}
+              >
+                <Clock size={8} /> DUE SOON
+              </span>
+            )}
           </div>
           <p style={{ fontSize: 13, fontWeight: 700, color: colors.textPrimary, lineHeight: 1.3 }}>
             {ctrl.name}
@@ -338,10 +403,120 @@ function ControlDetailPanel({
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto px-[16px] py-[14px] flex flex-col gap-[16px]">
 
+        {/* ── OPEN ACTIONS — most prominent for failing/in-progress ── */}
+        {openGaps.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-[8px]">
+              <div className="flex items-center gap-[6px]">
+                <Target size={11} color={hasCriticalGap ? colors.critical : colors.medium} />
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const,
+                  color: hasCriticalGap ? colors.critical : colors.medium }}>
+                  Open Actions ({openGaps.length})
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-[8px]">
+              {openGaps.map(gap => {
+                const urgency = getGapUrgency(gap.dueDate);
+                const sc      = gap.severity === "critical" ? colors.critical
+                              : gap.severity === "high"     ? colors.high
+                              :                               colors.medium;
+                const gStatus = gap.status;
+
+                // Urgency accent
+                const urgencyColor = urgency === "overdue"  ? colors.critical
+                                   : urgency === "due-soon" ? colors.medium
+                                   : "transparent";
+                const cardBg       = gap.severity === "critical" ? `${colors.critical}08`
+                                   : gap.severity === "high"     ? `${colors.high}08`
+                                   :                               `${colors.medium}06`;
+                return (
+                  <div
+                    key={gap.id}
+                    className="flex flex-col gap-[8px] p-[11px] rounded-[9px]"
+                    style={{
+                      background: cardBg,
+                      border: `1px solid ${sc}${urgency === "overdue" ? "44" : "28"}`,
+                      boxShadow: urgency === "overdue" ? `0 0 0 1px ${colors.critical}18` : undefined,
+                    }}
+                  >
+                    {/* Top row: severity + urgency */}
+                    <div className="flex items-center gap-[6px] flex-wrap">
+                      <span
+                        className="px-[6px] py-[1px] rounded-full text-[9px] font-bold uppercase"
+                        style={{ background: `${sc}18`, color: sc }}
+                      >
+                        {gap.severity}
+                      </span>
+                      {urgency === "overdue" && (
+                        <span className="flex items-center gap-[3px] text-[9px] font-bold uppercase" style={{ color: colors.critical }}>
+                          <AlertTriangle size={9} /> OVERDUE — was due {gap.dueDate}
+                        </span>
+                      )}
+                      {urgency === "due-soon" && (
+                        <span className="flex items-center gap-[3px] text-[9px] font-semibold" style={{ color: colors.medium }}>
+                          <Clock size={9} /> Due {gap.dueDate}
+                        </span>
+                      )}
+                      {urgency === "normal" && (
+                        <span style={{ fontSize: 9, color: colors.textDim }}>Due {gap.dueDate}</span>
+                      )}
+                    </div>
+
+                    {/* Title */}
+                    <p style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary, lineHeight: 1.35 }}>
+                      {gap.title}
+                    </p>
+
+                    {/* Description */}
+                    <p style={{ fontSize: 11, color: colors.textMuted, lineHeight: 1.5 }}>
+                      {gap.description}
+                    </p>
+
+                    {/* Meta row */}
+                    <div className="flex items-center gap-[12px]">
+                      <span className="flex items-center gap-[4px]" style={{ fontSize: 10, color: colors.textDim }}>
+                        <User size={9} /> {gap.owner}
+                      </span>
+                      <span style={{ fontSize: 10, color: colors.textDim }}>{gap.daysOpen}d open</span>
+                    </div>
+
+                    {/* Status quick-actions */}
+                    <div className="flex gap-[4px] flex-wrap pt-[2px]" style={{ borderTop: `1px solid ${sc}18` }}>
+                      {(["open", "in_progress", "resolved"] as GapStatus[]).map(s => {
+                        const isActive = gStatus === s;
+                        const sColor   = s === "resolved" ? colors.success
+                                       : s === "in_progress" ? colors.medium
+                                       : sc;
+                        return (
+                          <button
+                            key={s}
+                            onClick={() => setGapStatus(gap.id, s)}
+                            className="flex items-center gap-[4px] px-[7px] py-[3px] rounded-[5px] text-[9px] font-semibold cursor-pointer"
+                            style={{
+                              background: isActive ? `${sColor}20` : "rgba(255,255,255,0.04)",
+                              color:      isActive ? sColor : colors.textDim,
+                              border:     `1px solid ${isActive ? sColor + "44" : "rgba(255,255,255,0.08)"}`,
+                            }}
+                          >
+                            {GAP_STATUS_ICONS[s]}
+                            {GAP_STATUS_LABELS[s]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Status selector */}
         <div>
           <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, letterSpacing: "0.07em", textTransform: "uppercase", display: "block", marginBottom: 7 }}>
-            Status
+            Control Status
           </span>
           <div className="flex gap-[4px] flex-wrap">
             {(["passing", "in-progress", "not-started", "failing"] as ControlStatus[]).map(s => {
@@ -379,38 +554,6 @@ function ControlDetailPanel({
             <p style={{ fontSize: 12, color: colors.textMuted, lineHeight: 1.6 }}>
               {ctrl.whyItMatters}
             </p>
-          </div>
-        )}
-
-        {/* Related gap */}
-        {gap && (
-          <div
-            className="flex flex-col gap-[6px] p-[12px] rounded-[8px]"
-            style={{
-              background: `${gap.severity === "critical" ? colors.critical : colors.high}0a`,
-              border: `1px solid ${gap.severity === "critical" ? colors.critical : colors.high}28`,
-            }}
-          >
-            <div className="flex items-center gap-[6px]">
-              <AlertTriangle size={11} color={gap.severity === "critical" ? colors.critical : colors.high} />
-              <span style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, letterSpacing: "0.07em", textTransform: "uppercase" }}>
-                Open gap
-              </span>
-              <span
-                className="px-[6px] py-[1px] rounded-full text-[9px] font-bold uppercase"
-                style={{
-                  background: `${gap.severity === "critical" ? colors.critical : colors.high}18`,
-                  color: gap.severity === "critical" ? colors.critical : colors.high,
-                }}
-              >
-                {gap.severity}
-              </span>
-            </div>
-            <p style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary }}>{gap.title}</p>
-            <div className="flex items-center gap-[12px]">
-              <span style={{ fontSize: 10, color: colors.textMuted }}>{gap.daysOpen} days open</span>
-              <span style={{ fontSize: 10, color: colors.textMuted }}>Owner: {gap.owner}</span>
-            </div>
           </div>
         )}
 
@@ -452,22 +595,30 @@ function ControlDetailPanel({
               </div>
               <span style={{ fontSize: 10, color: colors.textDim }}>
                 {evCollected + evPending}/{reqEvidence.length} linked
-                {evPending > 0 && (
-                  <span style={{ color: colors.medium }}> · {evPending} pending</span>
-                )}
+                {evPending > 0 && <span style={{ color: colors.medium }}> · {evPending} pending</span>}
               </span>
             </div>
 
-            {/* Missing evidence alert */}
+            {/* Missing evidence → blocks gap alert */}
             {evMissing > 0 && isActiveGap && (
               <div
-                className="flex items-center gap-[7px] px-[10px] py-[7px] rounded-[7px] mb-[8px]"
+                className="flex flex-col gap-[4px] px-[10px] py-[8px] rounded-[7px] mb-[8px]"
                 style={{ background: `${colors.critical}08`, border: `1px solid ${colors.critical}28` }}
               >
-                <AlertTriangle size={11} color={colors.critical} className="shrink-0" />
-                <p style={{ fontSize: 11, color: colors.critical, lineHeight: 1.4 }}>
-                  {evMissing} item{evMissing !== 1 ? "s" : ""} missing — required to close this gap
-                </p>
+                <div className="flex items-center gap-[7px]">
+                  <AlertTriangle size={11} color={colors.critical} className="shrink-0" />
+                  <p style={{ fontSize: 11, color: colors.critical, fontWeight: 600 }}>
+                    {evMissing} item{evMissing !== 1 ? "s" : ""} missing
+                  </p>
+                </div>
+                {openGaps.length > 0 && (
+                  <p style={{ fontSize: 10, color: colors.textMuted, lineHeight: 1.4, paddingLeft: 18 }}>
+                    This missing evidence is preventing this control from passing. Collect it to close{" "}
+                    <span style={{ color: colors.textPrimary, fontWeight: 600 }}>
+                      {openGaps.map(g => `"${g.title}"`).join(" and ")}
+                    </span>.
+                  </p>
+                )}
               </div>
             )}
 
@@ -488,7 +639,6 @@ function ControlDetailPanel({
                       border: `1px solid ${missing && isActiveGap ? colors.critical + "18" : "transparent"}`,
                     }}
                   >
-                    {/* Status icon */}
                     <span className="shrink-0 mt-[1px]">
                       {item
                         ? item.status === "collected" ? <CheckCircle2 size={12} color={colors.success}  />
@@ -499,8 +649,6 @@ function ControlDetailPanel({
                           : <div className="size-[5px] rounded-full mt-[4px] shrink-0" style={{ background: colors.textDim }} />
                       }
                     </span>
-
-                    {/* Label + metadata */}
                     <div className="flex-1 min-w-0">
                       <p
                         className="truncate"
@@ -522,8 +670,6 @@ function ControlDetailPanel({
                         </p>
                       )}
                     </div>
-
-                    {/* Status badge */}
                     {item ? (
                       <span
                         className="shrink-0 px-[5px] py-[1px] rounded-full text-[9px] font-medium capitalize"
@@ -558,9 +704,7 @@ function ControlDetailPanel({
             <p style={{ fontSize: 12, fontWeight: 600, color: colors.textPrimary }}>{audit.name}</p>
             <p style={{ fontSize: 10, color: colors.textMuted }}>
               {audit.date} · {audit.daysUntil} days away · Readiness {audit.readiness}%
-              {audit.readiness < 80 && (
-                <span style={{ color: colors.critical }}> — at risk</span>
-              )}
+              {audit.readiness < 80 && <span style={{ color: colors.critical }}> — at risk</span>}
             </p>
             {ctrl.status === "failing" && (
               <p style={{ fontSize: 11, color: colors.medium, lineHeight: 1.45, marginTop: 2 }}>
@@ -570,8 +714,8 @@ function ControlDetailPanel({
           </div>
         )}
 
-        {/* Passing state */}
-        {ctrl.status === "passing" && !ctrl.whyItMatters && (
+        {/* Passing state — no open actions */}
+        {ctrl.status === "passing" && openGaps.length === 0 && !ctrl.whyItMatters && (
           <div
             className="flex items-center gap-[8px] p-[12px] rounded-[8px]"
             style={{ background: `${colors.success}0a`, border: `1px solid ${colors.success}22` }}
@@ -584,7 +728,7 @@ function ControlDetailPanel({
           </div>
         )}
 
-        {/* Change owner */}
+        {/* Owner */}
         <div>
           <div className="flex items-center gap-[6px] mb-[7px]">
             <User size={11} color={colors.textDim} />
@@ -595,19 +739,15 @@ function ControlDetailPanel({
           <input
             type="text"
             value={owner}
-            placeholder={gap?.owner ?? "Assign owner…"}
+            placeholder={controlGaps[0]?.owner ?? "Assign owner…"}
             onChange={(e) => setOwner(e.target.value)}
             onBlur={(e) => setCtrlOwner(ctrl.id, e.target.value)}
             className="w-full px-[10px] py-[7px] rounded-[7px] text-[12px] outline-none"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: `1px solid ${colors.border}`,
-              color: colors.textPrimary,
-            }}
+            style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${colors.border}`, color: colors.textPrimary }}
           />
         </div>
 
-        {/* Add note */}
+        {/* Note */}
         <div>
           <div className="flex items-center gap-[6px] mb-[7px]">
             <StickyNote size={11} color={colors.textDim} />
@@ -622,12 +762,7 @@ function ControlDetailPanel({
             onChange={(e) => setNote(e.target.value)}
             onBlur={(e) => setCtrlNote(ctrl.id, e.target.value)}
             className="w-full px-[10px] py-[7px] rounded-[7px] text-[12px] outline-none resize-none"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: `1px solid ${colors.border}`,
-              color: colors.textPrimary,
-              lineHeight: 1.5,
-            }}
+            style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${colors.border}`, color: colors.textPrimary, lineHeight: 1.5 }}
           />
         </div>
       </div>
@@ -637,17 +772,25 @@ function ControlDetailPanel({
         className="shrink-0 flex flex-col gap-[8px] px-[16px] py-[14px]"
         style={{ borderTop: `1px solid ${colors.border}` }}
       >
-        {/* Remediate with AI — only for non-passing */}
+        {/* Primary CTA: "Fix this control" for failing, "Remediate with AI" for others */}
         {ctrl.status !== "passing" && (
           <button
             onClick={() => onAskAI(ctrl)}
-            className="w-full flex items-center justify-center gap-[6px] px-[12px] py-[9px] rounded-[8px] text-[12px] font-semibold cursor-pointer transition-colors"
-            style={{ background: `${statusColor}18`, color: statusColor, border: `1px solid ${statusColor}2a` }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${statusColor}28`; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = `${statusColor}18`; }}
+            className="w-full flex items-center justify-center gap-[6px] px-[12px] py-[10px] rounded-[8px] text-[12px] font-semibold cursor-pointer transition-colors"
+            style={
+              ctrl.status === "failing"
+                ? { background: colors.critical, color: "#fff", border: `1px solid ${colors.critical}` }
+                : { background: `${statusColor}18`, color: statusColor, border: `1px solid ${statusColor}2a` }
+            }
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.opacity = "0.88";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.opacity = "1";
+            }}
           >
-            <Sparkles size={13} />
-            Remediate with AI
+            {ctrl.status === "failing" ? <Zap size={13} /> : <Sparkles size={13} />}
+            {ctrl.status === "failing" ? "Fix this control" : "Remediate with AI"}
           </button>
         )}
 
@@ -1374,21 +1517,52 @@ export default function ComplianceFrameworkPage() {
   }
 
   function handleRemediateControl(ctrl: FrameworkControl) {
-    const gap = gaps.find(g => g.id === ctrl.gapId);
+    const ctrlGaps      = GAPS.filter(g => g.control === ctrl.id);
+    const missingEv     = (ctrl.requiredEvidence ?? []).filter(req =>
+      !req.evidenceId || !allEvidence.find(e => e.id === req.evidenceId && e.status === "collected")
+    );
+    const criticalGap   = ctrlGaps.find(g => g.severity === "critical");
+    const overdueGaps   = ctrlGaps.filter(g => getGapUrgency(g.dueDate) === "overdue");
+
+    const gapContext    = ctrlGaps.length > 0
+      ? `\n\nOpen gaps (${ctrlGaps.length}):\n${ctrlGaps.map(g => `• [${g.severity.toUpperCase()}] ${g.title} — ${g.daysOpen}d open, owner: ${g.owner}, due ${g.dueDate}`).join("\n")}`
+      : "";
+    const evidenceContext = missingEv.length > 0
+      ? `\n\nMissing evidence (${missingEv.length}):\n${missingEv.map(e => `• ${e.label}`).join("\n")}`
+      : "";
+
     openWithContext({
       type: "general",
       label: ctrl.name,
       sublabel: `${framework!.name} — ${ctrl.category}`,
       contextKey: `compliance-control-${ctrl.id}`,
       suggestions: [
-        { label: "Step-by-step remediation plan",          prompt: `Give me a detailed step-by-step remediation plan for control ${ctrl.id}: ${ctrl.name} in ${framework!.name}.` },
-        { label: "Who owns this and what do they need?",   prompt: `Who is responsible for remediating ${ctrl.id} and what specific actions do they need to take?` },
-        { label: "What evidence is required?",             prompt: `What evidence needs to be collected to close the gap on ${ctrl.id} in ${framework!.name}? List each artifact with who should collect it.` },
-        { label: "What is the audit impact?",              prompt: `If ${ctrl.id} is still failing at the next audit, what is the likely outcome and how does it affect our overall compliance score?` },
+        {
+          label: "Fix this control — full action plan",
+          prompt: `Give me a prioritized action plan to fix control ${ctrl.id}: "${ctrl.name}" in ${framework!.name}.${gapContext}${evidenceContext}\n\nInclude: who should do what, by when, and which evidence to collect first.`,
+        },
+        {
+          label: "What evidence do I collect first?",
+          prompt: `For control ${ctrl.id} in ${framework!.name}, list the missing evidence in priority order. For each item, tell me exactly where to get it and who should collect it.${evidenceContext}`,
+        },
+        {
+          label: "Who owns this and what do they need?",
+          prompt: `Who is responsible for fixing ${ctrl.id} — "${ctrl.name}"? What specific actions do they need to take, and what resources or approvals do they need to move forward?`,
+        },
+        {
+          label: "What is the audit impact if unresolved?",
+          prompt: `If control ${ctrl.id} in ${framework!.name} is still failing at the next audit, what is the likely finding, how does it affect our score, and what remediation timeline is acceptable?`,
+        },
       ],
-      greeting: gap
-        ? `Control ${ctrl.id} — "${ctrl.name}" is failing. The open gap "${gap.title}" has been open ${gap.daysOpen} days and is owned by ${gap.owner}. I've loaded the remediation context. Where would you like to start?`
-        : `Control ${ctrl.id} — "${ctrl.name}" is ${ctrl.status}. Let me help you build a remediation plan.`,
+      greeting: ctrlGaps.length > 0
+        ? `Control ${ctrl.id} — "${ctrl.name}" is ${ctrl.status}.${
+            overdueGaps.length > 0 ? ` ⚠ ${overdueGaps.length} gap${overdueGaps.length > 1 ? "s are" : " is"} overdue.` : ""
+          } ${ctrlGaps.length} open gap${ctrlGaps.length > 1 ? "s" : ""}${criticalGap ? ` including a critical issue: "${criticalGap.title}"` : ""}. ${
+            missingEv.length > 0 ? `${missingEv.length} evidence item${missingEv.length > 1 ? "s are" : " is"} missing.` : "Evidence is linked."
+          } I've loaded the full context. What would you like to tackle first?`
+        : `Control ${ctrl.id} — "${ctrl.name}" is ${ctrl.status}. ${
+            missingEv.length > 0 ? `${missingEv.length} evidence item${missingEv.length > 1 ? "s are" : " is"} missing.` : ""
+          } Let me help you build a remediation plan.`,
     });
   }
 
@@ -1698,7 +1872,14 @@ export default function ComplianceFrameworkPage() {
                             const overrideOwner = getCtrlOwner(ctrl.id);
                             const displayOwner  = overrideOwner || gapOwner;
                             const evCount       = allEvidence.filter(e => (e.control as string) === ctrl.id).length;
-                            const gCount        = GAPS.filter(g => g.control === ctrl.id).length;
+                            const ctrlGaps      = GAPS.filter(g => g.control === ctrl.id);
+                            const gCount        = ctrlGaps.length;
+                            const urgency       = ctrlGaps.reduce<"overdue" | "due-soon" | null>((acc, g) => {
+                              const u = getGapUrgency(g.dueDate);
+                              if (u === "overdue") return "overdue";
+                              if (u === "due-soon" && acc !== "overdue") return "due-soon";
+                              return acc;
+                            }, null);
                             return (
                               <ControlTableRow
                                 key={ctrl.id}
@@ -1708,6 +1889,7 @@ export default function ComplianceFrameworkPage() {
                                 owner={displayOwner}
                                 evidenceCount={evCount}
                                 gapCount={gCount}
+                                gapUrgency={urgency}
                               />
                             );
                           })}
